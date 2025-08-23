@@ -1,0 +1,47 @@
+{
+  "name": "music-booking-platform",
+  "version": "1.0.0",
+  "description": "A cutting-edge MERN stack platform connecting clients, artists, and recording studios",
+  "main": "server/src/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "seed": "cd server && npm run seed",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "test": "cd server && npm test",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\""
+  },
+  "keywords": [
+    "music",
+    "booking",
+    "collaboration",
+    "artists",
+    "studios",
+    "MERN",
+    "React",
+    "Node.js"
+  ],
+  "author": "Music Booking Platform Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "eslint": "^8.45.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/music-booking-platform.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/music-booking-platform/issues"
+  },
+  "homepage": "https://musicbooking.io"
+}
