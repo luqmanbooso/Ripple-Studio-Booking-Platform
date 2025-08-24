@@ -44,8 +44,8 @@ const seedData = async () => {
         password: 'password123',
         role: 'artist',
         verified: true,
-        country: 'USA',
-        city: ['New York', 'Los Angeles', 'Nashville', 'Atlanta', 'Chicago'][i-1]
+        country: 'Sri Lanka',
+        city: ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura'][i-1]
       });
 
       const artist = await Artist.create({
@@ -94,8 +94,8 @@ const seedData = async () => {
         password: 'password123',
         role: 'studio',
         verified: true,
-        country: 'USA',
-        city: ['New York', 'Los Angeles', 'Nashville'][i-1]
+        country: 'Sri Lanka',
+        city: ['Colombo', 'Kandy', 'Galle'][i-1]
       });
 
       const studio = await Studio.create({
@@ -103,8 +103,8 @@ const seedData = async () => {
         name: [`Premium Recording Studio`, `Ocean View Studios`, `Downtown Music Hub`][i-1],
         description: `Professional recording studio with state-of-the-art equipment and experienced engineers.`,
         location: {
-          country: 'USA',
-          city: ['New York', 'Los Angeles', 'Nashville'][i-1],
+          country: 'Sri Lanka',
+          city: ['Colombo', 'Kandy', 'Galle'][i-1],
           address: [`123 Music Ave`, `456 Studio Blvd`, `789 Sound St`][i-1]
         },
         equipment: [
@@ -149,8 +149,8 @@ const seedData = async () => {
         password: 'password123',
         role: 'client',
         verified: true,
-        country: 'USA',
-        city: ['New York', 'Los Angeles', 'Chicago'][i-1]
+        country: 'Sri Lanka',
+        city: ['Colombo', 'Kandy', 'Galle'][i-1]
       });
       clients.push(client);
     }

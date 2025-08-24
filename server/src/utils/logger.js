@@ -1,71 +1,44 @@
 const fs = require('fs');
 const path = require('path');
 
-// Ensure logs directory exists
-const logsDir = path.join(__dirname, '../../logs');
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, '../logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
+// Simple logger implementation
 const logger = {
   info: (message, meta = {}) => {
-    const logEntry = {
-      level: 'info',
-      timestamp: new Date().toISOString(),
-      message,
-      ...meta
-    };
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] INFO: ${message} ${JSON.stringify(meta)}\n`;
     
-    console.log(`[INFO] ${logEntry.timestamp}: ${message}`);
+    console.log(`INFO: ${message}`, meta);
     
-    // Write to file in production
     if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(
-        path.join(logsDir, 'info.log'),
-        JSON.stringify(logEntry) + '\n'
-      );
+      fs.appendFileSync(path.join(logsDir, 'app.log'), logEntry);
     }
   },
-  
+
   error: (message, error = {}) => {
-    const logEntry = {
-      level: 'error',
-      timestamp: new Date().toISOString(),
-      message,
-      error: error.stack || error,
-      ...error
-    };
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ERROR: ${message} ${JSON.stringify(error)}\n`;
     
-    console.error(`[ERROR] ${logEntry.timestamp}: ${message}`, error);
-    
-    // Write to file
-    fs.appendFileSync(
-      path.join(logsDir, 'error.log'),
-      JSON.stringify(logEntry) + '\n'
-    );
-  },
-  
-  warn: (message, meta = {}) => {
-    const logEntry = {
-      level: 'warn',
-      timestamp: new Date().toISOString(),
-      message,
-      ...meta
-    };
-    
-    console.warn(`[WARN] ${logEntry.timestamp}: ${message}`);
+    console.error(`ERROR: ${message}`, error);
     
     if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(
-        path.join(logsDir, 'warn.log'),
-        JSON.stringify(logEntry) + '\n'
-      );
+      fs.appendFileSync(path.join(logsDir, 'error.log'), logEntry);
     }
   },
-  
-  debug: (message, meta = {}) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEBUG] ${new Date().toISOString()}: ${message}`, meta);
+
+  warn: (message, meta = {}) => {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] WARN: ${message} ${JSON.stringify(meta)}\n`;
+    
+    console.warn(`WARN: ${message}`, meta);
+    
+    if (process.env.NODE_ENV === 'production') {
+      fs.appendFileSync(path.join(logsDir, 'app.log'), logEntry);
     }
   }
 };

@@ -7,21 +7,21 @@ const ApiError = require('../utils/ApiError');
 const allowRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return next(new ApiError('Authentication required', 401));
+      throw new ApiError('Authentication required', 401);
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new ApiError('Access denied. Insufficient permissions', 403));
+      throw new ApiError('Access denied. Insufficient permissions.', 403);
     }
 
     next();
   };
 };
 
-/**
- * Check if user owns the resource or is admin
- * @param {string} resourceUserField - Field name that contains user ID
- */
+module.exports = {
+  allowRoles
+};
+
 const ownerOrAdmin = (resourceUserField = 'user') => {
   return (req, res, next) => {
     if (!req.user) {

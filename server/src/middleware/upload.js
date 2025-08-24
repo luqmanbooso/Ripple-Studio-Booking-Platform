@@ -4,17 +4,17 @@ const ApiError = require('../utils/ApiError');
 
 // Configure storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: function (req, file, cb) {
     cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
+  filename: function (req, file, cb) {
     // Generate unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter function
+// File filter
 const fileFilter = (req, file, cb) => {
   // Check file type
   if (file.mimetype.startsWith('image/')) {
@@ -24,7 +24,7 @@ const fileFilter = (req, file, cb) => {
   } else if (file.mimetype.startsWith('video/')) {
     cb(null, true);
   } else {
-    cb(new ApiError('Only image, audio, and video files are allowed', 400), false);
+    cb(new ApiError('Invalid file type. Only images, audio, and video files are allowed.', 400), false);
   }
 };
 
@@ -33,31 +33,17 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
-    files: 10 // Maximum 10 files
   },
   fileFilter: fileFilter
 });
 
-// Middleware for single file upload
-const uploadSingle = (fieldName) => {
-  return (req, res, next) => {
-    const uploadSingleFile = upload.single(fieldName);
-    
-    uploadSingleFile(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
-          return next(new ApiError('File too large. Maximum size is 50MB', 400));
-        }
-        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-          return next(new ApiError('Unexpected field name', 400));
-        }
-        return next(new ApiError(err.message, 400));
-      } else if (err) {
-        return next(err);
-      }
-      next();
-    });
-  };
+// Middleware functions
+const uploadSingle = (fieldName) => upload.single(fieldName);
+// Removed duplicate uploadMultiple declaration here
+
+module.exports = {
+  uploadSingle,
+  // The correct uploadMultiple middleware is defined below and exported at the end of the file
 };
 
 // Middleware for multiple file upload

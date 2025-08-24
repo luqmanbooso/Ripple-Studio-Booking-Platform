@@ -9,10 +9,10 @@ const updateProfile = catchAsync(async (req, res) => {
   const userId = req.user._id;
   const { name, phone, country, city, ...otherData } = req.body;
 
-  // Update user basic info
+  // Update user basic info - always set country to Sri Lanka
   const user = await User.findByIdAndUpdate(
     userId,
-    { name, phone, country, city },
+    { name, phone, country: 'Sri Lanka', city }, // Always set country to Sri Lanka
     { new: true, runValidators: true }
   ).populate('artist').populate('studio');
 
@@ -27,6 +27,10 @@ const updateProfile = catchAsync(async (req, res) => {
       runValidators: true
     });
   } else if (user.role === 'studio' && user.studio) {
+    // For studios, also update location to ensure country is Sri Lanka
+    if (otherData.location) {
+      otherData.location.country = 'Sri Lanka';
+    }
     await Studio.findByIdAndUpdate(user.studio._id, otherData, {
       new: true,
       runValidators: true

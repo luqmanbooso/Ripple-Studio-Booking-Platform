@@ -43,18 +43,11 @@ const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId');
 
 const pagination = z.object({
   page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(10),
-  sort: z.string().optional()
-});
-
-const dateRange = z.object({
-  start: z.string().datetime().optional(),
-  end: z.string().datetime().optional()
+  limit: z.coerce.number().min(1).max(100).default(10)
 });
 
 module.exports = {
   validate,
   objectId,
-  pagination,
-  dateRange
+  pagination
 };

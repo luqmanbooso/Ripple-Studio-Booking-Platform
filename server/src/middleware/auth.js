@@ -7,73 +7,68 @@ const catchAsync = require('../utils/catchAsync');
  * Middleware to authenticate user using JWT
  */
 const authenticate = catchAsync(async (req, res, next) => {
-  // Get token from header
-  const authHeader = req.headers.authorization;
   let token;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
+  // Get token from header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
 
   if (!token) {
-    return next(new ApiError('Access token is required', 401));
+    throw new ApiError('Access token is required', 401);
   }
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    
-    // Get user from database
-    const user = await User.findById(decoded.id)
-      .populate('artist')
-      .populate('studio')
-      .select('-password');
-    
-    if (!user) {
-      return next(new ApiError('User not found', 401));
-    }
+  // Verify token
+  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
-    // Add user to request
-    req.user = user;
-    next();
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return next(new ApiError('Access token expired', 401));
-    } else if (error.name === 'JsonWebTokenError') {
-      return next(new ApiError('Invalid access token', 401));
-    }
-    return next(new ApiError('Authentication failed', 401));
+  // Get user from token
+  const user = await User.findById(decoded.id).select('-password');
+  if (!user) {
+    throw new ApiError('User not found', 401);
   }
+
+  // Check if user is active
+  if (!user.isActive) {
+    throw new ApiError('Account has been deactivated', 401);
+  }
+
+  req.user = user;
+  next();
 });
 
 /**
  * Optional authentication - doesn't fail if no token provided
  */
 const optionalAuth = catchAsync(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
   let token;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
+  // Get token from header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
 
   if (token) {
     try {
+      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      const user = await User.findById(decoded.id)
-        .populate('artist')
-        .populate('studio')
-        .select('-password');
-      
-      if (user) {
+
+      // Get user from token
+      const user = await User.findById(decoded.id).select('-password');
+      if (user && user.isActive) {
         req.user = user;
       }
     } catch (error) {
-      // Continue without user
+      // Continue without user if token is invalid
     }
   }
 
   next();
 });
+
+module.exports = {
+  authenticate,
+  optionalAuth
+};
+
 
 module.exports = { authenticate, optionalAuth };
