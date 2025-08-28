@@ -16,7 +16,7 @@ const ArtistCard = ({ artist }) => {
         <Card hover className="overflow-hidden">
           {/* Avatar */}
           <div className="relative">
-            <div className="aspect-square bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg mb-4 overflow-hidden">
+            <div className="aspect-square bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-600 dark:to-accent-600 rounded-lg mb-4 overflow-hidden">
               {user?.avatar?.url ? (
                 <img
                   src={user.avatar.url}
@@ -41,13 +41,13 @@ const ArtistCard = ({ artist }) => {
           {/* Content */}
           <div className="space-y-3">
             <div>
-              <h3 className="font-semibold text-gray-100 text-lg line-clamp-1">
+              <h3 className="font-semibold text-light-text dark:text-gray-100 text-lg line-clamp-1">
                 {user?.name}
               </h3>
               
               {/* Location */}
               {(user?.city || user?.country) && (
-                <div className="flex items-center text-gray-400 text-sm mt-1">
+                <div className="flex items-center text-light-textSecondary dark:text-gray-400 text-sm mt-1">
                   <MapPin className="w-4 h-4 mr-1" />
                   <span>
                     {[user?.city, user?.country].filter(Boolean).join(', ')}
@@ -62,13 +62,13 @@ const ArtistCard = ({ artist }) => {
                 {genres.slice(0, 3).map((genre) => (
                   <span
                     key={genre}
-                    className="px-2 py-1 bg-primary-900/30 text-primary-300 text-xs rounded-full"
+                    className="px-2 py-1 bg-light-primary/30 dark:bg-primary-900/30 text-light-primary dark:text-primary-300 text-xs rounded-full"
                   >
                     {genre}
                   </span>
                 ))}
                 {genres.length > 3 && (
-                  <span className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-light-textMuted dark:bg-gray-700 text-light-textSecondary dark:text-gray-300 text-xs rounded-full">
                     +{genres.length - 3}
                   </span>
                 )}
@@ -77,26 +77,26 @@ const ArtistCard = ({ artist }) => {
 
             {/* Bio */}
             {bio && (
-              <p className="text-gray-400 text-sm line-clamp-2">
+              <p className="text-light-textSecondary dark:text-gray-400 text-sm line-clamp-2">
                 {bio}
               </p>
             )}
 
             {/* Rating and Price */}
-            <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+            <div className="flex items-center justify-between pt-2 border-t border-light-border dark:border-gray-700">
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm font-medium text-gray-100">
+                <span className="text-sm font-medium text-light-text dark:text-gray-100">
                   {ratingAvg ? ratingAvg.toFixed(1) : 'New'}
                 </span>
                 {ratingCount > 0 && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-light-textSecondary dark:text-gray-400">
                     ({ratingCount})
                   </span>
                 )}
               </div>
               
-              <div className="flex items-center text-primary-400 font-semibold">
+              <div className="flex items-center text-light-primary dark:text-primary-400 font-semibold">
                 <DollarSign className="w-4 h-4" />
                 <span>{hourlyRate}/hr</span>
               </div>

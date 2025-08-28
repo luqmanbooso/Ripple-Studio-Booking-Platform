@@ -95,9 +95,33 @@
     @apply bg-gradient-to-r from-error-500 to-error-600 hover:from-error-600 hover:to-error-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-error-500/50 shadow-lg hover:shadow-lg transform hover:-translate-y-0.5;
   }
 
-  /* Input Fields - Updated for INVERTED light theme */
+  /* Input Fields - Updated for INVERTED light theme with minimal padding */
   .input-field {
-    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 placeholder-light-textMuted dark:placeholder-gray-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm;
+    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 placeholder-light-textMuted dark:placeholder-gray-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm;
+  }
+
+  /* Search Input - Enhanced styling with minimal padding */
+  .search-input {
+    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 placeholder-light-textMuted dark:placeholder-gray-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm w-full;
+  }
+
+  /* Select Field - Enhanced styling with minimal padding */
+  .select-field {
+    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm cursor-pointer;
+  }
+
+  /* Form Field Focus States - Enhanced */
+  .input-field:focus,
+  .search-input:focus,
+  .select-field:focus {
+    @apply transform scale-[1.02] shadow-lg;
+  }
+
+  /* Form Field Hover States - Enhanced */
+  .input-field:hover,
+  .search-input:hover,
+  .select-field:hover {
+    @apply shadow-md;
   }
 
   /* Card Styles - Updated for INVERTED light theme */

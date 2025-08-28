@@ -121,20 +121,20 @@ const Contact = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-white dark:bg-dark-950">
       {/* Hero Section */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/20 to-accent-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-light-primary/20 to-light-accent/20 dark:from-primary-900/20 dark:to-accent-900/20" />
         <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-8">
+            <h1 className="text-5xl md:text-7xl font-bold text-gradient mb-8">
               Get in Touch
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
+            <p className="text-xl md:text-2xl text-light-textSecondary dark:text-gray-300 leading-relaxed">
               Have a question, need support, or want to partner with us? 
               We'd love to hear from you.
             </p>
@@ -162,17 +162,17 @@ const Contact = () => {
                   viewport={{ once: true }}
                   whileHover={{ y: -5 }}
                 >
-                  <Card className="text-center p-6 h-full cursor-pointer hover:border-primary-500/50">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Card className="text-center p-6 h-full cursor-pointer hover:border-light-primary/50 dark:hover:border-primary-500/50">
+                    <div className="w-16 h-16 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-600 dark:to-accent-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-100 mb-2">
+                    <h3 className="text-lg font-semibold text-light-text dark:text-gray-100 mb-2">
                       {item.title}
                     </h3>
-                    <p className="text-primary-400 font-medium mb-1">
+                    <p className="text-light-primary dark:text-primary-400 font-medium mb-1">
                       {item.info}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-light-textSecondary dark:text-gray-400 text-sm">
                       {item.description}
                     </p>
                   </Card>
@@ -194,10 +194,10 @@ const Contact = () => {
               viewport={{ once: true }}
             >
               <Card className="p-8">
-                <h2 className="text-3xl font-bold text-gray-100 mb-6">
+                <h2 className="text-3xl font-bold text-light-text dark:text-gray-100 mb-6">
                   Send us a message
                 </h2>
-                <p className="text-gray-400 mb-8">
+                <p className="text-light-textSecondary dark:text-gray-400 mb-8">
                   Fill out the form below and we'll get back to you as soon as possible.
                 </p>
 
@@ -220,7 +220,7 @@ const Contact = () => {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-300">
+                      <label className="block text-sm font-medium text-light-text dark:text-gray-300">
                         Inquiry Type
                       </label>
                       <select
