@@ -129,18 +129,12 @@ const Navbar = () => {
             to="/" 
             className="flex items-center space-x-3 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200 group"
           >
-            <motion.div 
-              className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-neon"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Music className="w-6 h-6 text-white" />
-            </motion.div>
-            <span className="hidden sm:block relative text-gray-900 dark:text-gray-100">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-neon group-hover:animate-spin-slow">
+              <Music className="w-6 h-6 text-white animate-bounce-slow" />
+            </div>
+            <span className="hidden sm:block relative">
               MusicBooking
-              <motion.div
-                className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 group-hover:w-full transition-all duration-500"
-              />
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 group-hover:w-full transition-all duration-500"></div>
             </span>
           </Link>
 
