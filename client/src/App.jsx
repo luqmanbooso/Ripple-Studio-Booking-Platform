@@ -66,12 +66,17 @@ function App() {
       dispatch(setTheme(savedTheme))
     }
 
-    // Set initial theme class
-    if (mode === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+    // Set initial theme class on document
+    const applyTheme = (themeMode) => {
+      if (themeMode === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
     }
+
+    // Apply current theme
+    applyTheme(mode)
 
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -81,7 +86,9 @@ function App() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleThemeChange = (e) => {
       if (!localStorage.getItem('theme')) {
-        dispatch(setTheme(e.matches ? 'dark' : 'light'))
+        const newTheme = e.matches ? 'dark' : 'light'
+        dispatch(setTheme(newTheme))
+        applyTheme(newTheme)
       }
     }
     mediaQuery.addEventListener('change', handleThemeChange)
@@ -90,6 +97,15 @@ function App() {
       mediaQuery.removeEventListener('change', handleThemeChange)
     }
   }, [dispatch, mode])
+
+  // Watch for theme mode changes to update document class
+  useEffect(() => {
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [mode])
 
   useEffect(() => {
     // Initialize socket connection when user is authenticated

@@ -97,64 +97,76 @@ const Search = () => {
           transition={{ delay: 0.1 }}
           className="card mb-8"
         >
-          <form onSubmit={handleSearch} className="space-y-4">
+          <form onSubmit={handleSearch} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-2">
-                <Input
-                  placeholder="Search artists, studios, genres..."
-                  icon={<SearchIcon className="w-5 h-5" />}
-                  value={filters.q}
-                  onChange={(e) => handleFilterChange('q', e.target.value)}
-                />
+                <div className="relative">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search artists, studios, genres..."
+                    value={filters.q}
+                    onChange={(e) => handleFilterChange('q', e.target.value)}
+                    className="search-input pl-10"
+                  />
+                </div>
               </div>
               <select
-                className="input-field"
+                className="select-field"
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
               >
-                <option value="all">All</option>
-                <option value="artists">Artists</option>
-                <option value="studios">Studios</option>
+                <option value="all" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">All</option>
+                <option value="artists" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Artists</option>
+                <option value="studios" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Studios</option>
               </select>
               <select
-                className="input-field"
+                className="select-field"
                 value={filters.sort}
                 onChange={(e) => handleFilterChange('sort', e.target.value)}
               >
-                <option value="-ratingAvg">Highest Rated</option>
-                <option value="hourlyRate">Lowest Price</option>
-                <option value="-hourlyRate">Highest Price</option>
-                <option value="-createdAt">Newest</option>
+                <option value="-ratingAvg" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Highest Rated</option>
+                <option value="hourlyRate" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Lowest Price</option>
+                <option value="-hourlyRate" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Highest Price</option>
+                <option value="-createdAt" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Newest</option>
               </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <Input
+              <input
+                type="text"
                 placeholder="Country"
                 value={filters.country}
                 onChange={(e) => handleFilterChange('country', e.target.value)}
+                className="input-field"
               />
-              <Input
+              <input
+                type="text"
                 placeholder="City"
                 value={filters.city}
                 onChange={(e) => handleFilterChange('city', e.target.value)}
+                className="input-field"
               />
-              <Input
+              <input
+                type="text"
                 placeholder="Genre"
                 value={filters.genre}
                 onChange={(e) => handleFilterChange('genre', e.target.value)}
+                className="input-field"
               />
-              <Input
-                placeholder="Min Rate"
+              <input
                 type="number"
+                placeholder="Min Rate"
                 value={filters.minRate}
                 onChange={(e) => handleFilterChange('minRate', e.target.value)}
+                className="input-field"
               />
-              <Input
-                placeholder="Max Rate"
+              <input
                 type="number"
+                placeholder="Max Rate"
                 value={filters.maxRate}
                 onChange={(e) => handleFilterChange('maxRate', e.target.value)}
+                className="input-field"
               />
             </div>
           </form>

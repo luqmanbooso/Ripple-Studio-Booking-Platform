@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
 
 const Select = forwardRef(({
   label,
@@ -13,7 +12,7 @@ const Select = forwardRef(({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-gray-300">
+        <label className="form-label">
           {label}
         </label>
       )}
@@ -21,32 +20,35 @@ const Select = forwardRef(({
         <motion.select
           ref={ref}
           className={`
-            input-field w-full appearance-none
-            ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+            select-field
+            ${error ? 'border-error-500 dark:border-error-400 focus:border-error-500 dark:focus:border-error-400 focus:ring-error-500/50' : ''}
             ${className}
           `}
-          whileFocus={{ scale: 1.02 }}
+          whileFocus={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
           {...props}
         >
           {placeholder && (
-            <option value="" disabled>
+            <option value="" disabled className="text-gray-500 dark:text-gray-400">
               {placeholder}
             </option>
           )}
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option 
+              key={option.value} 
+              value={option.value}
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
               {option.label}
             </option>
           ))}
         </motion.select>
-        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
       </div>
       {error && (
         <motion.p
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-red-400"
+          className="form-error"
         >
           {error}
         </motion.p>

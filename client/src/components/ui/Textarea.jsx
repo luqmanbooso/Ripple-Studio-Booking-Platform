@@ -11,7 +11,7 @@ const Textarea = forwardRef(({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-gray-300">
+        <label className="form-label">
           {label}
         </label>
       )}
@@ -19,11 +19,11 @@ const Textarea = forwardRef(({
         ref={ref}
         rows={rows}
         className={`
-          input-field w-full resize-none
-          ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+          textarea-field
+          ${error ? 'border-error-500 dark:border-error-400 focus:border-error-500 dark:focus:border-error-400 focus:ring-error-500/50' : ''}
           ${className}
         `}
-        whileFocus={{ scale: 1.02 }}
+        whileFocus={{ scale: 1.01 }}
         transition={{ duration: 0.2 }}
         {...props}
       />
@@ -31,7 +31,7 @@ const Textarea = forwardRef(({
         <motion.p
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-red-400"
+          className="form-error"
         >
           {error}
         </motion.p>
