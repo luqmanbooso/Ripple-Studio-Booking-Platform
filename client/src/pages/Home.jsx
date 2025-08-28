@@ -21,7 +21,6 @@ import {
   Clock
 } from 'lucide-react'
 import Button from '../components/ui/Button'
-import MusicVisualizer from '../components/common/MusicVisualizer'
 import FloatingMusicNotes from '../components/common/FloatingMusicNotes'
 import VibratingElements from '../components/common/VibratingElements'
 
@@ -47,25 +46,25 @@ const Home = () => {
       icon: <Search className="w-8 h-8" />,
       title: 'Smart Discovery',
       description: 'AI-powered search to find your perfect musical match based on style, location, and vibe',
-      color: 'from-blue-500 to-cyan-500'
+      color: 'from-light-accent to-light-primary dark:from-blue-500 dark:to-cyan-500'
     },
     {
       icon: <Calendar className="w-8 h-8" />,
       title: 'Instant Booking',
       description: 'Real-time availability with seamless booking and secure payment processing',
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-light-highlight to-light-primary dark:from-purple-500 dark:to-pink-500'
     },
     {
       icon: <Shield className="w-8 h-8" />,
       title: 'Verified Professionals',
       description: 'All artists and studios are verified with authentic reviews from the community',
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-success-500 to-success-600'
     },
     {
       icon: <Zap className="w-8 h-8" />,
       title: 'Real-time Collaboration',
       description: 'Live chat, file sharing, and project management tools for seamless collaboration',
-      color: 'from-yellow-500 to-orange-500'
+      color: 'from-warning-500 to-warning-600'
     }
   ]
 
@@ -98,10 +97,10 @@ const Home = () => {
   ]
 
   const trendingGenres = [
-    { name: 'Lo-Fi Hip Hop', growth: '+45%', color: 'bg-purple-500' },
-    { name: 'Indie Pop', growth: '+32%', color: 'bg-pink-500' },
-    { name: 'Electronic', growth: '+28%', color: 'bg-blue-500' },
-    { name: 'R&B Soul', growth: '+25%', color: 'bg-green-500' }
+    { name: 'Lo-Fi Hip Hop', growth: '+45%', color: 'bg-light-highlight dark:bg-purple-500' },
+    { name: 'Indie Pop', growth: '+32%', color: 'bg-light-primary dark:bg-pink-500' },
+    { name: 'Electronic', growth: '+28%', color: 'bg-light-accent dark:bg-blue-500' },
+    { name: 'R&B Soul', growth: '+25%', color: 'bg-success-500' }
   ]
 
   useEffect(() => {
@@ -118,14 +117,14 @@ const Home = () => {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 transition-colors duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-light-card to-white dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 transition-colors duration-500" />
         
         {/* Animated Background Elements */}
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(15)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-primary-500/10 dark:text-primary-500/20"
+              className="absolute text-light-primary/20 dark:text-primary-500/20"
               initial={{ 
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight,
@@ -169,23 +168,21 @@ const Home = () => {
                 Where Music
                 <br />
                 <span className="relative inline-block">
-                  Comes Alive
+                  <span className="bg-gradient-to-r from-light-primary via-light-accent to-light-highlight dark:from-primary-600 dark:via-accent-500 dark:to-highlight-600 bg-clip-text text-transparent">
+                    Comes Alive
+                  </span>
                   <motion.div
-                    className="absolute -bottom-4 left-0 right-0 h-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                    className="absolute -bottom-4 left-0 right-0 h-2 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-full"
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ duration: 1, delay: 1.5 }}
                   />
-                  {/* Music Visualizer under text */}
-                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-                    <MusicVisualizer bars={12} height={30} color="gradient" />
-                  </div>
                 </span>
               </motion.h1>
             </VibratingElements>
 
             <motion.p
-              className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-light-textSecondary dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
@@ -195,7 +192,7 @@ const Home = () => {
               Create, collaborate, and bring your musical vision to life.
             </motion.p>
 
-            {/* Enhanced Search with Music Visualizer */}
+            {/* Enhanced Search */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -205,7 +202,7 @@ const Home = () => {
               <form onSubmit={handleSearch} className="glass-card p-8 rounded-3xl relative overflow-hidden">
                 {/* Animated Background */}
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-accent-500/5 dark:from-primary-500/10 dark:to-accent-500/10"
+                  className="absolute inset-0 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-500/10 dark:to-accent-500/10"
                   animate={{
                     backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
                   }}
@@ -220,30 +217,22 @@ const Home = () => {
                 <div className="relative z-10">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-1 relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-light-textMuted dark:text-gray-400" />
                       <motion.input
                         type="text"
                         placeholder="Search for artists, studios, or genres..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-white/50 dark:bg-dark-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-2xl text-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all backdrop-blur-sm"
+                        className="w-full pl-12 pr-6 py-4 bg-white/80 dark:bg-dark-700/50 border border-light-border/70 dark:border-gray-600/50 rounded-2xl text-lg text-light-text dark:text-gray-100 placeholder-light-textMuted dark:placeholder-gray-400 focus:border-light-primary focus:ring-2 focus:ring-light-primary/20 dark:focus:border-primary-500 dark:focus:ring-primary-500/20 transition-all backdrop-blur-sm"
                         whileFocus={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       />
-                      {/* Animated search icon */}
-                      <motion.div
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                        animate={{ rotate: [0, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                      >
-                        <MusicVisualizer bars={3} height={15} color="primary" />
-                      </motion.div>
                     </div>
                     <div className="lg:w-64">
                       <select
                         value={searchType}
                         onChange={(e) => setSearchType(e.target.value)}
-                        className="w-full py-4 px-6 bg-white/50 dark:bg-dark-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-2xl text-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all backdrop-blur-sm"
+                        className="w-full py-4 px-6 bg-white/80 dark:bg-dark-700/50 border border-light-border/70 dark:border-gray-600/50 rounded-2xl text-lg text-light-text dark:text-gray-100 focus:border-light-primary focus:ring-2 focus:ring-light-primary/20 dark:focus:border-primary-500 dark:focus:ring-primary-500/20 transition-all backdrop-blur-sm"
                       >
                         <option value="all">All Categories</option>
                         <option value="artists">Artists</option>
@@ -258,7 +247,7 @@ const Home = () => {
                         <Search className="w-6 h-6 mr-2 group-hover:animate-spin" />
                         Discover
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-accent-500/20 to-highlight-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          className="absolute inset-0 bg-gradient-to-r from-light-accent/20 to-light-highlight/20 dark:from-accent-500/20 dark:to-highlight-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           animate={{
                             x: ['-100%', '100%'],
                           }}
@@ -291,14 +280,14 @@ const Home = () => {
                       setSearchQuery(genre)
                       setSearchType('all')
                     }}
-                    className="px-6 py-3 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm border border-gray-300/50 dark:border-gray-700/50 rounded-full text-gray-700 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 hover:border-primary-500/50 transition-all duration-300 group relative overflow-hidden"
+                    className="px-6 py-3 bg-white/80 dark:bg-dark-800/50 backdrop-blur-sm border border-light-border/70 dark:border-gray-700/50 rounded-full text-light-textSecondary dark:text-gray-300 hover:text-light-primary dark:hover:text-primary-400 hover:border-light-primary/70 dark:hover:border-primary-500/50 transition-all duration-300 group relative overflow-hidden"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.2 + index * 0.1 }}
                   >
                     <span className="relative z-10 group-hover:animate-pulse">{genre}</span>
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="absolute inset-0 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-500/10 dark:to-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       animate={{
                         scale: [1, 1.05, 1],
                       }}
@@ -325,16 +314,16 @@ const Home = () => {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-8 h-12 border-2 border-gray-400 dark:border-gray-600 rounded-full flex justify-center relative overflow-hidden"
+              className="w-8 h-12 border-2 border-light-textMuted dark:border-gray-600 rounded-full flex justify-center relative overflow-hidden"
             >
               <motion.div
                 animate={{ y: [0, 16, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="w-1 h-4 bg-gradient-to-b from-primary-500 to-accent-500 rounded-full mt-2"
+                className="w-1 h-4 bg-gradient-to-b from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-full mt-2"
               />
               {/* Pulsing glow */}
               <motion.div
-                className="absolute inset-0 rounded-full border-2 border-primary-500/50"
+                className="absolute inset-0 rounded-full border-2 border-light-primary/50 dark:border-primary-500/50"
                 animate={{ 
                   scale: [1, 1.2, 1],
                   opacity: [0.5, 0, 0.5]
@@ -347,7 +336,7 @@ const Home = () => {
       </section>
 
       {/* Enhanced Stats Section */}
-      <section className="py-24 bg-gradient-to-r from-gray-50 to-white dark:from-dark-900/50 dark:to-dark-800/50 backdrop-blur-sm transition-colors duration-500">
+      <section className="py-24 bg-gradient-to-r from-light-card to-white dark:from-dark-900/50 dark:to-dark-800/50 backdrop-blur-sm transition-colors duration-500">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -369,10 +358,10 @@ const Home = () => {
                   className="text-center group cursor-pointer"
                 >
                   <VibratingElements intensity="medium">
-                    <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-neon transition-all duration-300 relative overflow-hidden">
+                    <div className="w-20 h-20 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-neon transition-all duration-300 relative overflow-hidden">
                       <Icon className="w-10 h-10 text-white group-hover:animate-bounce" />
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-accent-500/30 to-highlight-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 bg-gradient-to-r from-light-accent/30 to-light-highlight/30 dark:from-accent-500/30 dark:to-highlight-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         animate={{
                           rotate: [0, 360],
                         }}
@@ -393,12 +382,8 @@ const Home = () => {
                   >
                     <span className="group-hover:animate-pulse">{stat.number}</span>
                   </motion.div>
-                  <div className="text-gray-600 dark:text-gray-400 font-medium text-lg group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
+                  <div className="text-light-textSecondary dark:text-gray-400 font-medium text-lg group-hover:text-light-primary dark:group-hover:text-primary-400 transition-colors">
                     {stat.label}
-                  </div>
-                  {/* Music visualizer for each stat */}
-                  <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <MusicVisualizer bars={5} height={15} color="primary" />
                   </div>
                 </motion.div>
               )
@@ -417,10 +402,10 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <h2 className="section-title gradient-text">
+            <h2 className="section-title">
               Why Artists Choose Us
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-light-textMuted dark:text-gray-400 max-w-3xl mx-auto">
               Cutting-edge technology meets creative passion. Experience the future of music collaboration.
             </p>
           </motion.div>
@@ -441,10 +426,10 @@ const Home = () => {
                     {feature.icon}
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-100 mb-4 group-hover:text-primary-300 transition-colors">
+                <h3 className="text-2xl font-bold text-light-text dark:text-gray-100 mb-4 group-hover:text-light-primary dark:group-hover:text-primary-300 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-gray-400 leading-relaxed text-lg">
+                <p className="text-light-textSecondary dark:text-gray-400 leading-relaxed text-lg">
                   {feature.description}
                 </p>
               </motion.div>
@@ -454,7 +439,7 @@ const Home = () => {
       </section>
 
       {/* Trending Section */}
-      <section className="py-24 bg-gradient-to-r from-primary-900/10 to-accent-900/10">
+      <section className="py-24 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-900/10 dark:to-accent-900/10">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -463,11 +448,11 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-100 mb-4">
-              <TrendingUp className="w-10 h-10 inline-block mr-3 text-primary-400" />
+            <h2 className="text-4xl font-bold text-light-text dark:text-gray-100 mb-4">
+              <TrendingUp className="w-10 h-10 inline-block mr-3 text-light-primary dark:text-primary-400" />
               Trending Now
             </h2>
-            <p className="text-gray-400 text-lg">
+            <p className="text-light-textSecondary dark:text-gray-400 text-lg">
               Discover what's hot in the music world
             </p>
           </motion.div>
@@ -484,8 +469,8 @@ const Home = () => {
                 className="glass-card p-6 text-center cursor-pointer group"
               >
                 <div className={`w-3 h-3 ${genre.color} rounded-full mx-auto mb-3 group-hover:shadow-glow`} />
-                <h3 className="font-semibold text-gray-100 mb-2">{genre.name}</h3>
-                <span className="text-green-400 font-medium">{genre.growth}</span>
+                <h3 className="font-semibold text-light-text dark:text-gray-100 mb-2">{genre.name}</h3>
+                <span className="text-success-500 font-medium">{genre.growth}</span>
               </motion.div>
             ))}
           </div>
@@ -502,7 +487,7 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <h2 className="section-title gradient-text">
+            <h2 className="section-title">
               Loved by Creators
             </h2>
           </motion.div>
@@ -516,21 +501,21 @@ const Home = () => {
               transition={{ duration: 0.5 }}
               className="glass-card p-12 text-center"
             >
-              <div className="text-3xl text-primary-400 mb-6">"</div>
-              <p className="text-xl text-gray-300 mb-8 italic leading-relaxed">
+              <div className="text-3xl text-light-primary dark:text-primary-400 mb-6">"</div>
+              <p className="text-xl text-light-textSecondary dark:text-gray-300 mb-8 italic leading-relaxed">
                 {testimonials[currentTestimonial].text}
               </p>
               <div className="flex items-center justify-center space-x-4">
                 <img
                   src={testimonials[currentTestimonial].avatar}
                   alt={testimonials[currentTestimonial].author}
-                  className="w-16 h-16 rounded-full border-2 border-primary-500"
+                  className="w-16 h-16 rounded-full border-2 border-light-primary dark:border-primary-500"
                 />
                 <div>
-                  <div className="font-semibold text-gray-100">
+                  <div className="font-semibold text-light-text dark:text-gray-100">
                     {testimonials[currentTestimonial].author}
                   </div>
-                  <div className="text-gray-400">
+                  <div className="text-light-textSecondary dark:text-gray-400">
                     {testimonials[currentTestimonial].role}
                   </div>
                 </div>
@@ -545,8 +530,8 @@ const Home = () => {
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     index === currentTestimonial 
-                      ? 'bg-primary-500 shadow-glow' 
-                      : 'bg-gray-600 hover:bg-gray-500'
+                      ? 'bg-light-primary dark:bg-primary-500 shadow-glow' 
+                      : 'bg-light-textMuted dark:bg-gray-600 hover:bg-light-textSecondary dark:hover:bg-gray-500'
                   }`}
                 />
               ))}
@@ -557,7 +542,7 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/20 to-accent-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-light-primary/20 to-light-accent/20 dark:from-primary-900/20 dark:to-accent-900/20" />
         <div className="container relative">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -565,10 +550,10 @@ const Home = () => {
             viewport={{ once: true }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h2 className="text-5xl md:text-6xl font-bold gradient-text mb-8">
+            <h2 className="text-5xl md:text-6xl font-bold text-gradient mb-8">
               Ready to Create Magic?
             </h2>
-            <p className="text-xl text-gray-300 mb-12 leading-relaxed">
+            <p className="text-xl text-light-textSecondary dark:text-gray-300 mb-12 leading-relaxed">
               Join thousands of artists, producers, and studios already creating amazing music together. 
               <br className="hidden md:block" />
               Your next breakthrough is just a click away.

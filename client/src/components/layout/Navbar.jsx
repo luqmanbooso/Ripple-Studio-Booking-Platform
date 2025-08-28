@@ -121,7 +121,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
+    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
       <div className="container">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -129,18 +129,20 @@ const Navbar = () => {
             to="/" 
             className="flex items-center space-x-3 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200 group"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-neon group-hover:animate-spin-slow">
+            <div className="w-10 h-10 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-xl flex items-center justify-center animate-pulse-neon group-hover:animate-spin-slow">
               <Music className="w-6 h-6 text-white animate-bounce-slow" />
             </div>
             <span className="hidden sm:block relative">
-              MusicBooking
-              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 group-hover:w-full transition-all duration-500"></div>
+              <span className="bg-gradient-to-r from-light-primary via-light-accent to-light-highlight dark:from-primary-600 dark:via-accent-500 dark:to-highlight-600 bg-clip-text text-transparent">
+                MusicBooking
+              </span>
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 group-hover:w-full transition-all duration-500"></div>
             </span>
           </Link>
 
           {/* Desktop Navigation - Centered */}
           <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-8">
-            <div className="flex items-center space-x-1 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-gray-200/50 dark:border-gray-700/50 shadow-glass">
+            <div className="flex items-center space-x-1 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-light-border/50 dark:border-gray-700/50 shadow-glass">
               {navigation.map((item) => {
                 const Icon = item.icon
                 
@@ -151,8 +153,8 @@ const Navbar = () => {
                     <div key={item.name} className="relative">
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
-                        className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 group ${
-                          isOpen ? 'bg-primary-500 text-white shadow-neon' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                        className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-light-card/50 dark:hover:bg-gray-700/50 group ${
+                          isOpen ? 'bg-light-primary text-white dark:bg-primary-500 shadow-neon' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100'
                         }`}
                       >
                         <Icon className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'animate-bounce' : 'group-hover:scale-110'}`} />
@@ -167,7 +169,7 @@ const Navbar = () => {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-2 w-80 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
+                            className="absolute top-full left-0 mt-2 w-80 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-light-border/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {item.items.map((dropdownItem, index) => {
@@ -181,17 +183,17 @@ const Navbar = () => {
                                 >
                                   <Link
                                     to={dropdownItem.href}
-                                    className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 group"
+                                    className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-xl text-light-textSecondary dark:text-gray-300 hover:bg-light-card/50 dark:hover:bg-gray-700/50 hover:text-light-text dark:hover:text-gray-100 transition-all duration-200 group"
                                     onClick={() => setActiveDropdown(null)}
                                   >
-                                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-lg flex items-center justify-center group-hover:from-primary-500/30 group-hover:to-accent-500/30 transition-all duration-200 group-hover:animate-pulse">
-                                      <DropdownIcon className="w-5 h-5 text-primary-500 group-hover:animate-bounce" />
+                                    <div className="w-10 h-10 bg-gradient-to-br from-light-primary/20 to-light-accent/20 dark:from-primary-500/20 dark:to-accent-500/20 rounded-lg flex items-center justify-center group-hover:from-light-primary/30 group-hover:to-light-accent/30 dark:group-hover:from-primary-500/30 dark:group-hover:to-accent-500/30 transition-all duration-200 group-hover:animate-pulse">
+                                      <DropdownIcon className="w-5 h-5 text-light-primary dark:text-primary-500 group-hover:animate-bounce" />
                                     </div>
                                     <div className="flex-1">
-                                      <div className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
+                                      <div className="font-medium text-light-text dark:text-gray-100 group-hover:text-light-primary dark:group-hover:text-primary-400 transition-colors">
                                         {dropdownItem.name}
                                       </div>
-                                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                      <div className="text-sm text-light-textMuted dark:text-gray-400 mt-1">
                                         {dropdownItem.description}
                                       </div>
                                     </div>
@@ -212,8 +214,8 @@ const Navbar = () => {
                     to={item.href}
                     className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
                       isActive(item.href)
-                        ? 'bg-primary-500 text-white shadow-neon'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                        ? 'bg-light-primary text-white dark:bg-primary-500 shadow-neon'
+                        : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
                     }`}
                   >
                     <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
@@ -221,7 +223,7 @@ const Navbar = () => {
                     {isActive(item.href) && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute inset-0 bg-primary-500 rounded-xl -z-10 shadow-neon"
+                        className="absolute inset-0 bg-light-primary dark:bg-primary-500 rounded-xl -z-10 shadow-neon"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
@@ -239,20 +241,20 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <button className="relative p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
                   <Bell className="w-5 h-5 group-hover:animate-wiggle" />
                   <span className="absolute top-2 right-2 w-2 h-2 bg-error-500 rounded-full animate-pulse"></span>
                 </button>
 
                 {/* Messages */}
-                <button className="relative p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
                   <MessageSquare className="w-5 h-5 group-hover:animate-bounce" />
                 </button>
 
                 {/* Dashboard Link */}
                 <Link
                   to="/dashboard"
-                  className="hidden md:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                  className="hidden md:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                 >
                   <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
                   <span>Dashboard</span>
@@ -262,7 +264,7 @@ const Navbar = () => {
                 {user?.role === 'admin' && (
                   <Link
                     to="/admin"
-                    className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                    className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
                     <Shield className="w-4 h-4 group-hover:animate-pulse" />
                     <span>Admin</span>
@@ -273,10 +275,10 @@ const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={toggleProfile}
-                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all duration-200 animate-pulse-glow">
+                      <div className="w-10 h-10 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-light-primary/30 dark:group-hover:ring-primary-500/30 transition-all duration-200 animate-pulse-glow">
                         {user?.avatar?.url ? (
                           <img 
                             src={user.avatar.url} 
@@ -288,97 +290,58 @@ const Navbar = () => {
                         )}
                       </div>
                       <div className="hidden lg:block text-left">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-24 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
+                        <div className="text-sm font-medium text-light-text dark:text-gray-100 truncate max-w-24 group-hover:text-light-primary dark:group-hover:text-primary-400 transition-colors">
                           {user?.name}
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                        <div className="text-xs text-light-textMuted dark:text-gray-400 capitalize">
                           {user?.role}
                         </div>
                       </div>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200 group-hover:animate-bounce ${isProfileOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-light-textSecondary dark:text-gray-400 transition-transform duration-200 group-hover:animate-bounce ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
                     {isProfileOpen && (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-3 z-50"
+                        className="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-light-border/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {/* Profile Header */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-glow">
-                              {user?.avatar?.url ? (
-                                <img 
-                                  src={user.avatar.url} 
-                                  alt={user.name}
-                                  className="w-12 h-12 rounded-xl object-cover"
-                                />
-                              ) : (
-                                <User className="w-6 h-6 text-white" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user?.email}</p>
-                              <span className="inline-block px-2 py-1 mt-1 text-xs bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-lg capitalize animate-pulse">
-                                {user?.role}
-                              </span>
-                            </div>
-                          </div>
-                        </motion.div>
-                        
-                        {/* Menu Items */}
-                        <div className="py-2">
-                          {[
-                            { to: '/settings/profile', icon: User, label: 'My Profile' },
-                            { to: '/settings/security', icon: Settings, label: 'Settings' }
-                          ].map((menuItem, index) => (
-                            <motion.div
-                              key={menuItem.to}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                            >
-                              <Link
-                                to={menuItem.to}
-                                className="flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 group"
-                                onClick={() => setIsProfileOpen(false)}
-                              >
-                                <menuItem.icon className="w-4 h-4 group-hover:animate-bounce" />
-                                <span>{menuItem.label}</span>
-                              </Link>
-                            </motion.div>
-                          ))}
+                        <div className="px-4 py-3 border-b border-light-border/30 dark:border-gray-700/30">
+                          <div className="text-sm font-medium text-light-text dark:text-gray-100">{user?.name}</div>
+                          <div className="text-xs text-light-textMuted dark:text-gray-400">{user?.email}</div>
                         </div>
                         
-                        {/* Logout */}
-                        <div className="border-t border-gray-200/50 dark:border-gray-700/50 pt-2 mt-2">
-                          <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 }}
+                        <div className="py-2">
+                          <Link
+                            to="/dashboard"
+                            className="flex items-center space-x-3 px-4 py-3 text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                            onClick={() => setIsProfileOpen(false)}
                           >
-                            <button
-                              onClick={() => {
-                                setIsProfileOpen(false)
-                                handleLogout()
-                              }}
-                              className="flex items-center space-x-3 w-full px-4 py-3 mx-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-error-500/10 hover:text-error-600 dark:hover:text-error-400 transition-all duration-200 group"
-                            >
-                              <LogOut className="w-4 h-4 group-hover:animate-bounce" />
-                              <span>Sign out</span>
-                            </button>
-                          </motion.div>
+                            <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
+                            <span>Dashboard</span>
+                          </Link>
+                          
+                          <Link
+                            to="/settings"
+                            className="flex items-center space-x-3 px-4 py-3 text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <Settings className="w-4 h-4 group-hover:animate-spin-slow" />
+                            <span>Settings</span>
+                          </Link>
+                          
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center space-x-3 px-4 py-3 w-full text-left text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                          >
+                            <LogOut className="w-4 h-4 group-hover:animate-bounce" />
+                            <span>Logout</span>
+                          </button>
                         </div>
                       </motion.div>
                     )}
@@ -386,35 +349,37 @@ const Navbar = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
+              <>
+                {/* Auth Buttons */}
                 <Link
                   to="/login"
-                  className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 group"
+                  className="hidden sm:flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                 >
-                  <span className="group-hover:animate-pulse">Sign in</span>
+                  <User className="w-4 h-4 group-hover:animate-bounce" />
+                  <span>Login</span>
                 </Link>
+                
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-medium px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-neon transform hover:-translate-y-0.5 group animate-gradient-x"
+                  className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 text-white rounded-xl text-sm font-medium hover:from-light-primary/90 hover:to-light-accent/90 dark:hover:from-primary-600 dark:hover:to-accent-600 transition-all duration-200 group shadow-lg hover:shadow-neon transform hover:-translate-y-0.5"
                 >
-                  <span className="group-hover:animate-bounce">Get Started</span>
+                  <User className="w-4 h-4 group-hover:animate-bounce" />
+                  <span>Sign Up</span>
                 </Link>
-              </div>
+              </>
             )}
 
-            {/* Mobile menu button */}
-            <div className="lg:hidden">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center justify-center p-3 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
-              >
-                {isOpen ? (
-                  <X className="block h-6 w-6 group-hover:animate-spin" />
-                ) : (
-                  <Menu className="block h-6 w-6 group-hover:animate-pulse" />
-                )}
-              </button>
-            </div>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="lg:hidden p-2 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+            >
+              {isOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -425,184 +390,121 @@ const Navbar = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden border-t border-gray-200 dark:border-gray-800 overflow-hidden"
+              transition={{ duration: 0.3 }}
+              className="lg:hidden border-t border-light-border/30 dark:border-gray-700/30"
             >
-              <div className="px-4 pt-4 pb-6 space-y-2 bg-white/50 dark:bg-dark-900/50 backdrop-blur-sm">
-                {/* Theme Toggle for Mobile */}
-                <div className="flex items-center justify-between px-4 py-3 mb-4 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</span>
-                  <ThemeToggle size="sm" showLabel />
-                </div>
-
-                {/* Search Bar */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for artists, studios, or genres..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-6 py-4 search-input text-lg"
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search className="w-5 h-5 text-gray-400" />
-                  </div>
-                </div>
-
-                {/* Mobile Navigation Items */}
-                {navigation.map((item, index) => {
+              <div className="py-4 space-y-2">
+                {navigation.map((item) => {
                   const Icon = item.icon
                   
                   if (item.isDropdown) {
+                    const isOpen = activeDropdown === item.dropdownId
+                    
                     return (
-                      <motion.div 
-                        key={item.name} 
-                        className="space-y-1"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <div className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
-                          {item.name}
-                        </div>
-                        {item.items.map((dropdownItem, subIndex) => {
-                          const DropdownIcon = dropdownItem.icon
-                          return (
+                      <div key={item.name}>
+                        <button
+                          onClick={(e) => toggleDropdown(item.dropdownId, e)}
+                          className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium transition-all duration-200 rounded-xl ${
+                            isOpen ? 'bg-light-primary text-white dark:bg-primary-500' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Icon className="w-4 h-4" />
+                            <span>{item.name}</span>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {isOpen && (
                             <motion.div
-                              key={dropdownItem.name}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: (index * 0.05) + (subIndex * 0.02) }}
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="ml-4 mt-2 space-y-1"
                             >
-                              <Link
-                                to={dropdownItem.href}
-                                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
-                                onClick={() => setIsOpen(false)}
-                              >
-                                <DropdownIcon className="w-5 h-5 text-primary-500 group-hover:animate-bounce" />
-                                <div>
-                                  <div className="group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">{dropdownItem.name}</div>
-                                  <div className="text-sm text-gray-600 dark:text-gray-500">{dropdownItem.description}</div>
-                                </div>
-                              </Link>
+                              {item.items.map((dropdownItem) => {
+                                const DropdownIcon = dropdownItem.icon
+                                return (
+                                  <Link
+                                    key={dropdownItem.name}
+                                    to={dropdownItem.href}
+                                    className="flex items-center space-x-3 px-4 py-2 text-light-textMuted dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/30 dark:hover:bg-gray-700/30 rounded-lg transition-all duration-200"
+                                    onClick={() => {
+                                      setActiveDropdown(null)
+                                      setIsOpen(false)
+                                    }}
+                                  >
+                                    <DropdownIcon className="w-4 h-4" />
+                                    <span className="text-sm">{dropdownItem.name}</span>
+                                  </Link>
+                                )
+                              })}
                             </motion.div>
-                          )
-                        })}
-                      </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     )
                   }
 
                   return (
-                    <motion.div
+                    <Link
                       key={item.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                      to={item.href}
+                      className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-xl ${
+                        isActive(item.href)
+                          ? 'bg-light-primary text-white dark:bg-primary-500'
+                          : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
+                      }`}
+                      onClick={() => setIsOpen(false)}
                     >
-                      <Link
-                        to={item.href}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 group ${
-                          isActive(item.href)
-                            ? 'text-primary-500 bg-primary-500/10'
-                            : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
-                        }`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Icon className={`w-5 h-5 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
-                        <span>{item.name}</span>
-                      </Link>
-                    </motion.div>
+                      <Icon className="w-4 h-4" />
+                      <span>{item.name}</span>
+                    </Link>
                   )
                 })}
-
-                {/* Mobile Auth Section */}
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
-                  {isAuthenticated ? (
-                    <>
-                      {/* Mobile Profile */}
-                      <div className="px-4 py-3 mb-3 bg-gray-800/30 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center">
-                            {user?.avatar?.url ? (
-                              <img 
-                                src={user.avatar.url} 
-                                alt={user.name}
-                                className="w-12 h-12 rounded-xl object-cover"
-                              />
-                            ) : (
-                              <User className="w-6 h-6 text-white" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-100">{user?.name}</div>
-                            <div className="text-sm text-gray-400">{user?.email}</div>
-                            <span className="inline-block px-2 py-1 mt-1 text-xs bg-primary-900/30 text-primary-300 rounded-lg capitalize">
-                              {user?.role}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Mobile Menu Items */}
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Calendar className="w-5 h-5" />
-                        <span>Dashboard</span>
-                      </Link>
-                      
-                      {user?.role === 'admin' && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <Shield className="w-5 h-5" />
-                          <span>Admin</span>
-                        </Link>
-                      )}
-                      
-                      <Link
-                        to="/settings/profile"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Settings className="w-5 h-5" />
-                        <span>Settings</span>
-                      </Link>
-                      
-                      <button
-                        onClick={() => {
-                          setIsOpen(false)
-                          handleLogout()
-                        }}
-                        className="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-red-400 hover:bg-red-900/20 transition-all duration-200"
-                      >
-                        <LogOut className="w-5 h-5" />
-                        <span>Sign out</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200 mb-2"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Sign in
-                      </Link>
-                      <Link
-                        to="/register"
-                        className="block px-4 py-3 rounded-xl text-base font-medium bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:from-primary-700 hover:to-accent-700 transition-all duration-200"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Get Started
-                      </Link>
-                    </>
-                  )}
-                </div>
+                
+                {isAuthenticated ? (
+                  <div className="pt-4 border-t border-light-border/30 dark:border-gray-700/30">
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                    
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-3 px-4 py-3 w-full text-left text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="pt-4 border-t border-light-border/30 dark:border-gray-700/30 space-y-2">
+                    <Link
+                      to="/login"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Login</span>
+                    </Link>
+                    
+                    <Link
+                      to="/register"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-neon"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Sign Up</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

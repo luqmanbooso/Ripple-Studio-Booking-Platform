@@ -39,7 +39,7 @@ const ParticleBackground = () => {
       getRandomColor() {
         const colors = mode === 'dark' 
           ? ['#E91E63', '#00C9FF', '#9C27B0'] 
-          : ['rgba(233, 30, 99, 0.3)', 'rgba(0, 201, 255, 0.3)', 'rgba(156, 39, 176, 0.3)']
+          : ['#1E3A8A', '#DC2626', '#059669'] // INVERTED colors: Dark Blue, Dark Red, Dark Green
         return colors[Math.floor(Math.random() * colors.length)]
       }
 
@@ -97,7 +97,7 @@ const ParticleBackground = () => {
 
           if (distance < 100) {
             ctx.globalAlpha = 0.1 * (1 - distance / 100)
-            ctx.strokeStyle = mode === 'dark' ? '#E91E63' : 'rgba(233, 30, 99, 0.2)'
+            ctx.strokeStyle = mode === 'dark' ? '#E91E63' : '#1E3A8A' // INVERTED: Dark Blue for light theme
             ctx.lineWidth = 1
             ctx.beginPath()
             ctx.moveTo(particle.x, particle.y)

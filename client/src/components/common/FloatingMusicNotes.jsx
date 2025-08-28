@@ -22,7 +22,7 @@ const FloatingMusicNotes = ({ count = 6, className = '' }) => {
         duration: Math.random() * 10 + 10,
         delay: Math.random() * 5,
         opacity: Math.random() * 0.3 + 0.1,
-        color: ['text-primary-500', 'text-accent-500', 'text-highlight-500'][Math.floor(Math.random() * 3)]
+        color: ['text-light-primary', 'text-light-accent', 'text-light-highlight'][Math.floor(Math.random() * 3)]
       }))
       setNotes(newNotes)
     }

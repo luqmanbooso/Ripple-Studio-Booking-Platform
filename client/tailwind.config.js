@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary Brand Colors
+        // Primary Brand Colors - Enhanced for light theme
         primary: {
           50: '#fce7f3',
           100: '#fbcfe8',
@@ -21,6 +21,20 @@ export default {
           800: '#9d174d',
           900: '#831843',
           950: '#500724',
+          // Light theme - INVERTED (Dark Blue instead of Dark Magenta)
+          light: {
+            50: '#dbeafe',
+            100: '#bfdbfe',
+            200: '#93c5fd',
+            300: '#60a5fa',
+            400: '#3b82f6',
+            500: '#1E3A8A', // Dark Blue (opposite of magenta)
+            600: '#1d4ed8',
+            700: '#1e40af',
+            800: '#1e3a8a',
+            900: '#1e3a8a',
+            950: '#172554',
+          }
         },
         accent: {
           50: '#ecfeff',
@@ -34,6 +48,20 @@ export default {
           800: '#155e75',
           900: '#164e63',
           950: '#083344',
+          // Light theme - INVERTED (Dark Red instead of Dark Blue)
+          light: {
+            50: '#fef2f2',
+            100: '#fee2e2',
+            200: '#fecaca',
+            300: '#fca5a5',
+            400: '#f87171',
+            500: '#DC2626', // Dark Red (opposite of blue)
+            600: '#dc2626',
+            700: '#b91c1c',
+            800: '#991b1b',
+            900: '#7f1d1d',
+            950: '#450a0a',
+          }
         },
         highlight: {
           50: '#faf5ff',
@@ -47,8 +75,22 @@ export default {
           800: '#6b21a8',
           900: '#581c87',
           950: '#3b0764',
+          // Light theme - INVERTED (Dark Green instead of Dark Purple)
+          light: {
+            50: '#ecfdf5',
+            100: '#d1fae5',
+            200: '#a7f3d0',
+            300: '#6ee7b7',
+            400: '#34d399',
+            500: '#059669', // Dark Green (opposite of purple)
+            600: '#059669',
+            700: '#047857',
+            800: '#065f46',
+            900: '#064e3b',
+            950: '#022c22',
+          }
         },
-        // Background Colors
+        // Background Colors - Enhanced for light theme
         dark: {
           50: '#f8fafc',
           100: '#f1f5f9',
@@ -61,6 +103,20 @@ export default {
           800: '#1E1E1E', // Card background
           900: '#0f172a',
           950: '#0D0D0D', // Deep background
+          // Light theme - Neutral grays
+          light: {
+            50: '#f8fafc',
+            100: '#f1f5f9',
+            200: '#e2e8f0',
+            300: '#cbd5e1',
+            400: '#94a3b8',
+            500: '#64748b',
+            600: '#475569',
+            700: '#334155',
+            800: '#1e293b',
+            900: '#0f172a',
+            950: '#020617',
+          }
         },
         // Status Colors
         success: {
@@ -115,7 +171,7 @@ export default {
           900: '#164e63',
           950: '#083344',
         },
-        // Neutral colors
+        // Neutral colors - Enhanced for light theme
         neutral: {
           50: '#fafafa',
           100: '#f5f5f5',
@@ -128,7 +184,34 @@ export default {
           800: '#262626',
           900: '#171717',
           950: '#0a0a0a',
+          // Light theme - Neutral grays
+          light: {
+            50: '#fafafa',
+            100: '#f5f5f5',
+            200: '#e5e5e5',
+            300: '#d4d4d4',
+            400: '#a3a3a3',
+            500: '#737373',
+            600: '#525252',
+            700: '#404040',
+            800: '#262626',
+            900: '#171717',
+            950: '#0a0a0a',
+          }
         },
+        // New light theme specific colors - INVERTED SCHEME
+        light: {
+          primary: '#1E3A8A', // Dark Blue (opposite of magenta)
+          accent: '#DC2626', // Dark Red (opposite of blue)
+          highlight: '#059669', // Dark Green (opposite of purple)
+          text: '#1A1A1A', // Very dark text for light theme
+          textSecondary: '#404040', // Secondary dark text
+          textMuted: '#656565', // Muted dark text
+          background: '#FFFFFF', // Pure white background
+          card: '#F8F9FA', // Light card background
+          border: '#E1E5E9', // Light border
+          shadow: '#000000', // Black shadow for light theme
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
