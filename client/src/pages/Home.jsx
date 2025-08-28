@@ -21,6 +21,9 @@ import {
   Clock
 } from 'lucide-react'
 import Button from '../components/ui/Button'
+import MusicVisualizer from '../components/common/MusicVisualizer'
+import FloatingMusicNotes from '../components/common/FloatingMusicNotes'
+import VibratingElements from '../components/common/VibratingElements'
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -109,41 +112,34 @@ const Home = () => {
   }, [testimonials.length])
 
   return (
-    <div className="min-h-screen overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <motion.div 
-          style={{ y: y1 }}
-          className="absolute top-20 left-10 w-72 h-72 bg-primary-500/10 rounded-full blur-3xl"
-        />
-        <motion.div 
-          style={{ y: y2 }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl"
-        />
-      </div>
+    <div className="min-h-screen relative">
+      {/* Floating Music Notes */}
+      <FloatingMusicNotes count={8} />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 transition-colors duration-500" />
         
-        {/* Floating Music Notes */}
+        {/* Animated Background Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(12)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-primary-500/20"
+              className="absolute text-primary-500/10 dark:text-primary-500/20"
               initial={{ 
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight,
-                rotate: 0 
+                rotate: 0,
+                scale: 0
               }}
               animate={{ 
                 y: [null, -100, null],
-                rotate: 360,
-                opacity: [0.2, 0.5, 0.2]
+                rotate: [0, 360, 0],
+                scale: [0, 1, 0],
+                opacity: [0.1, 0.3, 0.1]
               }}
               transition={{ 
-                duration: 10 + Math.random() * 10,
+                duration: 15 + Math.random() * 10,
                 repeat: Infinity,
                 delay: Math.random() * 5
               }}
@@ -152,7 +148,7 @@ const Home = () => {
                 top: `${Math.random() * 100}%`
               }}
             >
-              <Music className="w-8 h-8" />
+              <Music className="w-12 h-12" />
             </motion.div>
           ))}
         </div>
@@ -163,27 +159,33 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <motion.h1 
-              className="hero-title mb-6 leading-tight text-white"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, delay: 0.2 }}
-            >
-              Where Music
-              <br />
-              <span className="relative">
-                Comes Alive
-                <motion.div
-                  className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 1, delay: 1.5 }}
-                />
-              </span>
-            </motion.h1>
+            <VibratingElements intensity="low">
+              <motion.h1 
+                className="hero-title mb-6 leading-tight"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.2, delay: 0.2 }}
+              >
+                Where Music
+                <br />
+                <span className="relative inline-block">
+                  Comes Alive
+                  <motion.div
+                    className="absolute -bottom-4 left-0 right-0 h-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 1, delay: 1.5 }}
+                  />
+                  {/* Music Visualizer under text */}
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                    <MusicVisualizer bars={12} height={30} color="gradient" />
+                  </div>
+                </span>
+              </motion.h1>
+            </VibratingElements>
 
             <motion.p
-              className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
@@ -193,48 +195,87 @@ const Home = () => {
               Create, collaborate, and bring your musical vision to life.
             </motion.p>
 
-            {/* Enhanced Search */}
+            {/* Enhanced Search with Music Visualizer */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
               className="max-w-4xl mx-auto"
             >
-              <form onSubmit={handleSearch} className="glass-card p-8 rounded-3xl">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search for artists, studios, or genres..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-6 py-4 bg-dark-700/50 border border-gray-600 rounded-2xl text-lg text-gray-100 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
-                    />
+              <form onSubmit={handleSearch} className="glass-card p-8 rounded-3xl relative overflow-hidden">
+                {/* Animated Background */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-accent-500/5 dark:from-primary-500/10 dark:to-accent-500/10"
+                  animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                  }}
+                  transition={{
+                    duration: 8,
+                    ease: 'linear',
+                    repeat: Infinity,
+                  }}
+                  style={{ backgroundSize: '200% 200%' }}
+                />
+                
+                <div className="relative z-10">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                      <motion.input
+                        type="text"
+                        placeholder="Search for artists, studios, or genres..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-12 pr-6 py-4 bg-white/50 dark:bg-dark-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-2xl text-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all backdrop-blur-sm"
+                        whileFocus={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                      {/* Animated search icon */}
+                      <motion.div
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                      >
+                        <MusicVisualizer bars={3} height={15} color="primary" />
+                      </motion.div>
+                    </div>
+                    <div className="lg:w-64">
+                      <select
+                        value={searchType}
+                        onChange={(e) => setSearchType(e.target.value)}
+                        className="w-full py-4 px-6 bg-white/50 dark:bg-dark-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-2xl text-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all backdrop-blur-sm"
+                      >
+                        <option value="all">All Categories</option>
+                        <option value="artists">Artists</option>
+                        <option value="studios">Studios</option>
+                      </select>
+                    </div>
+                    <VibratingElements intensity="medium">
+                      <Button
+                        type="submit"
+                        className="btn-primary lg:w-auto px-12 py-4 text-lg relative overflow-hidden group"
+                      >
+                        <Search className="w-6 h-6 mr-2 group-hover:animate-spin" />
+                        Discover
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-accent-500/20 to-highlight-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          animate={{
+                            x: ['-100%', '100%'],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatDelay: 1,
+                          }}
+                        />
+                      </Button>
+                    </VibratingElements>
                   </div>
-                  <div className="lg:w-64">
-                    <select
-                      value={searchType}
-                      onChange={(e) => setSearchType(e.target.value)}
-                      className="w-full py-4 px-6 bg-dark-700/50 border border-gray-600 rounded-2xl text-lg text-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
-                    >
-                      <option value="all">All Categories</option>
-                      <option value="artists">Artists</option>
-                      <option value="studios">Studios</option>
-                    </select>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="btn-magic lg:w-auto px-12 py-4 text-lg"
-                  >
-                    <Search className="w-6 h-6 mr-2" />
-                    Discover
-                  </Button>
                 </div>
               </form>
             </motion.div>
 
-            {/* Quick Access Buttons */}
+            {/* Quick Access with Animations */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -242,46 +283,71 @@ const Home = () => {
               className="flex flex-wrap justify-center gap-4 mt-8"
             >
               {['Hip Hop', 'Rock', 'Electronic', 'R&B', 'Pop'].map((genre, index) => (
-                <motion.button
-                  key={genre}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSearchQuery(genre)
-                    setSearchType('all')
-                  }}
-                  className="px-6 py-3 bg-dark-800/50 backdrop-blur-sm border border-gray-700 rounded-full text-gray-300 hover:text-primary-300 hover:border-primary-500 transition-all duration-300"
-                >
-                  {genre}
-                </motion.button>
+                <VibratingElements key={genre} intensity="low">
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSearchQuery(genre)
+                      setSearchType('all')
+                    }}
+                    className="px-6 py-3 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm border border-gray-300/50 dark:border-gray-700/50 rounded-full text-gray-700 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 hover:border-primary-500/50 transition-all duration-300 group relative overflow-hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + index * 0.1 }}
+                  >
+                    <span className="relative z-10 group-hover:animate-pulse">{genre}</span>
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      animate={{
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                      }}
+                    />
+                  </motion.button>
+                </VibratingElements>
               ))}
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Enhanced Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2 }}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-6 h-10 border-2 border-gray-600 rounded-full flex justify-center"
-          >
+          <VibratingElements intensity="low" trigger="continuous">
             <motion.div
-              animate={{ y: [0, 12, 0] }}
+              animate={{ y: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-1 h-3 bg-primary-500 rounded-full mt-2"
-            />
-          </motion.div>
+              className="w-8 h-12 border-2 border-gray-400 dark:border-gray-600 rounded-full flex justify-center relative overflow-hidden"
+            >
+              <motion.div
+                animate={{ y: [0, 16, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-1 h-4 bg-gradient-to-b from-primary-500 to-accent-500 rounded-full mt-2"
+              />
+              {/* Pulsing glow */}
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-primary-500/50"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 0, 0.5]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </motion.div>
+          </VibratingElements>
         </motion.div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-24 bg-gradient-to-r from-dark-900/50 to-dark-800/50 backdrop-blur-sm">
+      {/* Enhanced Stats Section */}
+      <section className="py-24 bg-gradient-to-r from-gray-50 to-white dark:from-dark-900/50 dark:to-dark-800/50 backdrop-blur-sm transition-colors duration-500">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -299,23 +365,40 @@ const Home = () => {
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -10 }}
-                  className="text-center group"
+                  whileHover={{ y: -10, scale: 1.05 }}
+                  className="text-center group cursor-pointer"
                 >
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-glow transition-all duration-300">
-                    <Icon className="w-10 h-10 text-white" />
-                  </div>
+                  <VibratingElements intensity="medium">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-neon transition-all duration-300 relative overflow-hidden">
+                      <Icon className="w-10 h-10 text-white group-hover:animate-bounce" />
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-accent-500/30 to-highlight-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        animate={{
+                          rotate: [0, 360],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'linear'
+                        }}
+                      />
+                    </div>
+                  </VibratingElements>
                   <motion.div 
-                    className="text-4xl lg:text-5xl font-bold gradient-text mb-2"
+                    className="text-4xl lg:text-5xl font-bold text-gradient mb-2"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ duration: 1, delay: index * 0.2 }}
                     viewport={{ once: true }}
                   >
-                    {stat.number}
+                    <span className="group-hover:animate-pulse">{stat.number}</span>
                   </motion.div>
-                  <div className="text-gray-400 font-medium text-lg">
+                  <div className="text-gray-600 dark:text-gray-400 font-medium text-lg group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
                     {stat.label}
+                  </div>
+                  {/* Music visualizer for each stat */}
+                  <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <MusicVisualizer bars={5} height={15} color="primary" />
                   </div>
                 </motion.div>
               )

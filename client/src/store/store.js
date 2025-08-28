@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query'
 
 // Slices
 import authSlice from './authSlice'
+import themeSlice from './themeSlice'
 
 // API slices
 import { userApi } from './userApi'
@@ -16,6 +17,7 @@ import { adminApi } from './adminApi'
 export const store = configureStore({
   reducer: {
     auth: authSlice,
+    theme: themeSlice,
     [userApi.reducerPath]: userApi.reducer,
     [artistApi.reducerPath]: artistApi.reducer,
     [studioApi.reducerPath]: studioApi.reducer,

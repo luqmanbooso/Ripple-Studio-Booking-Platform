@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import ParticleBackground from './components/common/ParticleBackground'
 
 // Pages
 import Home from './pages/Home'
@@ -39,11 +40,13 @@ import Security from './pages/Settings/Security'
 
 // Store
 import { setCredentials } from './store/authSlice'
+import { setTheme, setReducedMotion } from './store/themeSlice'
 import { initializeSocket } from './lib/socket'
 
 function App() {
   const dispatch = useDispatch()
   const { user, token } = useSelector((state) => state.auth)
+  const { mode, animations } = useSelector((state) => state.theme)
 
   useEffect(() => {
     // Check for existing auth in localStorage
@@ -56,7 +59,37 @@ function App() {
         localStorage.removeItem('auth')
       }
     }
-  }, [dispatch])
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      dispatch(setTheme(savedTheme))
+    }
+
+    // Set initial theme class
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    dispatch(setReducedMotion(prefersReducedMotion))
+
+    // Listen for theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleThemeChange = (e) => {
+      if (!localStorage.getItem('theme')) {
+        dispatch(setTheme(e.matches ? 'dark' : 'light'))
+      }
+    }
+    mediaQuery.addEventListener('change', handleThemeChange)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleThemeChange)
+    }
+  }, [dispatch, mode])
 
   useEffect(() => {
     // Initialize socket connection when user is authenticated
@@ -66,10 +99,17 @@ function App() {
   }, [user, token])
 
   return (
-    <div className="min-h-screen bg-dark-950 text-gray-100">
+    <div className={`min-h-screen transition-colors duration-300 ${
+      mode === 'dark' 
+        ? 'bg-dark-950 text-white' 
+        : 'bg-white text-gray-900'
+    }`}>
+      {/* Particle Background */}
+      <ParticleBackground />
+      
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 relative">
         <AnimatePresence mode="wait">
           <Routes>
             {/* Public routes */}
@@ -172,7 +212,6 @@ function AdminRoutes() {
   return (
     <Routes>
       <Route index element={<AdminDashboard />} />
-      {/* Add more admin routes as needed */}
     </Routes>
   )
 }

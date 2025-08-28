@@ -29,6 +29,7 @@ import {
 import { logout } from '../../store/authSlice'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
+import ThemeToggle from '../ui/ThemeToggle'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -119,23 +120,26 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-dark-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
       <div className="container">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-3 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200"
+            className="flex items-center space-x-3 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200 group"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center">
-              <Music className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-neon group-hover:animate-spin-slow">
+              <Music className="w-6 h-6 text-white animate-bounce-slow" />
             </div>
-            <span className="hidden sm:block">MusicBooking</span>
+            <span className="hidden sm:block relative">
+              MusicBooking
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 group-hover:w-full transition-all duration-500"></div>
+            </span>
           </Link>
 
           {/* Desktop Navigation - Centered */}
           <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-8">
-            <div className="flex items-center space-x-1 bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-gray-700/50">
+            <div className="flex items-center space-x-1 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-gray-200/50 dark:border-gray-700/50 shadow-glass">
               {navigation.map((item) => {
                 const Icon = item.icon
                 
@@ -146,13 +150,13 @@ const Navbar = () => {
                     <div key={item.name} className="relative">
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
-                        className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-700/50 ${
-                          isOpen ? 'bg-primary-600 text-white shadow-lg' : 'text-gray-300 hover:text-gray-100'
+                        className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 group ${
+                          isOpen ? 'bg-primary-500 text-white shadow-neon' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'animate-bounce' : 'group-hover:scale-110'}`} />
                         <span>{item.name}</span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 animate-pulse' : 'group-hover:animate-bounce'}`} />
                       </button>
                       
                       <AnimatePresence>
@@ -162,30 +166,36 @@ const Navbar = () => {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-2 w-80 bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700/50 py-3 z-50"
+                            className="absolute top-full left-0 mt-2 w-80 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {item.items.map((dropdownItem, index) => {
                               const DropdownIcon = dropdownItem.icon
                               return (
-                                <Link
+                                <motion.div
                                   key={dropdownItem.name}
-                                  to={dropdownItem.href}
-                                  className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-xl text-gray-300 hover:bg-gray-700/50 hover:text-gray-100 transition-all duration-200 group"
-                                  onClick={() => setActiveDropdown(null)}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.05 }}
                                 >
-                                  <div className="w-10 h-10 bg-gradient-to-br from-primary-600/20 to-accent-600/20 rounded-lg flex items-center justify-center group-hover:from-primary-600/30 group-hover:to-accent-600/30 transition-all duration-200">
-                                    <DropdownIcon className="w-5 h-5 text-primary-400" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium text-gray-100 group-hover:text-primary-300 transition-colors">
-                                      {dropdownItem.name}
+                                  <Link
+                                    to={dropdownItem.href}
+                                    className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 group"
+                                    onClick={() => setActiveDropdown(null)}
+                                  >
+                                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-lg flex items-center justify-center group-hover:from-primary-500/30 group-hover:to-accent-500/30 transition-all duration-200 group-hover:animate-pulse">
+                                      <DropdownIcon className="w-5 h-5 text-primary-500 group-hover:animate-bounce" />
                                     </div>
-                                    <div className="text-sm text-gray-400 mt-1">
-                                      {dropdownItem.description}
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
+                                        {dropdownItem.name}
+                                      </div>
+                                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        {dropdownItem.description}
+                                      </div>
                                     </div>
-                                  </div>
-                                </Link>
+                                  </Link>
+                                </motion.div>
                               )
                             })}
                           </motion.div>
@@ -201,16 +211,16 @@ const Navbar = () => {
                     to={item.href}
                     className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
                       isActive(item.href)
-                        ? 'bg-primary-600 text-white shadow-lg'
-                        : 'text-gray-300 hover:text-gray-100 hover:bg-gray-700/50'
+                        ? 'bg-primary-500 text-white shadow-neon'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
                     <span>{item.name}</span>
                     {isActive(item.href) && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute inset-0 bg-primary-600 rounded-xl -z-10"
+                        className="absolute inset-0 bg-primary-500 rounded-xl -z-10 shadow-neon"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
@@ -220,29 +230,30 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right Side - User Menu / Auth Buttons */}
+          {/* Right Side - Theme Toggle + User Menu / Auth Buttons */}
           <div className="flex items-center space-x-3">
+            {/* Theme Toggle */}
+            <ThemeToggle size="md" />
+
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <button className="relative p-3 text-gray-400 hover:text-gray-100 hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                  <div className="absolute inset-0 bg-gray-800/0 group-hover:bg-gray-800/50 rounded-xl transition-all duration-200 -z-10" />
+                <button className="relative p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                  <Bell className="w-5 h-5 group-hover:animate-wiggle" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-error-500 rounded-full animate-pulse"></span>
                 </button>
 
                 {/* Messages */}
-                <button className="relative p-3 text-gray-400 hover:text-gray-100 hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <MessageSquare className="w-5 h-5" />
-                  <div className="absolute inset-0 bg-gray-800/0 group-hover:bg-gray-800/50 rounded-xl transition-all duration-200 -z-10" />
+                <button className="relative p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                  <MessageSquare className="w-5 h-5 group-hover:animate-bounce" />
                 </button>
 
                 {/* Dashboard Link */}
                 <Link
                   to="/dashboard"
-                  className="hidden md:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
+                  className="hidden md:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                 >
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
                   <span>Dashboard</span>
                 </Link>
 
@@ -250,9 +261,9 @@ const Navbar = () => {
                 {user?.role === 'admin' && (
                   <Link
                     to="/admin"
-                    className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
+                    className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
-                    <Shield className="w-4 h-4" />
+                    <Shield className="w-4 h-4 group-hover:animate-pulse" />
                     <span>Admin</span>
                   </Link>
                 )}
@@ -261,10 +272,10 @@ const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={toggleProfile}
-                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group"
+                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all duration-200">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary-500/30 transition-all duration-200 animate-pulse-glow">
                         {user?.avatar?.url ? (
                           <img 
                             src={user.avatar.url} 
@@ -272,19 +283,19 @@ const Navbar = () => {
                             className="w-10 h-10 rounded-xl object-cover"
                           />
                         ) : (
-                          <User className="w-5 h-5 text-white" />
+                          <User className="w-5 h-5 text-white group-hover:animate-bounce" />
                         )}
                       </div>
                       <div className="hidden lg:block text-left">
-                        <div className="text-sm font-medium text-gray-100 truncate max-w-24">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-24 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
                           {user?.name}
                         </div>
-                        <div className="text-xs text-gray-400 capitalize">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
                           {user?.role}
                         </div>
                       </div>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200 group-hover:animate-bounce ${isProfileOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
@@ -294,13 +305,17 @@ const Navbar = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-64 bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700/50 py-3 z-50"
+                        className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-3 z-50"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {/* Profile Header */}
-                        <div className="px-4 py-3 border-b border-gray-700/50">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50"
+                        >
                           <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-glow">
                               {user?.avatar?.url ? (
                                 <img 
                                   src={user.avatar.url} 
@@ -312,48 +327,57 @@ const Navbar = () => {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-100 truncate">{user?.name}</p>
-                              <p className="text-sm text-gray-400 truncate">{user?.email}</p>
-                              <span className="inline-block px-2 py-1 mt-1 text-xs bg-primary-900/30 text-primary-300 rounded-lg capitalize">
+                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user?.email}</p>
+                              <span className="inline-block px-2 py-1 mt-1 text-xs bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-lg capitalize animate-pulse">
                                 {user?.role}
                               </span>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                         
                         {/* Menu Items */}
                         <div className="py-2">
-                          <Link
-                            to="/settings/profile"
-                            className="flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl text-sm text-gray-300 hover:bg-gray-700/50 hover:text-gray-100 transition-all duration-200"
-                            onClick={() => setIsProfileOpen(false)}
-                          >
-                            <User className="w-4 h-4" />
-                            <span>My Profile</span>
-                          </Link>
-                          
-                          <Link
-                            to="/settings/security"
-                            className="flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl text-sm text-gray-300 hover:bg-gray-700/50 hover:text-gray-100 transition-all duration-200"
-                            onClick={() => setIsProfileOpen(false)}
-                          >
-                            <Settings className="w-4 h-4" />
-                            <span>Settings</span>
-                          </Link>
+                          {[
+                            { to: '/settings/profile', icon: User, label: 'My Profile' },
+                            { to: '/settings/security', icon: Settings, label: 'Settings' }
+                          ].map((menuItem, index) => (
+                            <motion.div
+                              key={menuItem.to}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                            >
+                              <Link
+                                to={menuItem.to}
+                                className="flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-200 group"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                <menuItem.icon className="w-4 h-4 group-hover:animate-bounce" />
+                                <span>{menuItem.label}</span>
+                              </Link>
+                            </motion.div>
+                          ))}
                         </div>
                         
                         {/* Logout */}
-                        <div className="border-t border-gray-700/50 pt-2 mt-2">
-                          <button
-                            onClick={() => {
-                              setIsProfileOpen(false)
-                              handleLogout()
-                            }}
-                            className="flex items-center space-x-3 w-full px-4 py-3 mx-2 rounded-xl text-sm text-gray-300 hover:bg-red-900/20 hover:text-red-400 transition-all duration-200"
+                        <div className="border-t border-gray-200/50 dark:border-gray-700/50 pt-2 mt-2">
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
                           >
-                            <LogOut className="w-4 h-4" />
-                            <span>Sign out</span>
-                          </button>
+                            <button
+                              onClick={() => {
+                                setIsProfileOpen(false)
+                                handleLogout()
+                              }}
+                              className="flex items-center space-x-3 w-full px-4 py-3 mx-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-error-500/10 hover:text-error-600 dark:hover:text-error-400 transition-all duration-200 group"
+                            >
+                              <LogOut className="w-4 h-4 group-hover:animate-bounce" />
+                              <span>Sign out</span>
+                            </button>
+                          </motion.div>
                         </div>
                       </motion.div>
                     )}
@@ -364,15 +388,15 @@ const Navbar = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="text-gray-300 hover:text-gray-100 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-800/50"
+                  className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 group"
                 >
-                  Sign in
+                  <span className="group-hover:animate-pulse">Sign in</span>
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white font-medium px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-medium px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-neon transform hover:-translate-y-0.5 group animate-gradient-x"
                 >
-                  Get Started
+                  <span className="group-hover:animate-bounce">Get Started</span>
                 </Link>
               </div>
             )}
@@ -381,12 +405,12 @@ const Navbar = () => {
             <div className="lg:hidden">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center justify-center p-3 rounded-xl text-gray-400 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
+                className="inline-flex items-center justify-center p-3 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
               >
                 {isOpen ? (
-                  <X className="block h-6 w-6" />
+                  <X className="block h-6 w-6 group-hover:animate-spin" />
                 ) : (
-                  <Menu className="block h-6 w-6" />
+                  <Menu className="block h-6 w-6 group-hover:animate-pulse" />
                 )}
               </button>
             </div>
@@ -401,59 +425,83 @@ const Navbar = () => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="lg:hidden border-t border-gray-800 overflow-hidden"
+              className="lg:hidden border-t border-gray-200 dark:border-gray-800 overflow-hidden"
             >
-              <div className="px-4 pt-4 pb-6 space-y-2 bg-dark-900/50 backdrop-blur-sm">
+              <div className="px-4 pt-4 pb-6 space-y-2 bg-white/50 dark:bg-dark-900/50 backdrop-blur-sm">
+                {/* Theme Toggle for Mobile */}
+                <div className="flex items-center justify-between px-4 py-3 mb-4 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</span>
+                  <ThemeToggle size="sm" showLabel />
+                </div>
+
                 {/* Mobile Navigation Items */}
-                {navigation.map((item) => {
+                {navigation.map((item, index) => {
                   const Icon = item.icon
                   
                   if (item.isDropdown) {
                     return (
-                      <div key={item.name} className="space-y-1">
-                        <div className="px-3 py-2 text-sm font-medium text-gray-400 uppercase tracking-wider border-b border-gray-800">
+                      <motion.div 
+                        key={item.name} 
+                        className="space-y-1"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <div className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
                           {item.name}
                         </div>
-                        {item.items.map((dropdownItem) => {
+                        {item.items.map((dropdownItem, subIndex) => {
                           const DropdownIcon = dropdownItem.icon
                           return (
-                            <Link
+                            <motion.div
                               key={dropdownItem.name}
-                              to={dropdownItem.href}
-                              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-gray-100 hover:bg-gray-800/50 transition-all duration-200"
-                              onClick={() => setIsOpen(false)}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: (index * 0.05) + (subIndex * 0.02) }}
                             >
-                              <DropdownIcon className="w-5 h-5 text-primary-400" />
-                              <div>
-                                <div>{dropdownItem.name}</div>
-                                <div className="text-sm text-gray-500">{dropdownItem.description}</div>
-                              </div>
-                            </Link>
+                              <Link
+                                to={dropdownItem.href}
+                                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                <DropdownIcon className="w-5 h-5 text-primary-500 group-hover:animate-bounce" />
+                                <div>
+                                  <div className="group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">{dropdownItem.name}</div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-500">{dropdownItem.description}</div>
+                                </div>
+                              </Link>
+                            </motion.div>
                           )
                         })}
-                      </div>
+                      </motion.div>
                     )
                   }
 
                   return (
-                    <Link
+                    <motion.div
                       key={item.name}
-                      to={item.href}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${
-                        isActive(item.href)
-                          ? 'text-primary-400 bg-primary-900/20'
-                          : 'text-gray-300 hover:text-gray-100 hover:bg-gray-800/50'
-                      }`}
-                      onClick={() => setIsOpen(false)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <Icon className="w-5 h-5" />
-                      <span>{item.name}</span>
-                    </Link>
+                      <Link
+                        to={item.href}
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 group ${
+                          isActive(item.href)
+                            ? 'text-primary-500 bg-primary-500/10'
+                            : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
+                        }`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Icon className={`w-5 h-5 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
+                        <span>{item.name}</span>
+                      </Link>
+                    </motion.div>
                   )
                 })}
 
                 {/* Mobile Auth Section */}
-                <div className="border-t border-gray-800 pt-4 mt-4">
+                <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
                   {isAuthenticated ? (
                     <>
                       {/* Mobile Profile */}
