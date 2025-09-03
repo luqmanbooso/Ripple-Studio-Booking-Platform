@@ -95,33 +95,108 @@
     @apply bg-gradient-to-r from-error-500 to-error-600 hover:from-error-600 hover:to-error-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-error-500/50 shadow-lg hover:shadow-lg transform hover:-translate-y-0.5;
   }
 
-  /* Input Fields - Updated for INVERTED light theme with minimal padding */
+  /* Enhanced Input Fields with Perfect Alignment */
   .input-field {
-    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 placeholder-light-textMuted dark:placeholder-gray-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm;
+    @apply w-full px-4 py-3 h-12
+           bg-white dark:bg-gray-800 
+           border-2 border-gray-300 dark:border-gray-600 
+           text-gray-900 dark:text-gray-100 
+           placeholder-gray-500 dark:placeholder-gray-400
+           rounded-xl font-medium text-base
+           focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 
+           transition-all duration-200 
+           hover:border-gray-400 dark:hover:border-gray-500 
+           shadow-sm hover:shadow-md focus:shadow-lg
+           backdrop-blur-sm;
   }
 
-  /* Search Input - Enhanced styling with minimal padding */
+  /* Search Input with Enhanced Styling */
   .search-input {
-    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 placeholder-light-textMuted dark:placeholder-gray-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm w-full;
+    @apply input-field text-base h-12
+           bg-white/90 dark:bg-gray-800/90
+           border-gray-300/80 dark:border-gray-600/80
+           focus:bg-white dark:focus:bg-gray-800
+           focus:border-primary-500 dark:focus:border-primary-400
+           placeholder:text-gray-500 dark:placeholder:text-gray-400;
   }
 
-  /* Select Field - Enhanced styling with minimal padding */
+  /* Select Fields with Consistent Height */
   .select-field {
-    @apply bg-white dark:bg-dark-800/50 backdrop-blur-sm border border-light-border dark:border-gray-600 text-light-text dark:text-gray-100 rounded px-1.5 py-1 focus:ring-2 focus:ring-light-primary/50 dark:focus:ring-primary-500/50 focus:border-light-primary dark:focus:border-primary-400 transition-all duration-200 hover:border-light-primary/70 dark:hover:border-gray-500 shadow-sm cursor-pointer;
+    @apply w-full px-4 py-3 h-12
+           bg-white dark:bg-gray-800
+           border-2 border-gray-300 dark:border-gray-600
+           text-gray-900 dark:text-gray-100
+           rounded-xl font-medium text-base
+           focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400
+           transition-all duration-200
+           hover:border-gray-400 dark:hover:border-gray-500
+           shadow-sm hover:shadow-md focus:shadow-lg
+           appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 3rem;
   }
 
-  /* Form Field Focus States - Enhanced */
-  .input-field:focus,
-  .search-input:focus,
-  .select-field:focus {
-    @apply transform scale-[1.02] shadow-lg;
+  .dark .select-field {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
   }
 
-  /* Form Field Hover States - Enhanced */
-  .input-field:hover,
-  .search-input:hover,
-  .select-field:hover {
-    @apply shadow-md;
+  /* Textarea with Consistent Base Height */
+  .textarea-field {
+    @apply w-full px-4 py-3 min-h-[100px]
+           bg-white dark:bg-gray-800
+           border-2 border-gray-300 dark:border-gray-600
+           text-gray-900 dark:text-gray-100
+           placeholder-gray-500 dark:placeholder-gray-400
+           rounded-xl font-medium text-base
+           focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400
+           transition-all duration-200
+           hover:border-gray-400 dark:hover:border-gray-500
+           shadow-sm hover:shadow-md focus:shadow-lg
+           resize-none;
+  }
+
+  /* Enhanced Form Group Spacing */
+  .form-group {
+    @apply space-y-2 mb-6;
+  }
+
+  /* Consistent Input Field Heights and Alignment */
+  .input-field,
+  .search-input,
+  .select-field,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"], 
+  input[type="number"],
+  select {
+    @apply h-12 text-base font-medium;
+  }
+
+  /* Enhanced Label Styling */
+  .form-label,
+  label {
+    @apply block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 leading-tight;
+  }
+
+  /* Button Height Consistency */
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  button {
+    @apply h-12 text-base font-semibold;
+  }
+
+  /* Navigation Button Alignment */
+  .nav-button {
+    @apply h-12 px-6 flex items-center justify-center rounded-xl text-base font-medium transition-all duration-200;
+  }
+
+  /* Dropdown Menu Item Height */
+  .dropdown-item {
+    @apply h-12 px-4 flex items-center text-base;
   }
 
   /* Card Styles - Updated for INVERTED light theme */
@@ -285,6 +360,65 @@
   .status-away {
     @apply bg-info-500;
   }
+
+  /* Enhanced Navbar Alignment */
+  .navbar-container {
+    @apply h-16 flex items-center justify-between;
+  }
+
+  .navbar-logo {
+    @apply flex items-center space-x-2 h-12;
+  }
+
+  .navbar-nav {
+    @apply hidden lg:flex items-center space-x-1;
+  }
+
+  .navbar-link {
+    @apply relative h-12 px-4 flex items-center justify-center text-sm font-medium rounded-xl transition-all duration-200;
+  }
+
+  .navbar-actions {
+    @apply flex items-center space-x-3;
+  }
+
+  .navbar-button {
+    @apply h-12 flex items-center justify-center rounded-xl text-sm font-medium transition-all duration-200;
+  }
+
+  .navbar-icon-button {
+    @apply h-12 w-12 flex items-center justify-center rounded-xl transition-all duration-200;
+  }
+
+  .navbar-dropdown {
+    @apply absolute right-0 mt-2 w-56 bg-white/95 dark:bg-dark-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl py-2;
+  }
+
+  .navbar-dropdown-item {
+    @apply flex items-center h-12 px-4 text-sm transition-colors duration-200;
+  }
+
+  /* Mobile Navigation */
+  .mobile-nav {
+    @apply lg:hidden overflow-hidden;
+  }
+
+  .mobile-nav-container {
+    @apply px-2 pt-4 pb-6 space-y-2 bg-white/50 dark:bg-dark-900/50 backdrop-blur-sm rounded-2xl mt-4 border border-gray-200/50 dark:border-gray-800/50;
+  }
+
+  .mobile-nav-link {
+    @apply flex items-center h-12 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200;
+  }
+
+  /* Active Link Styles */
+  .nav-link-active {
+    @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20;
+  }
+
+  .nav-link-inactive {
+    @apply text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50;
+  }
 }
 
 /* Print Styles */
@@ -347,6 +481,53 @@
     @apply text-3xl;
   }
 }
+
+/* Dark mode overrides for specific components */
+.dark .text-neon {
+  text-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+}
+
+.dark .shadow-neon-primary {
+  box-shadow: 0 0 20px rgba(233, 30, 99, 0.5);
+}
+
+.dark .shadow-neon-accent {
+  box-shadow: 0 0 20px rgba(0, 201, 255, 0.5);
+}
+
+.dark .shadow-neon-highlight {
+  box-shadow: 0 0 20px rgba(156, 39, 176, 0.5);
+}
+
+.dark .waveform-bar {
+  background: linear-gradient(to top, #E91E63, #00C9FF);
+}
+
+.dark .glow-on-hover:hover {
+  box-shadow: 
+    0 0 20px rgba(233, 30, 99, 0.6),
+    0 0 40px rgba(233, 30, 99, 0.4),
+    0 0 60px rgba(233, 30, 99, 0.2);
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .glass-effect {
+    background: rgba(15, 23, 42, 0.8);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
 
 /* Dark mode overrides for specific components */
 .dark .text-neon {

@@ -14,7 +14,7 @@ import {
   Shield,
   ChevronDown,
   Bell,
-  MessageSquare,
+  MessageCircle,
   BookOpen,
   HelpCircle,
   Users,
@@ -123,7 +123,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
       <div className="container">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link 
             to="/" 
@@ -248,7 +248,7 @@ const Navbar = () => {
 
                 {/* Messages */}
                 <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <MessageSquare className="w-5 h-5 group-hover:animate-bounce" />
+                  <MessageCircle className="w-5 h-5 group-hover:animate-bounce" />
                 </button>
 
                 {/* Dashboard Link */}
@@ -349,37 +349,35 @@ const Navbar = () => {
                 </div>
               </>
             ) : (
-              <>
-                {/* Auth Buttons */}
+              <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="hidden sm:flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                  className="h-12 px-6 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-xl text-base font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                 >
-                  <User className="w-4 h-4 group-hover:animate-bounce" />
-                  <span>Login</span>
+                  Sign in
                 </Link>
-                
                 <Link
                   to="/register"
-                  className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 text-white rounded-xl text-sm font-medium hover:from-light-primary/90 hover:to-light-accent/90 dark:hover:from-primary-600 dark:hover:to-accent-600 transition-all duration-200 group shadow-lg hover:shadow-neon transform hover:-translate-y-0.5"
+                  className="h-12 px-6 flex items-center justify-center bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold rounded-xl text-base transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
-                  <User className="w-4 h-4 group-hover:animate-bounce" />
-                  <span>Sign Up</span>
+                  Get Started
                 </Link>
-              </>
+              </div>
             )}
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
-            >
-              {isOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+            {/* Mobile menu button */}
+            <div className="lg:hidden">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="inline-flex items-center justify-center p-3 h-12 w-12 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
+              >
+                {isOpen ? (
+                  <X className="block h-6 w-6" />
+                ) : (
+                  <Menu className="block h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -393,7 +391,13 @@ const Navbar = () => {
               transition={{ duration: 0.3 }}
               className="lg:hidden border-t border-light-border/30 dark:border-gray-700/30"
             >
-              <div className="py-4 space-y-2">
+              <div className="px-4 pt-4 pb-6 space-y-2 bg-white/50 dark:bg-dark-900/50 backdrop-blur-sm rounded-2xl">
+                {/* Theme Toggle for Mobile */}
+                <div className="flex items-center justify-between px-4 py-3 mb-4 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</span>
+                  <ThemeToggle size="sm" showLabel />
+                </div>
+
                 {navigation.map((item) => {
                   const Icon = item.icon
                   
@@ -466,7 +470,7 @@ const Navbar = () => {
                 })}
                 
                 {isAuthenticated ? (
-                  <div className="pt-4 border-t border-light-border/30 dark:border-gray-700/30">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
                     <Link
                       to="/dashboard"
                       className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200"
@@ -485,23 +489,23 @@ const Navbar = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="pt-4 border-t border-light-border/30 dark:border-gray-700/30 space-y-2">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
                     <Link
                       to="/login"
-                      className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                       onClick={() => setIsOpen(false)}
                     >
                       <User className="w-4 h-4" />
-                      <span>Login</span>
+                      <span>Sign in</span>
                     </Link>
                     
                     <Link
                       to="/register"
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-neon"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white text-base font-semibold rounded-xl transition-all duration-200 shadow-lg"
                       onClick={() => setIsOpen(false)}
                     >
                       <User className="w-4 h-4" />
-                      <span>Sign Up</span>
+                      <span>Get Started</span>
                     </Link>
                   </div>
                 )}

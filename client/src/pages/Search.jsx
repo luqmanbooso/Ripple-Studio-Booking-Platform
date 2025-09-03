@@ -95,68 +95,75 @@ const Search = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="card mb-8 border-light-primary/20 dark:border-primary-500/20"
+          className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-gray-200/50 dark:border-gray-700/50 mb-8"
         >
-          <form onSubmit={handleSearch} className="space-y-8">
-            {/* Main Search Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <form onSubmit={handleSearch} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Search Query
                 </label>
                 <div className="relative">
-                  <SearchIcon className="absolute left-1.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-light-textMuted dark:text-gray-400" />
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search artists, studios, genres..."
                     value={filters.q}
                     onChange={(e) => handleFilterChange('q', e.target.value)}
-                    className="search-input pl-5 text-lg"
+                    className="w-full pl-10 pr-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                   />
                 </div>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Type
                 </label>
                 <select
-                  className="select-field text-lg w-full"
+                  className="w-full h-12 px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.25em 1.25em',
+                    paddingRight: '3rem'
+                  }}
                   value={filters.type}
                   onChange={(e) => handleFilterChange('type', e.target.value)}
                 >
-                  <option value="all" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">All</option>
-                  <option value="artists" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Artists</option>
-                  <option value="studios" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Studios</option>
+                  <option value="all" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">All</option>
+                  <option value="artists" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Artists</option>
+                  <option value="studios" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Studios</option>
                 </select>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Sort By
                 </label>
                 <select
-                  className="select-field text-lg w-full"
+                  className="w-full h-12 px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.25em 1.25em',
+                    paddingRight: '3rem'
+                  }}
                   value={filters.sort}
                   onChange={(e) => handleFilterChange('sort', e.target.value)}
                 >
-                  <option value="-ratingAvg" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Highest Rated</option>
-                  <option value="hourlyRate" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Lowest Price</option>
-                  <option value="-hourlyRate" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Highest Price</option>
-                  <option value="-createdAt" className="bg-white dark:bg-gray-800 text-light-text dark:text-gray-100">Newest</option>
+                  <option value="-ratingAvg" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Highest Rated</option>
+                  <option value="hourlyRate" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Lowest Price</option>
+                  <option value="-hourlyRate" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Highest Price</option>
+                  <option value="-createdAt" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">Newest</option>
                 </select>
               </div>
             </div>
 
-            {/* Visual Separator */}
-            <div className="border-t border-light-border/30 dark:border-gray-700/30 pt-6">
-              <h3 className="text-lg font-semibold text-light-text dark:text-gray-100 mb-4">
-                Additional Filters
-              </h3>
-            </div>
-
-            {/* Additional Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Country
                 </label>
                 <input
@@ -164,11 +171,12 @@ const Search = () => {
                   placeholder="e.g., USA"
                   value={filters.country}
                   onChange={(e) => handleFilterChange('country', e.target.value)}
-                  className="input-field"
+                  className="w-full px-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   City
                 </label>
                 <input
@@ -176,11 +184,12 @@ const Search = () => {
                   placeholder="e.g., New York"
                   value={filters.city}
                   onChange={(e) => handleFilterChange('city', e.target.value)}
-                  className="input-field"
+                  className="w-full px-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Genre
                 </label>
                 <input
@@ -188,31 +197,33 @@ const Search = () => {
                   placeholder="e.g., Rock, Jazz"
                   value={filters.genre}
                   onChange={(e) => handleFilterChange('genre', e.target.value)}
-                  className="input-field"
+                  className="w-full px-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
-                  Min Rate
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Min Rate ($)
                 </label>
                 <input
                   type="number"
                   placeholder="$0"
                   value={filters.minRate}
                   onChange={(e) => handleFilterChange('minRate', e.target.value)}
-                  className="input-field"
+                  className="w-full px-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-light-textSecondary dark:text-gray-400 mb-2">
-                  Max Rate
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Max Rate ($)
                 </label>
                 <input
                   type="number"
                   placeholder="$500"
                   value={filters.maxRate}
                   onChange={(e) => handleFilterChange('maxRate', e.target.value)}
-                  className="input-field"
+                  className="w-full px-4 py-3 h-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 dark:focus:border-primary-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
                 />
               </div>
             </div>
