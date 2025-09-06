@@ -1,8 +1,8 @@
 {
-  "name": "music-booking-platform",
+  "name": "ripple",
   "version": "1.0.0",
-  "description": "A cutting-edge MERN stack platform connecting clients, artists, and recording studios",
-  "main": "server/src/server.js",
+  "description": "Ripple - Music Booking Platform",
+  "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",

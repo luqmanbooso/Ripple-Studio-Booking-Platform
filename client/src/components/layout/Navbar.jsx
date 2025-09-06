@@ -124,21 +124,22 @@ const Navbar = () => {
     <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
       <div className="container">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center space-x-3 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200 group"
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-xl flex items-center justify-center animate-pulse-neon group-hover:animate-spin-slow">
-              <Music className="w-6 h-6 text-white animate-bounce-slow" />
-            </div>
-            <span className="hidden sm:block relative">
-              <span className="bg-gradient-to-r from-light-primary via-light-accent to-light-highlight dark:from-primary-600 dark:via-accent-500 dark:to-highlight-600 bg-clip-text text-transparent">
-                MusicBooking
+          {/* Logo Section */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2 group">
+              <div className="relative">
+                <Music className="w-8 h-8 text-primary-500 group-hover:text-primary-600 transition-colors duration-200" />
+                <motion.div
+                  className="absolute inset-0 bg-primary-500/20 rounded-full"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                Ripple
               </span>
-              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 group-hover:w-full transition-all duration-500"></div>
-            </span>
-          </Link>
+            </Link>
+          </div>
 
           {/* Desktop Navigation - Centered */}
           <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-8">

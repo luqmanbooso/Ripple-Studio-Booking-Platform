@@ -1,4 +1,4 @@
-# 🎵 Music Booking Platform
+# 🎵 Ripple - Music Booking Platform
 
 A cutting-edge MERN stack platform connecting clients, artists, and recording studios for seamless musical collaboration and booking experiences.
 
@@ -179,8 +179,8 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 
 1. **Clone and install dependencies:**
 ```bash
-git clone https://github.com/your-username/music-booking-platform.git
-cd music-booking-platform
+git clone https://github.com/your-username/ripple.git
+cd ripple
 npm install
 cd server && npm install
 cd ../client && npm install
@@ -194,7 +194,7 @@ cp .env.example .env
 Edit `.env` with your credentials:
 ```env
 # Database
-MONGO_URI=mongodb://localhost:27017/music-booking
+MONGO_URI=mongodb://localhost:27017/ripple
 
 # JWT Secrets (generate strong secrets)
 JWT_ACCESS_SECRET=your-super-secret-access-key
@@ -236,7 +236,7 @@ stripe listen --forward-to localhost:5000/api/webhooks/stripe
 ### 🔐 Demo Accounts (after seeding)
 
 ```
-Admin: admin@musicbooking.com / admin123
+Admin: admin@ripple.com / admin123
 Artist: artist1@example.com / password123
 Studio: studio1@example.com / password123
 Client: client1@example.com / password123
@@ -371,7 +371,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@musicbooking.io or join our Discord community.
+For support, email support@ripple.io or join our Discord community.
 
 ## 🎯 Roadmap
 
@@ -386,4 +386,4 @@ For support, email support@musicbooking.io or join our Discord community.
 
 ---
 
-**Made with ❤️ by the Music Booking Platform Team**
+**Made with ❤️ by the Ripple Team**

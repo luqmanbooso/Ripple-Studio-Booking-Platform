@@ -39,12 +39,17 @@ const Footer = () => {
           <div className="col-span-2 lg:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
               <Music className="w-8 h-8 text-primary-500" />
-              <span className="text-xl font-bold text-gradient">MusicBooking</span>
+              <div className="flex items-center space-x-2 mb-4">
+                <Music className="w-8 h-8 text-primary-500" />
+                <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                  Ripple
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Connecting artists, studios, and music lovers worldwide. 
+                Your next breakthrough is just a ripple away.
+              </p>
             </Link>
-            <p className="text-gray-400 mb-6 max-w-md">
-              Connect with talented artists and professional recording studios. 
-              Book sessions, collaborate, and create amazing music together.
-            </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <a
@@ -115,13 +120,18 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 MusicBooking Platform. All rights reserved.
+        <div className="border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            © 2024 Ripple. All rights reserved.
           </p>
-          <p className="text-gray-400 text-sm mt-4 md:mt-0">
-            Made with ❤️ for the music community
-          </p>
+          <div className="flex items-center space-x-4 mt-4 md:mt-0">
+            <Link to="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

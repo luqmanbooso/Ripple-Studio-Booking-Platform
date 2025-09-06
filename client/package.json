@@ -1,8 +1,9 @@
 {
-  "name": "music-booking-client",
+  "name": "ripple-client",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
+  "description": "Ripple Music Booking Platform - Frontend",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
