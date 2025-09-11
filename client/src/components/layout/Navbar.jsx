@@ -121,8 +121,8 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300">
-      <div className="container">
+    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300 overflow-x-hidden">
+      <div className="max-w-screen-xl mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
@@ -142,7 +142,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-8">
+          <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-4 lg:mx-8">
             <div className="flex items-center space-x-1 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-light-border/50 dark:border-gray-700/50 shadow-glass">
               {navigation.map((item) => {
                 const Icon = item.icon

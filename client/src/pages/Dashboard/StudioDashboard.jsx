@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Calendar, 
-  DollarSign, 
+  BadgeDollarSign , 
   Star, 
   Building,
   TrendingUp,
@@ -49,7 +49,7 @@ const StudioDashboard = () => {
     {
       label: 'Total Revenue',
       value: `$${totalRevenue.toFixed(2)}`,
-      icon: DollarSign,
+      icon: BadgeDollarSign ,
       color: 'text-green-400',
       change: '+15%',
       subtitle: 'This month'
@@ -81,7 +81,7 @@ const StudioDashboard = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-white dark:bg-dark-950">
       <div className="container py-8">
         {/* Header */}
         <motion.div
@@ -90,10 +90,10 @@ const StudioDashboard = () => {
           className="flex items-center justify-between mb-8"
         >
           <div>
-            <h1 className="text-3xl font-bold text-gray-100 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Studio Dashboard
             </h1>
-            <p className="text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               Manage your studio bookings and operations
             </p>
           </div>
@@ -122,9 +122,9 @@ const StudioDashboard = () => {
                   <Icon className={`w-6 h-6 ${stat.color}`} />
                   <span className="text-xs text-green-400">{stat.change}</span>
                 </div>
-                <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-100 mb-1">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{stat.value}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">{stat.subtitle}</p>
               </Card>
             )
           })}
@@ -140,7 +140,7 @@ const StudioDashboard = () => {
           >
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-100">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   Today's Schedule
                 </h2>
                 <div className="flex items-center space-x-2">
@@ -191,7 +191,7 @@ const StudioDashboard = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="text-gray-600 text-sm italic">
+                            <div className="text-gray-600 dark:text-gray-400 text-sm italic">
                               Available
                             </div>
                           )}
@@ -202,8 +202,8 @@ const StudioDashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400">No bookings today</p>
+                  <Calendar className="w-12 h-12 text-gray-600 dark:text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400">No bookings today</p>
                 </div>
               )}
             </Card>
@@ -218,17 +218,17 @@ const StudioDashboard = () => {
           >
             {/* Studio Status */}
             <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">Studio Status</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Studio Status</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Current Status</span>
+                  <span className="text-gray-600 dark:text-gray-400">Current Status</span>
                   <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm">
                     Available
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Next Booking</span>
-                  <span className="text-gray-100 text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Next Booking</span>
+                  <span className="text-gray-900 dark:text-gray-100 text-sm">
                     {upcomingBookings[0] ? 
                       new Date(upcomingBookings[0].start).toLocaleTimeString([], { 
                         hour: '2-digit', 
@@ -238,26 +238,26 @@ const StudioDashboard = () => {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Services Active</span>
-                  <span className="text-gray-100">{studio?.services?.length || 0}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Services Active</span>
+                  <span className="text-gray-900 dark:text-gray-100">{studio?.services?.length || 0}</span>
                 </div>
               </div>
             </Card>
 
             {/* Revenue Chart Placeholder */}
             <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">Revenue Trend</h3>
-              <div className="h-32 bg-dark-700 rounded-lg flex items-center justify-center">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Revenue Trend</h3>
+              <div className="h-32 bg-gray-100 dark:bg-dark-700 rounded-lg flex items-center justify-center">
                 <div className="text-center">
-                  <TrendingUp className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Chart coming soon</p>
+                  <TrendingUp className="w-8 h-8 text-gray-600 dark:text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Chart coming soon</p>
                 </div>
               </div>
             </Card>
 
             {/* Quick Actions */}
             <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">Quick Actions</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 <Button variant="outline" size="sm" className="w-full justify-start">
                   <Clock className="w-4 h-4 mr-2" />
