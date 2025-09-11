@@ -27,6 +27,8 @@ import Contact from './pages/Contact'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import Verify from './pages/Auth/Verify'
+import ForgotPassword from './pages/Auth/ForgotPassword'
+import ResetPassword from './pages/Auth/ResetPassword'
 
 // Dashboard pages
 import ClientDashboard from './pages/Dashboard/ClientDashboard'
@@ -148,6 +150,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Protected routes */}
             <Route path="/booking/new" element={

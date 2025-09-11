@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +26,8 @@ const Login = () => {
   const location = useLocation()
 
   const from = location.state?.from?.pathname || '/dashboard'
+
+  const mode = useSelector((s) => s.theme.mode)
 
   const {
     register,
@@ -51,7 +54,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen ${mode === 'dark' ? 'text-gray-200' : 'text-gray-900'} flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -63,10 +66,10 @@ const Login = () => {
             <Music className="w-12 h-12 text-primary-500" />
             <span className="text-2xl font-bold text-gradient">Ripple</span>
           </Link>
-          <h2 className="text-3xl font-bold text-white">
+          <h2 className={`text-3xl font-bold ${mode === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             Welcome back
           </h2>
-          <p className="mt-2 text-gray-400">
+          <p className={`mt-2 ${mode === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             Sign in to your account to continue
           </p>
         </motion.div>
@@ -75,7 +78,7 @@ const Login = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-3xl p-8 shadow-2xl"
+          className={`${mode === 'dark' ? 'bg-gray-800/90 backdrop-blur-sm border border-gray-700 text-white' : 'bg-white border border-gray-200 text-gray-900'} rounded-3xl p-8 shadow-2xl`}
         >
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* Email Field */}
@@ -90,11 +93,7 @@ const Login = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className={`w-full pl-10 pr-4 py-3 h-12 bg-gray-700/50 border-2 ${
-                    errors.email 
-                      ? 'border-red-500 focus:border-red-400' 
-                      : 'border-gray-600 focus:border-primary-500'
-                  } text-white placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 transition-all duration-200 hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg`}
+                  className={`w-full pl-10 pr-4 py-3 h-12 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 transition-all duration-200 shadow-sm focus:shadow-lg ${errors.email ? 'border-red-500 focus:border-red-400' : ''} ${mode === 'dark' ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 hover:border-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'}`}
                   {...register('email')}
                 />
               </div>
@@ -117,11 +116,7 @@ const Login = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  className={`w-full pl-10 pr-12 py-3 h-12 bg-gray-700/50 border-2 ${
-                    errors.password 
-                      ? 'border-red-500 focus:border-red-400' 
-                      : 'border-gray-600 focus:border-primary-500'
-                  } text-white placeholder-gray-400 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 transition-all duration-200 hover:border-gray-500 shadow-sm hover:shadow-md focus:shadow-lg`}
+                  className={`w-full pl-10 pr-12 py-3 h-12 rounded-xl font-medium text-base focus:ring-2 focus:ring-primary-500/50 transition-all duration-200 shadow-sm focus:shadow-lg ${errors.password ? 'border-red-500 focus:border-red-400' : ''} ${mode === 'dark' ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 hover:border-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'}`}
                   {...register('password')}
                 />
                 <button
@@ -160,7 +155,7 @@ const Login = () => {
               <div className="text-sm">
                 <Link
                   to="/forgot-password"
-                  className="font-medium text-primary-400 hover:text-primary-300 transition-colors duration-200"
+                  className="font-medium text-primary-500 hover:text-primary-400 transition-colors duration-200"
                 >
                   Forgot your password?
                 </Link>
@@ -188,7 +183,7 @@ const Login = () => {
                 <div className="w-full border-t border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
+                <span className={`px-2 ${mode === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600'}`}>Or continue with</span>
               </div>
             </div>
 

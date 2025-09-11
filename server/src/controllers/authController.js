@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
@@ -19,6 +20,28 @@ const generateTokens = (userId) => {
 
   return { accessToken, refreshToken };
 };
+
+// Helper to build cookie options for refresh tokens
+const getRefreshCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production';
+  const sameSite = process.env.COOKIE_SAME_SITE || 'lax'; // 'lax' by default to allow cross-site POSTs from dev frontends
+  const secureFlag = isProd && (process.env.COOKIE_SECURE === 'true' || process.env.COOKIE_SECURE === undefined);
+
+  const opts = {
+    httpOnly: true,
+    secure: secureFlag,
+    sameSite,
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+
+  // If a specific cookie domain is provided (useful for deployed setups), include it
+  if (process.env.COOKIE_DOMAIN) {
+    opts.domain = process.env.COOKIE_DOMAIN;
+  }
+
+  return opts;
+}
 
 const register = catchAsync(async (req, res) => {
   const { name, email, password, role, country, city, phone, artist, studio } = req.body;
@@ -78,12 +101,7 @@ const register = catchAsync(async (req, res) => {
   await user.save();
 
   // Set refresh token cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  });
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
   res.status(201).json({
     status: 'success',
@@ -130,12 +148,7 @@ const login = catchAsync(async (req, res) => {
   await user.save();
 
   // Set refresh token cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  });
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
   res.json({
     status: 'success',
@@ -161,7 +174,8 @@ const logout = catchAsync(async (req, res) => {
   await User.findByIdAndUpdate(userId, { refreshToken: null });
 
   // Clear refresh token cookie
-  res.clearCookie('refreshToken');
+  // Clear cookie using same path/domain/sameSite so browser removes it reliably
+  res.clearCookie('refreshToken', Object.assign({}, getRefreshCookieOptions(), { maxAge: 0 }));
 
   res.json({
     status: 'success',
@@ -193,12 +207,7 @@ const refreshToken = catchAsync(async (req, res) => {
   await user.save();
 
   // Set new refresh token cookie
-  res.cookie('refreshToken', newRefreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  });
+  res.cookie('refreshToken', newRefreshToken, getRefreshCookieOptions());
 
   res.json({
     status: 'success',
@@ -232,22 +241,64 @@ const forgotPassword = catchAsync(async (req, res) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
+
+  // Always return a generic success response to avoid user enumeration
   if (!user) {
-    throw new ApiError('User not found', 404);
+    return res.json({
+      status: 'success',
+      message: 'If an account with that email exists, a password reset link has been sent.'
+    });
   }
 
-  // Generate reset token
+  // Generate reset token (raw token will only be sent via email)
   const resetToken = crypto.randomBytes(32).toString('hex');
   user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   await user.save();
 
-  // In real implementation, send email with reset link
-  res.json({
+  // Prepare reset URL for email (frontend should handle route /reset-password)
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+
+  // Send email if SMTP is configured, otherwise log for development
+  try {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const mailFrom = process.env.FROM_EMAIL || process.env.MAIL_FROM || `no-reply@${process.env.DOMAIN || 'ripple.app'}`;
+
+      await transporter.sendMail({
+        from: mailFrom,
+        to: user.email,
+        subject: 'Reset your Ripple password',
+        html: `
+          <p>Hi ${user.name || ''},</p>
+          <p>You requested a password reset. Click the link below to set a new password. This link expires in 10 minutes.</p>
+          <p><a href="${resetUrl}">Reset your password</a></p>
+          <p>If you didn't request this, you can ignore this email.</p>
+        `,
+      });
+      console.log('Password reset email sent to', user.email);
+    } else {
+      // Dev fallback: log the reset URL (do not expose in API response)
+      console.log('Password reset URL (dev):', resetUrl);
+    }
+  } catch (err) {
+    console.error('Error sending password reset email:', err);
+    // Do not fail the request - respond generically
+  }
+
+  return res.json({
     status: 'success',
-    message: 'Password reset token sent to email',
-    // For development only - remove in production
-    resetToken
+    message: 'If an account with that email exists, a password reset link has been sent.'
   });
 });
 
