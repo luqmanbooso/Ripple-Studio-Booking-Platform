@@ -122,7 +122,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
-      <div className="max-w-screen mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
@@ -149,8 +149,8 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 max-w-2xl mx-8">
-            <div className="flex items-center space-x-2 bg-gray-100/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-full px-4 py-2 border border-gray-200/60 dark:border-slate-700/60">
+          <div className="hidden xl:flex items-center justify-center flex-1 max-w-3xl mx-4">
+            <div className="flex items-center space-x-1 bg-gray-100/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-full px-3 py-2 border border-gray-200/60 dark:border-slate-700/60">
               {navigation.map((item) => {
                 const Icon = item.icon
                 
@@ -161,7 +161,7 @@ const Navbar = () => {
                     <div key={item.name} className="relative">
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
-                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 group ${
+                        className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${
                           isOpen ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
                         }`}
                       >
@@ -220,7 +220,7 @@ const Navbar = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 relative group ${
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group ${
                       isActive(item.href)
                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
                         : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'

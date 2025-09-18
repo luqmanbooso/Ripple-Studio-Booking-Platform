@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Layout components
 import Navbar from './components/layout/Navbar'
+import AdminNavbar from './components/layout/AdminNavbar'
 import Footer from './components/layout/Footer'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import ParticleBackground from './components/common/ParticleBackground'
@@ -37,6 +38,8 @@ import StudioDashboard from './pages/Dashboard/StudioDashboard'
 import AdminDashboard from './pages/Dashboard/AdminDashboard'
 import AdminUsers from './pages/Admin/AdminUsers'
 import AdminBookings from './pages/Admin/AdminBookings'
+import AdminStudios from './pages/Admin/AdminStudios'
+import AdminRevenue from './pages/Admin/AdminRevenue'
 import AdminReviews from './pages/Admin/AdminReviews'
 import AdminPayments from './pages/Admin/AdminPayments'
 
@@ -51,8 +54,13 @@ import { initializeSocket } from './lib/socket'
 
 function App() {
   const dispatch = useDispatch()
+  const location = useLocation()
   const { user, token } = useSelector((state) => state.auth)
   const { mode, animations } = useSelector((state) => state.theme)
+
+  // Check if we're on admin routes or admin user on dashboard
+  const isAdminRoute = location.pathname.startsWith('/admin') || 
+    (location.pathname === '/dashboard' && user?.role === 'admin')
 
   useEffect(() => {
     // Check for existing auth in localStorage
@@ -122,14 +130,17 @@ function App() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      mode === 'dark' 
-        ? 'bg-dark-950 text-white' 
-        : 'bg-white text-gray-900'
+      isAdminRoute 
+        ? 'bg-slate-900 text-white' 
+        : mode === 'dark' 
+          ? 'bg-dark-950 text-white' 
+          : 'bg-white text-gray-900'
     }`}>
-      {/* Particle Background */}
-      <ParticleBackground />
+      {/* Particle Background - Only show on non-admin pages */}
+      {!isAdminRoute && <ParticleBackground />}
       
-      <Navbar />
+      {/* Conditional Navbar */}
+      {isAdminRoute ? <AdminNavbar /> : <Navbar />}
       
       <main className="flex-1 relative">
         <AnimatePresence mode="wait">
@@ -206,7 +217,8 @@ function App() {
         </AnimatePresence>
       </main>
       
-      <Footer />
+      {/* Footer - Only show on non-admin pages */}
+      {!isAdminRoute && <Footer />}
     </div>
   )
 }
@@ -238,6 +250,8 @@ function AdminRoutes() {
       <Route index element={<AdminDashboard />} />
       <Route path="users" element={<AdminUsers />} />
       <Route path="bookings" element={<AdminBookings />} />
+      <Route path="studios" element={<AdminStudios />} />
+      <Route path="revenue" element={<AdminRevenue />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />
     </Routes>

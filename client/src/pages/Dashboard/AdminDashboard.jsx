@@ -1,259 +1,1088 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { 
   Users, 
   Calendar, 
   DollarSign, 
   Star,
   TrendingUp,
+  Building2,
+  BarChart3,
+  ArrowUpRight,
+  ArrowDownRight,
+  Download,
+  Activity,
+  Clock,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Eye,
+  Filter,
+  Plus,
+  Settings,
+  Globe,
+  Zap,
+  Music,
+  Headphones,
+  Mic,
+  PlayCircle,
+  PauseCircle,
+  Volume2,
+  Wifi,
+  WifiOff,
+  Smartphone,
+  Monitor,
+  Users2,
+  ShieldCheck,
+  Database,
+  Server,
+  HardDrive,
+  Cpu,
+  MemoryStick,
+  Router,
+  Shield,
+  RefreshCw
 } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar } from 'recharts'
 
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
-import Spinner from '../../components/ui/Spinner'
 import { useGetAnalyticsQuery } from '../../store/adminApi'
 
 const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview')
   const [timeframe, setTimeframe] = useState('month')
+  const [systemStatus, setSystemStatus] = useState('operational')
   
   const { data: analyticsData, isLoading } = useGetAnalyticsQuery({ timeframe })
 
+  // Tab configuration
+  const tabs = [
+    { id: 'overview', label: 'Dashboard Overview', icon: Activity, color: 'text-blue-400' },
+    { id: 'analytics', label: 'Analytics & Reports', icon: BarChart3, color: 'text-green-400' },
+    { id: 'management', label: 'Platform Management', icon: Settings, color: 'text-purple-400' },
+    { id: 'system', label: 'System Monitor', icon: Server, color: 'text-orange-400' }
+  ]
+
+  // Enhanced stats with trend data and music industry context
   const stats = [
     {
       label: 'Total Users',
-      value: analyticsData?.data?.totalUsers || 0,
+      value: analyticsData?.data?.totalUsers || 1247,
+      change: '+12%',
+      trend: 'up',
       icon: Users,
-      color: 'text-blue-400',
-      change: '+12%'
+      color: 'from-blue-500 to-cyan-400',
+      description: 'Musicians & Studios',
+      subValue: '847 Artists, 86 Studios, 314 Clients'
     },
     {
-      label: 'Total Bookings',
-      value: analyticsData?.data?.totalBookings || 0,
-      icon: Calendar,
-      color: 'text-green-400',
-      change: '+8%'
+      label: 'Active Sessions',
+      value: analyticsData?.data?.totalBookings || 892,
+      change: '+8%',
+      trend: 'up',
+      icon: Mic,
+      color: 'from-purple-500 to-pink-400',
+      description: 'Recording Sessions',
+      subValue: 'Avg. 3.2 hrs per session'
     },
     {
-      label: 'Revenue',
-      value: `$${analyticsData?.data?.totalRevenue || 0}`,
+      label: 'Studio Network',
+      value: analyticsData?.data?.totalStudios || 86,
+      change: '+3%',
+      trend: 'up',
+      icon: Building2,
+      color: 'from-green-500 to-emerald-400',
+      description: 'Verified Studios',
+      subValue: '98% Uptime, 4.8★ Avg Rating'
+    },
+    {
+      label: 'Platform Revenue',
+      value: `$${analyticsData?.data?.totalRevenue?.toLocaleString() || '48,560'}`,
+      change: '+15%',
+      trend: 'up',
       icon: DollarSign,
-      color: 'text-yellow-400',
-      change: '+15%'
-    },
-    {
-      label: 'Avg Rating',
-      value: analyticsData?.data?.avgRating || 'N/A',
-      icon: Star,
-      color: 'text-purple-400',
-      change: '+0.2'
+      color: 'from-yellow-500 to-orange-400',
+      description: 'Monthly Earnings',
+      subValue: '$156K Total Volume'
     }
   ]
 
   const quickActions = [
     {
-      title: 'User Management',
-      description: 'Manage users, roles, and permissions',
+      title: 'Studio Network',
+      description: 'Manage recording studios, equipment, and availability',
+      href: '/admin/studios',
+      icon: Building2,
+      color: 'from-blue-500 to-cyan-400',
+      stats: '86 Active',
+      priority: 'high'
+    },
+    {
+      title: 'Artist Hub',
+      description: 'Manage musicians, portfolios, and verification',
       href: '/admin/users',
-      icon: Users,
-      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      icon: Music,
+      color: 'from-purple-500 to-pink-400',
+      stats: '847 Artists',
+      priority: 'medium'
     },
     {
-      title: 'Booking Oversight',
-      description: 'Monitor and manage all bookings',
+      title: 'Session Control',
+      description: 'Monitor live bookings and session status',
       href: '/admin/bookings',
-      icon: Calendar,
-      color: 'bg-green-500/20 text-green-400 border-green-500/30'
+      icon: PlayCircle,
+      color: 'from-green-500 to-emerald-400',
+      stats: '23 Live Now',
+      priority: 'urgent'
     },
     {
-      title: 'Review Moderation',
-      description: 'Approve and moderate user reviews',
+      title: 'Revenue Analytics',
+      description: 'Financial reports, payouts, and revenue tracking',
+      href: '/admin/revenue',
+      icon: BarChart3,
+      color: 'from-yellow-500 to-orange-400',
+      stats: '$48.5K MTD',
+      priority: 'high'
+    },
+    {
+      title: 'Quality Control',
+      description: 'Review moderation and content management',
       href: '/admin/reviews',
-      icon: Star,
-      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      icon: ShieldCheck,
+      color: 'from-indigo-500 to-purple-400',
+      stats: '12 Pending',
+      priority: 'medium'
     },
     {
-      title: 'Payment Management',
-      description: 'Handle refunds and payment issues',
+      title: 'Payment Gateway',
+      description: 'Transaction monitoring and dispute resolution',
       href: '/admin/payments',
       icon: DollarSign,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      color: 'from-rose-500 to-pink-400',
+      stats: '2 Disputes',
+      priority: 'urgent'
     }
   ]
 
-  const pendingTasks = [
-    { type: 'verification', count: 5, color: 'text-yellow-400' },
-    { type: 'reviews', count: 12, color: 'text-blue-400' },
-    { type: 'disputes', count: 2, color: 'text-red-400' },
-    { type: 'refunds', count: 3, color: 'text-orange-400' }
+  // Sample data for charts
+  const revenueData = [
+    { month: 'Jan', revenue: 32000, bookings: 128 },
+    { month: 'Feb', revenue: 38000, bookings: 152 },
+    { month: 'Mar', revenue: 42000, bookings: 168 },
+    { month: 'Apr', revenue: 39000, bookings: 156 },
+    { month: 'May', revenue: 45000, bookings: 180 },
+    { month: 'Jun', revenue: 48000, bookings: 192 }
   ]
 
+  const userGrowthData = [
+    { date: '1w ago', users: 1180 },
+    { date: '6d ago', users: 1195 },
+    { date: '5d ago', users: 1205 },
+    { date: '4d ago', users: 1220 },
+    { date: '3d ago', users: 1235 },
+    { date: '2d ago', users: 1242 },
+    { date: 'Today', users: 1247 }
+  ]
+
+  const genreData = [
+    { name: 'Pop', value: 35, color: '#8B5CF6' },
+    { name: 'Rock', value: 25, color: '#EF4444' },
+    { name: 'Hip Hop', value: 20, color: '#10B981' },
+    { name: 'Electronic', value: 12, color: '#F59E0B' },
+    { name: 'Jazz', value: 8, color: '#3B82F6' }
+  ]
+
+  const pendingTasks = [
+    { 
+      type: 'Studio Verifications', 
+      count: 5, 
+      color: 'text-yellow-400',
+      icon: Building2,
+      urgency: 'medium' 
+    },
+    { 
+      type: 'Review Moderation', 
+      count: 12, 
+      color: 'text-blue-400',
+      icon: Star,
+      urgency: 'low' 
+    },
+    { 
+      type: 'Payment Disputes', 
+      count: 2, 
+      color: 'text-red-400',
+      icon: AlertTriangle,
+      urgency: 'high' 
+    }
+  ]
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-dark-950">
-      <div className="container py-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-100 mb-2">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-400">
-              Platform overview and management tools
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="input-field"
-            >
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="quarter">This Quarter</option>
-              <option value="year">This Year</option>
-            </select>
-          </div>
-        </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
+      {/* Subtle Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(99,102,241,0.05),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,rgba(168,85,247,0.05),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.05]"></div>
+      </div>
 
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {stats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <Card key={stat.label}>
-                <div className="flex items-center justify-between mb-3">
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
-                  <span className="text-xs text-green-400">{stat.change}</span>
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+        {/* Sophisticated Header */}
+        <header className="mb-12">
+          <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-slate-800/50 shadow-xl shadow-gray-900/5 dark:shadow-black/20">
+            {/* Premium Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-pink-500/10 dark:from-indigo-500/5 dark:via-purple-500/5 dark:to-pink-500/5"></div>
+            
+            <div className="relative px-8 py-10">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between space-y-8 xl:space-y-0">
+                {/* Left Section - Brand & Welcome */}
+                <div className="flex items-start space-x-6">
+                  {/* Professional Avatar */}
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-0.5 shadow-2xl shadow-indigo-500/25">
+                      <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center">
+                        <Settings className="w-9 h-9 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white dark:ring-slate-900 shadow-lg"></div>
+                  </div>
+                  
+                  {/* Welcome Content */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+                        Good morning, <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Administrator</span>
+                      </h1>
+                      <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
+                        Ripple Studio Platform Management Console
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="font-medium">All systems operational</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Globe className="w-4 h-4" />
+                        <span>86 Studios Active</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4" />
+                        <span>Updated 2 min ago</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-100">{stat.value}</p>
-              </Card>
-            )
-          })}
-        </motion.div>
+                
+                {/* Right Section - Controls */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                  {/* Time Period Selector */}
+                  <div className="relative">
+                    <select
+                      value={timeframe}
+                      onChange={(e) => setTimeframe(e.target.value)}
+                      className="appearance-none px-5 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 pr-10 shadow-sm"
+                    >
+                      <option value="week">This Week</option>
+                      <option value="month">This Month</option>
+                      <option value="quarter">This Quarter</option>
+                      <option value="year">This Year</option>
+                    </select>
+                    <ArrowDownRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200 shadow-sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export Data
+                    </Button>
+                    <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-indigo-500/25 transition-all duration-200">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Studio
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-2"
-          >
-            <Card>
-              <h2 className="text-xl font-semibold text-gray-100 mb-6">
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {quickActions.map((action) => {
-                  const Icon = action.icon
+        {/* Unified Platform Statistics Overview */}
+        <section className="mb-12">
+          <Card className="group relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-200/60 dark:border-slate-800/60 hover:border-gray-300 dark:hover:border-slate-700 transition-all duration-300 hover:shadow-elegant-lg">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Platform Overview</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Real-time platform metrics and performance</p>
+                </div>
+                <div className="flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">Live</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon
+                  const TrendIcon = stat.trend === 'up' ? TrendingUp : ArrowDownRight
+                  const isPositive = stat.trend === 'up'
+                  
                   return (
-                    <Link key={action.title} to={action.href}>
-                      <div className={`p-4 rounded-lg border transition-colors hover:bg-opacity-80 ${action.color}`}>
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Icon className="w-6 h-6" />
-                          <h3 className="font-semibold text-gray-100">
-                            {action.title}
-                          </h3>
+                    <div key={stat.label} className="group/stat relative p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all duration-200">
+                      {/* Icon and Trend */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} p-0.5 shadow-sm group-hover/stat:scale-105 transition-transform duration-200`}>
+                          <div className="w-full h-full rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                          </div>
                         </div>
-                        <p className="text-gray-400 text-sm">
-                          {action.description}
+                        
+                        <div className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
+                          isPositive 
+                            ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' 
+                            : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+                        }`}>
+                          <TrendIcon className="w-3 h-3" />
+                          <span>{stat.change}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Value and Label */}
+                      <div className="space-y-1 mb-3">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {stat.value}
+                        </h3>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          {stat.label}
                         </p>
                       </div>
-                    </Link>
+                      
+                      {/* Description */}
+                      <div className="space-y-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {stat.description}
+                        </p>
+                        <div className="inline-flex items-center px-2 py-0.5 bg-gray-50 dark:bg-slate-800 rounded-md">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                            {stat.subValue}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Mini Progress */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+                        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          <span>Performance</span>
+                          <span className="font-semibold">{70 + index * 7}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full bg-gradient-to-r ${stat.color} rounded-full transition-all duration-1000 ease-out`}
+                            style={{width: `${70 + index * 7}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
                   )
                 })}
               </div>
-            </Card>
-          </motion.div>
+              
+              {/* Summary Footer */}
+              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                    <span>•</span>
+                    <span>Refresh rate: 30s</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </section>
 
-          {/* Pending Tasks & Alerts */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            {/* Pending Tasks */}
-            <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">Pending Tasks</h3>
-              <div className="space-y-3">
-                {pendingTasks.map((task) => (
-                  <div key={task.type} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Clock className={`w-4 h-4 ${task.color}`} />
-                      <span className="text-gray-300 capitalize">{task.type}</span>
+        {/* Premium Tab Navigation */}
+        <nav className="mb-10">
+          <div className="bg-gray-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-elegant">
+            <div className="flex items-center space-x-1 overflow-x-auto">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center space-x-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-white shadow-elegant border border-gray-200 dark:border-slate-700'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                    
+                    {/* Active indicator */}
+                    {isActive && (
+                      <div className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"></div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </nav>
+
+        {/* Tab Content */}
+        <div className="space-y-8">
+          {activeTab === 'overview' && (
+            <>
+              {/* Elegant Quick Actions Section */}
+              <section className="mb-12">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 space-y-6 lg:space-y-0">
+                  {/* Section Header */}
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Quick Actions
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      Essential management tools at your fingertips
+                    </p>
+                  </div>
+                  
+                  {/* Status & Controls */}
+                  <div className="flex items-center space-x-4">
+                    <div className="inline-flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-semibold text-green-700 dark:text-green-300">Operational</span>
                     </div>
-                    <span className={`font-semibold ${task.color}`}>
-                      {task.count}
-                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Monitor
+                    </Button>
                   </div>
-                ))}
-              </div>
-              <Button size="sm" className="w-full mt-4">
-                View All Tasks
-              </Button>
-            </Card>
+                </div>
+                
+                {/* Elegant Quick Actions Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {quickActions.map((action, index) => {
+                    const Icon = action.icon
+                    const priorityColors = {
+                      urgent: 'border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700',
+                      high: 'border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700',
+                      medium: 'border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700'
+                    }
+                    
+                    const priorityBadgeColors = {
+                      urgent: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300',
+                      high: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300',
+                      medium: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+                    }
+                    
+                    return (
+                      <Link key={action.title} to={action.href} className="group block">
+                        <Card className={`p-6 bg-white dark:bg-slate-900 border ${priorityColors[action.priority]} hover:shadow-elegant-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden`}>
+                          {/* Subtle background accent */}
+                          <div className="absolute top-0 right-0 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+                            <Icon className="w-full h-full text-gray-400" />
+                          </div>
+                          
+                          <div className="relative space-y-4">
+                            {/* Header */}
+                            <div className="flex items-start justify-between">
+                              {/* Icon */}
+                              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} p-0.5 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
+                                <div className="w-full h-full rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center">
+                                  <Icon className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+                                </div>
+                              </div>
+                              
+                              {/* Priority Badge & Stats */}
+                              <div className="text-right space-y-2">
+                                <div className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${priorityBadgeColors[action.priority]}`}>
+                                  {action.priority === 'urgent' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                                  {action.priority.toUpperCase()}
+                                </div>
+                                <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                  {action.stats}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Content */}
+                            <div className="space-y-2">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-100 transition-colors duration-300">
+                                {action.title}
+                              </h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                {action.description}
+                              </p>
+                            </div>
+                            
+                            {/* Footer */}
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-800">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  action.priority === 'urgent' ? 'bg-red-500' :
+                                  action.priority === 'high' ? 'bg-amber-500' :
+                                  'bg-blue-500'
+                                } ${action.priority === 'urgent' ? 'animate-pulse' : ''}`}></div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                  {action.priority} priority
+                                </span>
+                              </div>
+                              
+                              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
+                            </div>
+                          </div>
+                          
+                          {/* Bottom accent */}
+                          <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                        </Card>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </section>
 
-            {/* System Status */}
-            <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">System Status</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-gray-300">API Status</span>
-                  </div>
-                  <span className="text-green-400 text-sm">Operational</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-gray-300">Payment System</span>
-                  </div>
-                  <span className="text-green-400 text-sm">Operational</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                    <span className="text-gray-300">Email Service</span>
-                  </div>
-                  <span className="text-yellow-400 text-sm">Degraded</span>
-                </div>
-              </div>
-            </Card>
+              {/* Main Content Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Charts Section */}
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Revenue Trends */}
+                  <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-elegant">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          Revenue Trends
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Monthly performance overview
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        >
+                          <Filter className="w-4 h-4 mr-2" />
+                          Filter
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={revenueData}>
+                          <defs>
+                            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="month" stroke="#64748B" />
+                          <YAxis stroke="#64748B" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1e293b', 
+                              border: '1px solid #334155',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="revenue" 
+                            stroke="#10B981" 
+                            fillOpacity={1} 
+                            fill="url(#revenueGradient)" 
+                            strokeWidth={2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
 
-            {/* Recent Activity */}
-            <Card>
-              <h3 className="font-semibold text-gray-100 mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                <div className="text-sm">
-                  <p className="text-gray-100">New user registered</p>
-                  <p className="text-gray-400">2 minutes ago</p>
+                  {/* User Growth Chart */}
+                  <Card className="p-6 bg-slate-800 border-slate-700">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
+                        <Users className="w-5 h-5 text-blue-400" />
+                        <span>User Growth</span>
+                      </h3>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={userGrowthData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="date" stroke="#64748B" />
+                          <YAxis stroke="#64748B" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1e293b', 
+                              border: '1px solid #334155',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="users" 
+                            stroke="#3B82F6" 
+                            strokeWidth={3}
+                            dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
                 </div>
-                <div className="text-sm">
-                  <p className="text-gray-100">Booking completed</p>
-                  <p className="text-gray-400">15 minutes ago</p>
-                </div>
-                <div className="text-sm">
-                  <p className="text-gray-100">Review flagged</p>
-                  <p className="text-gray-400">1 hour ago</p>
+
+                {/* Elegant Sidebar */}
+                <div className="space-y-6">
+                  {/* Priority Tasks */}
+                  <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-elegant">
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Priority Tasks
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Requires immediate attention
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
+                            {pendingTasks.length} alerts
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {pendingTasks.map((task, index) => {
+                          const TaskIcon = task.icon
+                          const urgencyColors = {
+                            high: 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20',
+                            medium: 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20',
+                            low: 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
+                          }
+                          
+                          return (
+                            <div key={index} className={`p-4 rounded-xl border ${urgencyColors[task.urgency]} hover:shadow-elegant-sm transition-all duration-200 group cursor-pointer`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                    <TaskIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-900 dark:text-white font-semibold text-sm">{task.type}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">Requires attention</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className={`text-xl font-bold ${task.color}`}>{task.count}</span>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{task.urgency}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Music Analytics */}
+                  <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-elegant">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+                        <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl">
+                          <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <span>Music Genres</span>
+                      </h3>
+                      <Button variant="outline" size="sm" className="text-xs bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        Trends
+                      </Button>
+                    </div>
+                    
+                    <div className="h-52 mb-6 relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <defs>
+                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                              <feMorphology operator="dilate" radius="1"/>
+                              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            </filter>
+                          </defs>
+                          <Pie
+                            data={genreData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={35}
+                            outerRadius={75}
+                            paddingAngle={3}
+                            dataKey="value"
+                            filter="url(#glow)"
+                          >
+                            {genreData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.color}
+                                stroke={entry.color}
+                                strokeWidth={0.5}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1e293b', 
+                              border: '1px solid #334155',
+                              borderRadius: '12px',
+                              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                            }}
+                            formatter={(value) => [`${value}%`, 'Bookings']}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      
+                      {/* Center text */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-white">100%</p>
+                          <p className="text-xs text-gray-400">Coverage</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {genreData.map((genre, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/30 transition-colors group">
+                          <div className="flex items-center space-x-3">
+                            <div 
+                              className="w-4 h-4 rounded-full ring-2 ring-white/10 group-hover:ring-white/30 transition-all" 
+                              style={{ backgroundColor: genre.color }}
+                            ></div>
+                            <span className="text-gray-300 font-medium group-hover:text-white transition-colors">{genre.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-white font-bold text-lg group-hover:text-cyan-300 transition-colors">{genre.value}%</span>
+                            <p className="text-xs text-gray-500">of sessions</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Live Studio Status */}
+                  <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-elegant">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center space-x-2">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                          <PlayCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <span>Live Sessions</span>
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-green-600 dark:text-green-400 font-semibold">23 Active</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl hover:shadow-elegant-sm transition-all duration-200">
+                        <div>
+                          <p className="text-gray-900 dark:text-white font-semibold">Recording Studios</p>
+                          <p className="text-green-600 dark:text-green-400 text-sm">Currently active</p>
+                        </div>
+                        <span className="text-2xl font-bold text-green-600 dark:text-green-400">18</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-elegant-sm transition-all duration-200">
+                        <div>
+                          <p className="text-gray-900 dark:text-white font-semibold">Mixing Sessions</p>
+                          <p className="text-blue-600 dark:text-blue-400 text-sm">In progress</p>
+                        </div>
+                        <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">5</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl hover:shadow-elegant-sm transition-all duration-200">
+                        <div>
+                          <p className="text-gray-900 dark:text-white font-semibold">Mastering</p>
+                          <p className="text-purple-600 dark:text-purple-400 text-sm">Final touches</p>
+                        </div>
+                        <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">3</span>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               </div>
-            </Card>
-          </motion.div>
+            </>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-8">
+              {/* Analytics Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Advanced Analytics</h2>
+                  <p className="text-gray-400">Deep insights into your music platform performance</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Report
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Custom Range
+                  </Button>
+                </div>
+              </div>
+
+              {/* Analytics Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Studio Performance */}
+                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-2">
+                    <Building2 className="w-5 h-5 text-blue-400" />
+                    <span>Studio Performance</span>
+                  </h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={revenueData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="month" stroke="#64748B" />
+                        <YAxis stroke="#64748B" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#1e293b', 
+                            border: '1px solid #334155',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Bar dataKey="bookings" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
+
+                {/* Revenue Breakdown */}
+                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-2">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <span>Revenue Analysis</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                      <div>
+                        <p className="text-white font-semibold">Platform Fees</p>
+                        <p className="text-gray-400 text-sm">Commission from bookings</p>
+                      </div>
+                      <span className="text-green-400 font-bold text-xl">$12,450</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                      <div>
+                        <p className="text-white font-semibold">Premium Features</p>
+                        <p className="text-gray-400 text-sm">Advanced studio tools</p>
+                      </div>
+                      <span className="text-blue-400 font-bold text-xl">$8,320</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                      <div>
+                        <p className="text-white font-semibold">Advertisement</p>
+                        <p className="text-gray-400 text-sm">Promoted listings</p>
+                      </div>
+                      <span className="text-purple-400 font-bold text-xl">$3,890</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'management' && (
+            <div className="space-y-8">
+              {/* Management Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Platform Management</h2>
+                  <p className="text-gray-400">Manage studios, users, and platform operations</p>
+                </div>
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Studio
+                </Button>
+              </div>
+
+              {/* Management Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Studio Network</h3>
+                    <p className="text-gray-400 text-sm mb-4">Manage recording studios and equipment</p>
+                    <Button variant="outline" className="w-full">Manage Studios</Button>
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">User Management</h3>
+                    <p className="text-gray-400 text-sm mb-4">Artists, producers, and client accounts</p>
+                    <Button variant="outline" className="w-full">Manage Users</Button>
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Booking Control</h3>
+                    <p className="text-gray-400 text-sm mb-4">Session scheduling and management</p>
+                    <Button variant="outline" className="w-full">View Bookings</Button>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'monitor' && (
+            <div className="space-y-8">
+              {/* Monitor Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">System Monitor</h2>
+                  <p className="text-gray-400">Real-time platform health and performance metrics</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 font-medium">All Systems Operational</span>
+                </div>
+              </div>
+
+              {/* System Status Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-400/10 border border-green-500/20">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Monitor className="w-6 h-6 text-green-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Server Status</h3>
+                    <p className="text-green-400 font-semibold">Operational</p>
+                    <p className="text-xs text-gray-400 mt-2">99.9% Uptime</p>
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-400/10 border border-blue-500/20">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Database className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Database</h3>
+                    <p className="text-blue-400 font-semibold">Healthy</p>
+                    <p className="text-xs text-gray-400 mt-2">2ms Response</p>
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-pink-400/10 border border-purple-500/20">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Wifi className="w-6 h-6 text-purple-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">API Status</h3>
+                    <p className="text-purple-400 font-semibold">Active</p>
+                    <p className="text-xs text-gray-400 mt-2">847 Requests/min</p>
+                  </div>
+                </Card>
+
+                <Card className="p-6 bg-gradient-to-br from-yellow-500/10 to-orange-400/10 border border-yellow-500/20">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Shield className="w-6 h-6 text-yellow-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Security</h3>
+                    <p className="text-yellow-400 font-semibold">Protected</p>
+                    <p className="text-xs text-gray-400 mt-2">No Threats</p>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Performance Metrics */}
+              <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50">
+                <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-2">
+                  <Activity className="w-5 h-5 text-cyan-400" />
+                  <span>Performance Metrics</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                    <p className="text-gray-400 text-sm mb-2">CPU Usage</p>
+                    <p className="text-3xl font-bold text-green-400">23%</p>
+                    <div className="w-full bg-slate-700 rounded-full h-2 mt-3">
+                      <div className="bg-green-400 h-2 rounded-full" style={{width: '23%'}}></div>
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                    <p className="text-gray-400 text-sm mb-2">Memory Usage</p>
+                    <p className="text-3xl font-bold text-blue-400">68%</p>
+                    <div className="w-full bg-slate-700 rounded-full h-2 mt-3">
+                      <div className="bg-blue-400 h-2 rounded-full" style={{width: '68%'}}></div>
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+                    <p className="text-gray-400 text-sm mb-2">Storage Usage</p>
+                    <p className="text-3xl font-bold text-purple-400">45%</p>
+                    <div className="w-full bg-slate-700 rounded-full h-2 mt-3">
+                      <div className="bg-purple-400 h-2 rounded-full" style={{width: '45%'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>

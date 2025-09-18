@@ -12,7 +12,7 @@ export const adminApi = createApi({
       return headers
     },
   }),
-  tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews'],
+  tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews', 'AdminStudios', 'Revenue'],
   endpoints: (builder) => ({
     getAnalytics: builder.query({
       query: (params) => ({
@@ -57,6 +57,53 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ['AdminReviews'],
     }),
+    // Studio Management
+    getStudios: builder.query({
+      query: (params) => ({
+        url: '/studios',
+        params,
+      }),
+      providesTags: ['AdminStudios'],
+    }),
+    createStudio: builder.mutation({
+      query: (studioData) => ({
+        url: '/studios',
+        method: 'POST',
+        body: studioData,
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    updateStudio: builder.mutation({
+      query: ({ id, ...studioData }) => ({
+        url: `/studios/${id}`,
+        method: 'PATCH',
+        body: studioData,
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    deleteStudio: builder.mutation({
+      query: (id) => ({
+        url: `/studios/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    toggleStudioStatus: builder.mutation({
+      query: ({ id, isActive }) => ({
+        url: `/studios/${id}/status`,
+        method: 'PATCH',
+        body: { isActive },
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    // Revenue Analytics
+    getRevenueAnalytics: builder.query({
+      query: (params) => ({
+        url: '/revenue',
+        params,
+      }),
+      providesTags: ['Revenue'],
+    }),
   }),
 })
 
@@ -67,4 +114,12 @@ export const {
   useGetBookingsQuery,
   useGetReviewsQuery,
   useApproveReviewMutation,
+  // Studio Management
+  useGetStudiosQuery,
+  useCreateStudioMutation,
+  useUpdateStudioMutation,
+  useDeleteStudioMutation,
+  useToggleStudioStatusMutation,
+  // Revenue Analytics
+  useGetRevenueAnalyticsQuery,
 } = adminApi
