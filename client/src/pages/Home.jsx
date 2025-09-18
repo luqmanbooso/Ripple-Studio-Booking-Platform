@@ -1,538 +1,537 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { 
   Search, 
   Music, 
   Mic, 
   Headphones, 
   Star, 
-  MapPin, 
+  MapPin,
+  Zap,
+  Play, 
   Calendar,
   ArrowRight,
-  Play,
   Users,
   Award,
-  Zap,
   Heart,
-  TrendingUp,
-  Globe,
-  Shield,
-  Clock
+  CheckCircle,
+  Quote,
+  Shield
 } from 'lucide-react'
 import Button from '../components/ui/Button'
-import FloatingMusicNotes from '../components/common/FloatingMusicNotes'
-import VibratingElements from '../components/common/VibratingElements'
+import Card from '../components/ui/Card'
+import Input from '../components/ui/Input'
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchType, setSearchType] = useState('all')
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
   const navigate = useNavigate()
-  const { scrollY } = useScroll()
-  const y1 = useTransform(scrollY, [0, 300], [0, 50])
-  const y2 = useTransform(scrollY, [0, 300], [0, -50])
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    const params = new URLSearchParams()
-    if (searchQuery) params.set('q', searchQuery)
-    if (searchType !== 'all') params.set('type', searchType)
-    navigate(`/search?${params.toString()}`)
-  }
+  // Professional data with neon theme colors
+  const stats = [
+    { icon: Users, label: 'Active Artists', value: '10,000+', color: 'text-primary-400', bg: 'bg-primary-500/10', glow: 'shadow-primary-500/20' },
+    { icon: Music, label: 'Studios Listed', value: '500+', color: 'text-accent-400', bg: 'bg-accent-500/10', glow: 'shadow-accent-500/20' },
+    { icon: Award, label: 'Sessions Booked', value: '50,000+', color: 'text-purple-400', bg: 'bg-purple-500/10', glow: 'shadow-purple-500/20' },
+    { icon: Star, label: 'Average Rating', value: '4.9/5', color: 'text-yellow-400', bg: 'bg-yellow-500/10', glow: 'shadow-yellow-500/20' }
+  ]
 
   const features = [
     {
-      icon: <Search className="w-8 h-8" />,
+      icon: Search,
       title: 'Smart Discovery',
-      description: 'AI-powered search to find your perfect musical match based on style, location, and vibe',
-      color: 'from-light-accent to-light-primary dark:from-blue-500 dark:to-cyan-500'
+      description: 'Find the perfect studio or artist match with our AI-powered search and recommendation system.'
     },
     {
-      icon: <Calendar className="w-8 h-8" />,
-      title: 'Instant Booking',
-      description: 'Real-time availability with seamless booking and secure payment processing',
-      color: 'from-light-highlight to-light-primary dark:from-purple-500 dark:to-pink-500'
+      icon: Calendar,
+      title: 'Seamless Booking',
+      description: 'Book sessions instantly with real-time availability, automated contracts, and secure payments.'
     },
     {
-      icon: <Shield className="w-8 h-8" />,
+      icon: Shield,
       title: 'Verified Professionals',
-      description: 'All artists and studios are verified with authentic reviews from the community',
-      color: 'from-success-500 to-success-600'
+      description: 'All studios and artists undergo thorough verification to ensure quality and authenticity.'
     },
     {
-      icon: <Zap className="w-8 h-8" />,
-      title: 'Real-time Collaboration',
-      description: 'Live chat, file sharing, and project management tools for seamless collaboration',
-      color: 'from-warning-500 to-warning-600'
+      icon: Headphones,
+      title: 'Premium Experience',
+      description: 'Access high-end equipment, professional acoustics, and industry-standard facilities.'
     }
-  ]
-
-  const stats = [
-    { number: '15K+', label: 'Artists', icon: Mic },
-    { number: '8K+', label: 'Studios', icon: Music },
-    { number: '100K+', label: 'Sessions', icon: Headphones },
-    { number: '4.9★', label: 'Avg Rating', icon: Star }
   ]
 
   const testimonials = [
     {
-      text: "This platform revolutionized how I book recording sessions. The quality of artists is incredible!",
+      text: "Ripple transformed how I book studio time. The quality of studios and ease of booking is unmatched.",
       author: "Sarah Chen",
-      role: "Independent Artist",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face"
+      role: "Grammy-nominated Producer",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=150&h=150&fit=crop&crop=face"
     },
     {
-      text: "As a studio owner, this has increased our bookings by 300%. The platform is intuitive and professional.",
+      text: "As a studio owner, Ripple has connected me with amazing artists and streamlined my entire booking process.",
       author: "Marcus Johnson",
-      role: "Studio Owner",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face"
+      role: "Studio Owner, Nashville",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
     },
     {
-      text: "Found my dream producer through this platform. The collaboration tools made remote recording seamless.",
-      author: "Emily Rodriguez",
-      role: "Singer-Songwriter",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face"
+      text: "The professional network and quality assurance on Ripple is exactly what the industry needed.",
+      author: "Elena Rodriguez",
+      role: "Independent Artist",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
     }
   ]
 
-  const trendingGenres = [
-    { name: 'Lo-Fi Hip Hop', growth: '+45%', color: 'bg-light-highlight dark:bg-purple-500' },
-    { name: 'Indie Pop', growth: '+32%', color: 'bg-light-primary dark:bg-pink-500' },
-    { name: 'Electronic', growth: '+28%', color: 'bg-light-accent dark:bg-blue-500' },
-    { name: 'R&B Soul', growth: '+25%', color: 'bg-success-500' }
-  ]
-
+  // Auto-rotate testimonials
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [testimonials.length])
+  }, [])
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
+    }
+  }
 
   return (
-    <div className="min-h-screen relative">
-      {/* Floating Music Notes */}
-      <FloatingMusicNotes count={8} />
-
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-light-card to-white dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 transition-colors duration-500" />
+    <div className="min-h-screen">
+      {/* Enhanced Hero Section with Studio Image Background */}
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        {/* Studio Image Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url("/src/studio-podcast.png")',
+            filter: 'brightness(0.4) contrast(1.1) saturate(1.2)'
+          }}
+        />
         
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(15)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-light-primary/20 dark:text-primary-500/20"
-              initial={{ 
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                rotate: 0,
-                scale: 0
-              }}
-              animate={{ 
-                y: [null, -100, null],
-                rotate: [0, 360, 0],
-                scale: [0, 1, 0],
-                opacity: [0.1, 0.3, 0.1]
-              }}
-              transition={{ 
-                duration: 15 + Math.random() * 10,
-                repeat: Infinity,
-                delay: Math.random() * 5
-              }}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`
-              }}
-            >
-              <Music className="w-12 h-12" />
-            </motion.div>
-          ))}
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/85 via-purple-900/75 to-black/90" />
+        
+        {/* Neon glow effects over the background */}
+        <div className="absolute inset-0">
+          {/* Primary glow effects */}
+          <div className="absolute top-20 left-20 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-32 right-32 w-80 h-80 bg-accent-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-500/10 to-accent-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+          
+          {/* Additional atmospheric effects */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-pink-500/8 via-purple-500/6 to-transparent rounded-full blur-2xl opacity-60"></div>
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-blue-500/8 via-cyan-500/6 to-transparent rounded-full blur-2xl opacity-70"></div>
         </div>
 
-        <div className="relative container text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <VibratingElements intensity="low">
+        {/* Floating Animation Elements */}
+        <motion.div
+          animate={{ 
+            y: [-10, 10, -10],
+            rotate: [0, 5, 0, -5, 0]
+          }}
+          transition={{ 
+            duration: 6, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+          className="absolute top-20 right-20 bg-gradient-to-br from-primary-500 to-primary-600 p-4 rounded-2xl shadow-lg shadow-primary-500/30 backdrop-blur-sm border border-primary-400/20 z-20"
+          style={{ filter: 'drop-shadow(0 0 15px rgba(233, 30, 99, 0.4))' }}
+        >
+          <Music className="w-6 h-6 text-white" />
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            y: [10, -10, 10],
+            x: [-5, 5, -5]
+          }}
+          transition={{ 
+            duration: 4, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute bottom-32 left-20 bg-gradient-to-br from-accent-500 to-accent-600 p-4 rounded-2xl shadow-lg shadow-accent-500/30 backdrop-blur-sm border border-accent-400/20 z-20"
+          style={{ filter: 'drop-shadow(0 0 15px rgba(0, 201, 255, 0.4))' }}
+        >
+          <Headphones className="w-6 h-6 text-white" />
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            scale: [1, 1.1, 1],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity, 
+            ease: "linear"
+          }}
+          className="absolute top-1/2 left-16 bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-full shadow-lg shadow-purple-500/30 backdrop-blur-sm border border-purple-400/20 z-20"
+          style={{ filter: 'drop-shadow(0 0 12px rgba(156, 39, 176, 0.4))' }}
+        >
+          <Mic className="w-5 h-5 text-white" />
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            y: [0, -15, 0],
+            opacity: [0.6, 1, 0.6]
+          }}
+          transition={{ 
+            duration: 5, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: 2.5
+          }}
+          className="absolute top-1/3 right-32 bg-gradient-to-br from-pink-500 to-rose-500 p-2 rounded-xl shadow-lg shadow-pink-500/25 backdrop-blur-sm z-20"
+          style={{ filter: 'drop-shadow(0 0 10px rgba(236, 72, 153, 0.3))' }}
+        >
+          <Zap className="w-4 h-4 text-white" />
+        </motion.div>
+
+        <motion.div
+          animate={{ 
+            x: [0, 12, 0],
+            rotate: [0, 45, 0]
+          }}
+          transition={{ 
+            duration: 7, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: 3.5
+          }}
+          className="absolute bottom-1/3 left-32 bg-gradient-to-br from-cyan-500 to-blue-500 p-2 rounded-xl shadow-lg shadow-cyan-500/25 backdrop-blur-sm z-20"
+          style={{ filter: 'drop-shadow(0 0 10px rgba(34, 211, 238, 0.3))' }}
+        >
+          <Play className="w-4 h-4 text-white" />
+        </motion.div>
+
+        <div className="container relative z-10">
+          <div className="flex items-center justify-center min-h-screen py-20">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="text-white text-center max-w-4xl mx-auto"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="mb-6"
+              >
+                <span className="inline-block px-4 py-2 bg-primary-500/20 text-primary-300 rounded-full text-sm font-medium border border-primary-500/30 backdrop-blur-sm">
+                  Professional Music Production Platform
+                </span>
+              </motion.div>
+
               <motion.h1 
-                className="hero-title mb-6 leading-tight"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1.2, delay: 0.2 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.4 }}
+                className="text-5xl lg:text-7xl xl:text-8xl font-bold mb-6 leading-tight"
               >
                 Where Music
                 <br />
-                <span className="relative inline-block">
-                  <span className="bg-gradient-to-r from-light-primary via-light-accent to-light-highlight dark:from-primary-600 dark:via-accent-500 dark:to-highlight-600 bg-clip-text text-transparent">
-                    Comes Alive
-                  </span>
-                  <motion.div
-                    className="absolute -bottom-4 left-0 right-0 h-2 bg-gradient-to-r from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-full"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 1, delay: 1.5 }}
-                  />
+                <span className="bg-gradient-to-r from-primary-400 via-accent-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+                  Meets Magic
                 </span>
               </motion.h1>
-            </VibratingElements>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto"
+              >
+                Connect with world-class recording studios and talented artists. 
+                Book professional sessions, collaborate seamlessly, and create your masterpiece.
+              </motion.p>
 
-            <motion.p
-              className="text-xl md:text-2xl text-light-textSecondary dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Connect with world-class artists and state-of-the-art studios. 
-              <br className="hidden md:block" />
-              Create, collaborate, and bring your musical vision to life.
-            </motion.p>
-
-            {/* Enhanced Search */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="max-w-4xl mx-auto"
-            >
-              <form onSubmit={handleSearch} className="glass-card p-8 rounded-3xl relative overflow-hidden">
-                {/* Animated Background */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-500/10 dark:to-accent-500/10"
-                  animate={{
-                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                  }}
-                  transition={{
-                    duration: 8,
-                    ease: 'linear',
-                    repeat: Infinity,
-                  }}
-                  style={{ backgroundSize: '200% 200%' }}
-                />
-                
-                <div className="relative z-10">
-                  <div className="flex flex-col lg:flex-row gap-6">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-light-textMuted dark:text-gray-400" />
-                      <motion.input
-                        type="text"
-                        placeholder="Search for artists, studios, or genres..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-white/80 dark:bg-dark-700/50 border border-light-border/70 dark:border-gray-600/50 rounded-2xl text-lg text-light-text dark:text-gray-100 placeholder-light-textMuted dark:placeholder-gray-400 focus:border-light-primary focus:ring-2 focus:ring-light-primary/20 dark:focus:border-primary-500 dark:focus:ring-primary-500/20 transition-all backdrop-blur-sm"
-                        whileFocus={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    </div>
-                    <div className="lg:w-64">
-                      <select
-                        value={searchType}
-                        onChange={(e) => setSearchType(e.target.value)}
-                        className="w-full py-4 px-6 bg-white/80 dark:bg-dark-700/50 border border-light-border/70 dark:border-gray-600/50 rounded-2xl text-lg text-light-text dark:text-gray-100 focus:border-light-primary focus:ring-2 focus:ring-light-primary/20 dark:focus:border-primary-500 dark:focus:ring-primary-500/20 transition-all backdrop-blur-sm"
-                      >
-                        <option value="all">All Categories</option>
-                        <option value="artists">Artists</option>
-                        <option value="studios">Studios</option>
-                      </select>
-                    </div>
-                    <VibratingElements intensity="medium">
-                      <Button
-                        type="submit"
-                        className="btn-primary lg:w-auto px-12 py-4 text-lg relative overflow-hidden group"
-                      >
-                        <Search className="w-6 h-6 mr-2 group-hover:animate-spin" />
-                        Discover
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-light-accent/20 to-light-highlight/20 dark:from-accent-500/20 dark:to-highlight-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          animate={{
-                            x: ['-100%', '100%'],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 1,
-                          }}
-                        />
-                      </Button>
-                    </VibratingElements>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+                className="flex items-center justify-center gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=32&h=32&fit=crop&crop=face" alt="User" />
+                    <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="User" />
+                    <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face" alt="User" />
                   </div>
+                  <span className="text-sm text-gray-400">10,000+ Artists Trust Ripple</span>
                 </div>
-              </form>
+              </motion.div>
             </motion.div>
 
-            {/* Quick Access with Animations */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
-              className="flex flex-wrap justify-center gap-4 mt-8"
-            >
-              {['Hip Hop', 'Rock', 'Electronic', 'R&B', 'Pop'].map((genre, index) => (
-                <VibratingElements key={genre} intensity="low">
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setSearchQuery(genre)
-                      setSearchType('all')
-                    }}
-                    className="px-6 py-3 bg-white/80 dark:bg-dark-800/50 backdrop-blur-sm border border-light-border/70 dark:border-gray-700/50 rounded-full text-light-textSecondary dark:text-gray-300 hover:text-light-primary dark:hover:text-primary-400 hover:border-light-primary/70 dark:hover:border-primary-500/50 transition-all duration-300 group relative overflow-hidden"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.2 + index * 0.1 }}
-                  >
-                    <span className="relative z-10 group-hover:animate-pulse">{genre}</span>
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-500/10 dark:to-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      animate={{
-                        scale: [1, 1.05, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                      }}
-                    />
-                  </motion.button>
-                </VibratingElements>
-              ))}
-            </motion.div>
-          </motion.div>
+
+          </div>
         </div>
 
-        {/* Enhanced Scroll Indicator */}
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2 }}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         >
-          <VibratingElements intensity="low" trigger="continuous">
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-8 h-12 border-2 border-light-textMuted dark:border-gray-600 rounded-full flex justify-center relative overflow-hidden"
-            >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="flex flex-col items-center text-white/60"
+          >
+            <span className="text-sm mb-2">Scroll to explore</span>
+            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
               <motion.div
-                animate={{ y: [0, 16, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-1 h-4 bg-gradient-to-b from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-full mt-2"
+                animate={{ y: [0, 12, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-1 h-3 bg-white/60 rounded-full mt-2"
               />
-              {/* Pulsing glow */}
-              <motion.div
-                className="absolute inset-0 rounded-full border-2 border-light-primary/50 dark:border-primary-500/50"
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 0, 0.5]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </motion.div>
-          </VibratingElements>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* Enhanced Stats Section */}
-      <section className="py-24 bg-gradient-to-r from-light-card to-white dark:from-dark-900/50 dark:to-dark-800/50 backdrop-blur-sm transition-colors duration-500">
-        <div className="container">
+      {/* Enhanced Stats Section with Neon Theme */}
+      <section className="section-padding bg-gray-900 relative overflow-hidden">
+        {/* Background glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/20 to-accent-900/20"></div>
+        
+        <div className="container relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {stats.map((stat, index) => {
-              const Icon = stat.icon
-              return (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -10, scale: 1.05 }}
-                  className="text-center group cursor-pointer"
-                >
-                  <VibratingElements intensity="medium">
-                    <div className="w-20 h-20 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-neon transition-all duration-300 relative overflow-hidden">
-                      <Icon className="w-10 h-10 text-white group-hover:animate-bounce" />
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-light-accent/30 to-light-highlight/30 dark:from-accent-500/30 dark:to-highlight-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        animate={{
-                          rotate: [0, 360],
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: 'linear'
-                        }}
-                      />
-                    </div>
-                  </VibratingElements>
-                  <motion.div 
-                    className="text-4xl lg:text-5xl font-bold text-gradient mb-2"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ duration: 1, delay: index * 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    <span className="group-hover:animate-pulse">{stat.number}</span>
-                  </motion.div>
-                  <div className="text-light-textSecondary dark:text-gray-400 font-medium text-lg group-hover:text-light-primary dark:group-hover:text-primary-400 transition-colors">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-32 relative">
-        <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-20"
-          >
-            <h2 className="section-title">
-              Why Artists Choose Us
-            </h2>
-            <p className="text-xl text-light-textMuted dark:text-gray-400 max-w-3xl mx-auto">
-              Cutting-edge technology meets creative passion. Experience the future of music collaboration.
-            </p>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.02 }}
-                className="floating-card group"
-              >
-                <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:shadow-glow transition-all duration-300`}>
-                  <div className="text-white">
-                    {feature.icon}
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-light-text dark:text-gray-100 mb-4 group-hover:text-light-primary dark:group-hover:text-primary-300 transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-light-textSecondary dark:text-gray-400 leading-relaxed text-lg">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trending Section */}
-      <section className="py-24 bg-gradient-to-r from-light-primary/10 to-light-accent/10 dark:from-primary-900/10 dark:to-accent-900/10">
-        <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-light-text dark:text-gray-100 mb-4">
-              <TrendingUp className="w-10 h-10 inline-block mr-3 text-light-primary dark:text-primary-400" />
-              Trending Now
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Trusted by the <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Music Industry</span>
             </h2>
-            <p className="text-light-textSecondary dark:text-gray-400 text-lg">
-              Discover what's hot in the music world
-            </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {trendingGenres.map((genre, index) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
               <motion.div
-                key={genre.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                key={stat.label}
+                initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  duration: 0.6, 
+                  delay: index * 0.15,
+                  ease: "easeOut"
+                }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className="glass-card p-6 text-center cursor-pointer group"
+                whileHover={{ 
+                  scale: 1.05,
+                  y: -5,
+                  transition: { duration: 0.2 }
+                }}
+                className="text-center group cursor-pointer"
               >
-                <div className={`w-3 h-3 ${genre.color} rounded-full mx-auto mb-3 group-hover:shadow-glow`} />
-                <h3 className="font-semibold text-light-text dark:text-gray-100 mb-2">{genre.name}</h3>
-                <span className="text-success-500 font-medium">{genre.growth}</span>
+                <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-2xl ${stat.bg} border border-white/10 mb-6 ${stat.glow} shadow-lg backdrop-blur-sm group-hover:shadow-2xl transition-all duration-300`}>
+                  <stat.icon className={`w-8 h-8 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
+                  
+                  {/* Pulsing glow effect */}
+                  <div className={`absolute inset-0 ${stat.bg} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300`}></div>
+                </div>
+                
+                <motion.div 
+                  className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ delay: index * 0.15 + 0.3 }}
+                >
+                  {stat.value}
+                </motion.div>
+                
+                <div className="text-gray-400 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="container">
+      {/* Enhanced Features Section with Neon Theme */}
+      <section className="section-padding bg-black relative overflow-hidden">
+        {/* Animated background grid */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 via-transparent to-accent-500/5"></div>
+          <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
+            {Array.from({ length: 64 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="border border-primary-500/10"
+                animate={{
+                  opacity: [0.1, 0.3, 0.1],
+                }}
+                transition={{
+                  duration: 3,
+                  delay: i * 0.1,
+                  repeat: Infinity,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="container relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <h2 className="section-title">
-              Loved by Creators
+            <h2 className="text-5xl font-bold text-white mb-6">
+              Everything You Need to 
+              <span className="bg-gradient-to-r from-primary-400 via-accent-400 to-purple-400 bg-clip-text text-transparent"> Create</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Professional tools and verified talent in one seamless platform designed for the modern music industry
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 50, rotateY: -10 }}
+                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                transition={{ 
+                  duration: 0.8, 
+                  delay: index * 0.2,
+                  ease: "easeOut"
+                }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  y: -10,
+                  scale: 1.05,
+                  rotateY: 5,
+                  transition: { duration: 0.3 }
+                }}
+                className="group cursor-pointer"
+              >
+                <div className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-8 h-full text-center overflow-hidden group-hover:border-primary-500/50 transition-all duration-500">
+                  {/* Gradient glow on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+                  
+                  <div className="relative z-10">
+                    <motion.div 
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-400 mb-6 group-hover:bg-primary-500/20 group-hover:border-primary-500/40 transition-all duration-300"
+                      whileHover={{ 
+                        rotate: 360,
+                        scale: 1.1,
+                        transition: { duration: 0.5 }
+                      }}
+                    >
+                      <feature.icon className="w-8 h-8" />
+                    </motion.div>
+                    
+                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-primary-300 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    
+                    <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
+                      {feature.description}
+                    </p>
+                  </div>
+
+                  {/* Animated corner accents */}
+                  <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-primary-500/0 group-hover:border-primary-500/60 transition-all duration-500 rounded-tl-3xl"></div>
+                  <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-accent-500/0 group-hover:border-accent-500/60 transition-all duration-500 rounded-br-3xl"></div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Testimonials Section with Neon Theme */}
+      <section className="section-padding bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
+        {/* Floating orbs */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-40 h-40 bg-accent-500/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+        
+        <div className="container relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-5xl font-bold text-white mb-6">
+              Trusted by 
+              <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Creators Worldwide</span>
             </h2>
           </motion.div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <motion.div
               key={currentTestimonial}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.5 }}
-              className="glass-card p-12 text-center"
+              initial={{ opacity: 0, x: 100, scale: 0.8 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -100, scale: 0.8 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="relative"
             >
-              <div className="text-3xl text-light-primary dark:text-primary-400 mb-6">"</div>
-              <p className="text-xl text-light-textSecondary dark:text-gray-300 mb-8 italic leading-relaxed">
-                {testimonials[currentTestimonial].text}
-              </p>
-              <div className="flex items-center justify-center space-x-4">
-                <img
-                  src={testimonials[currentTestimonial].avatar}
-                  alt={testimonials[currentTestimonial].author}
-                  className="w-16 h-16 rounded-full border-2 border-light-primary dark:border-primary-500"
-                />
-                <div>
-                  <div className="font-semibold text-light-text dark:text-gray-100">
-                    {testimonials[currentTestimonial].author}
-                  </div>
-                  <div className="text-light-textSecondary dark:text-gray-400">
-                    {testimonials[currentTestimonial].role}
+              <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-3xl p-12 text-center relative overflow-hidden">
+                {/* Gradient glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-accent-500/5 rounded-3xl"></div>
+                
+                <div className="relative z-10">
+                  <motion.div
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                  >
+                    <Quote className="w-16 h-16 text-primary-400 mx-auto mb-8" />
+                  </motion.div>
+                  
+                  <blockquote className="text-2xl lg:text-3xl font-light text-white mb-10 leading-relaxed italic">
+                    "{testimonials[currentTestimonial].text}"
+                  </blockquote>
+                  
+                  <div className="flex items-center justify-center space-x-6">
+                    <motion.img
+                      src={testimonials[currentTestimonial].avatar}
+                      alt={testimonials[currentTestimonial].author}
+                      className="w-16 h-16 rounded-full object-cover border-2 border-primary-400 shadow-lg shadow-primary-400/25"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <div className="text-left">
+                      <div className="text-xl font-semibold text-white mb-1">
+                        {testimonials[currentTestimonial].author}
+                      </div>
+                      <div className="text-primary-300 font-medium">
+                        {testimonials[currentTestimonial].role}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Corner decorations */}
+                <div className="absolute top-0 left-0 w-24 h-24 border-t-2 border-l-2 border-primary-500/30 rounded-tl-3xl"></div>
+                <div className="absolute bottom-0 right-0 w-24 h-24 border-b-2 border-r-2 border-accent-500/30 rounded-br-3xl"></div>
               </div>
             </motion.div>
 
-            {/* Testimonial Dots */}
-            <div className="flex justify-center space-x-3 mt-8">
+            <div className="flex justify-center space-x-4 mt-12">
               {testimonials.map((_, index) => (
-                <button
+                <motion.button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  className={`transition-all duration-500 ${
                     index === currentTestimonial 
-                      ? 'bg-light-primary dark:bg-primary-500 shadow-glow' 
-                      : 'bg-light-textMuted dark:bg-gray-600 hover:bg-light-textSecondary dark:hover:bg-gray-500'
+                      ? 'w-12 h-3 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-lg shadow-primary-500/25' 
+                      : 'w-3 h-3 bg-gray-600 hover:bg-gray-500 rounded-full'
                   }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
                 />
               ))}
             </div>
@@ -540,42 +539,121 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-light-primary/20 to-light-accent/20 dark:from-primary-900/20 dark:to-accent-900/20" />
-        <div className="container relative">
+      {/* Enhanced CTA Section with Neon Theme */}
+      <section className="section-padding bg-gradient-to-br from-primary-600 via-purple-600 to-accent-600 text-white relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary-500/20 to-accent-500/20"></div>
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-r from-primary-400/10 to-accent-400/10 rounded-full blur-3xl"
+          ></motion.div>
+          <motion.div
+            animate={{
+              scale: [1.2, 1, 1.2],
+              rotate: [360, 180, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute bottom-10 right-10 w-80 h-80 bg-gradient-to-r from-accent-400/10 to-purple-400/10 rounded-full blur-3xl"
+          ></motion.div>
+        </div>
+
+        <div className="container text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
             viewport={{ once: true }}
-            className="text-center max-w-4xl mx-auto"
           >
-            <h2 className="text-5xl md:text-6xl font-bold text-gradient mb-8">
-              Ready to Create Magic?
-            </h2>
-            <p className="text-xl text-light-textSecondary dark:text-gray-300 mb-12 leading-relaxed">
-              Join thousands of artists, producers, and studios already creating amazing music together. 
-              <br className="hidden md:block" />
-              Your next breakthrough is just a click away.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/register">
-                  <Button className="btn-magic text-xl px-12 py-4">
-                    Start Creating Free
-                    <ArrowRight className="w-6 h-6 ml-3" />
-                  </Button>
-                </Link>
+            <motion.h2 
+              className="text-5xl lg:text-7xl font-bold mb-8 leading-tight"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Ready to Elevate 
+              <br />
+              <span className="bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent animate-pulse">
+                Your Music?
+              </span>
+            </motion.h2>
+            
+            <motion.p 
+              className="text-xl lg:text-2xl mb-12 max-w-3xl mx-auto opacity-90 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              Join thousands of artists and studios creating exceptional music together on the world's most trusted platform
+            </motion.p>
+            
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-6 justify-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  variant="secondary" 
+                  size="lg" 
+                  className="px-12 py-4 text-lg font-semibold bg-white text-purple-600 hover:bg-gray-100 border-none shadow-2xl"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Start Creating Free
+                </Button>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/search">
-                  <Button className="btn-secondary text-xl px-12 py-4">
-                    <Play className="w-6 h-6 mr-3" />
-                    Explore Now
-                  </Button>
-                </Link>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="px-12 py-4 text-lg font-semibold border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  Join Community
+                </Button>
               </motion.div>
-            </div>
+            </motion.div>
+
+            {/* Trust indicators */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="mt-16 flex flex-wrap justify-center items-center gap-8 text-white/60"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span>Free to start</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span>Cancel anytime</span>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
