@@ -35,6 +35,10 @@ import ClientDashboard from './pages/Dashboard/ClientDashboard'
 import ArtistDashboard from './pages/Dashboard/ArtistDashboard'
 import StudioDashboard from './pages/Dashboard/StudioDashboard'
 import AdminDashboard from './pages/Dashboard/AdminDashboard'
+import AdminUsers from './pages/Admin/AdminUsers'
+import AdminBookings from './pages/Admin/AdminBookings'
+import AdminReviews from './pages/Admin/AdminReviews'
+import AdminPayments from './pages/Admin/AdminPayments'
 
 // Settings pages
 import Profile from './pages/Settings/Profile'
@@ -232,6 +236,10 @@ function AdminRoutes() {
   return (
     <Routes>
       <Route index element={<AdminDashboard />} />
+      <Route path="users" element={<AdminUsers />} />
+      <Route path="bookings" element={<AdminBookings />} />
+      <Route path="reviews" element={<AdminReviews />} />
+      <Route path="payments" element={<AdminPayments />} />
     </Routes>
   )
 }
