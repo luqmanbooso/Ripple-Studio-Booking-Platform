@@ -320,19 +320,19 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Unified Platform Statistics Overview */}
+        {/* Clean Platform Statistics */}
         <section className="mb-12">
-          <Card className="group relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-200/60 dark:border-slate-800/60 hover:border-gray-300 dark:hover:border-slate-700 transition-all duration-300 hover:shadow-elegant-lg">
-            {/* Header */}
-            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800">
+            {/* Simple Header */}
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Platform Overview</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Real-time platform metrics and performance</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Platform Overview</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Key performance metrics</p>
                 </div>
-                <div className="flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full">
+                <div className="flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-lg">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">Live</span>
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">Live</span>
                 </div>
               </div>
             </div>
@@ -346,81 +346,53 @@ const AdminDashboard = () => {
                   const isPositive = stat.trend === 'up'
                   
                   return (
-                    <div key={stat.label} className="group/stat relative p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all duration-200">
-                      {/* Icon and Trend */}
+                    <div 
+                      key={stat.label} 
+                      className="p-5 bg-gray-50 dark:bg-slate-800 rounded-lg hover:bg-white dark:hover:bg-slate-700 hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100 dark:border-slate-700"
+                    >
+                      {/* Header */}
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} p-0.5 shadow-sm group-hover/stat:scale-105 transition-transform duration-200`}>
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${stat.color} p-0.5`}>
                           <div className="w-full h-full rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center">
-                            <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                            <Icon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                           </div>
                         </div>
                         
-                        <div className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
+                        <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-semibold ${
                           isPositive 
-                            ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' 
-                            : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                         }`}>
                           <TrendIcon className="w-3 h-3" />
                           <span>{stat.change}</span>
                         </div>
                       </div>
                       
-                      {/* Value and Label */}
-                      <div className="space-y-1 mb-3">
+                      {/* Value */}
+                      <div className="mb-3">
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                           {stat.value}
                         </h3>
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mt-1">
                           {stat.label}
                         </p>
                       </div>
                       
                       {/* Description */}
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {stat.description}
-                        </p>
-                        <div className="inline-flex items-center px-2 py-0.5 bg-gray-50 dark:bg-slate-800 rounded-md">
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {stat.subValue}
-                          </span>
-                        </div>
-                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        {stat.description}
+                      </p>
                       
-                      {/* Mini Progress */}
-                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-800">
-                        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
-                          <span>Performance</span>
-                          <span className="font-semibold">{70 + index * 7}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full bg-gradient-to-r ${stat.color} rounded-full transition-all duration-1000 ease-out`}
-                            style={{width: `${70 + index * 7}%`}}
-                          ></div>
-                        </div>
+                      {/* Additional Info */}
+                      <div className="px-2.5 py-1 bg-white dark:bg-slate-600 rounded text-xs font-medium text-gray-600 dark:text-gray-300 inline-block">
+                        {stat.subValue}
                       </div>
                     </div>
                   )
                 })}
               </div>
-              
-              {/* Summary Footer */}
-              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                    <span>Last updated: {new Date().toLocaleTimeString()}</span>
-                    <span>•</span>
-                    <span>Refresh rate: 30s</span>
-                  </div>
-                  <Button variant="outline" size="sm" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
             </div>
-          </Card>
+          </div>
         </section>
 
         {/* Premium Tab Navigation */}
