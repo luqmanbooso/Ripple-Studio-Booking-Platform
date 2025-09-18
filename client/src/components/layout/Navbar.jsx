@@ -121,29 +121,36 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white/80 dark:bg-dark-900/95 backdrop-blur-sm border-b border-light-border/70 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-300 overflow-x-hidden">
-      <div className="max-w-screen-xl mx-auto px-4">
+    <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
+      <div className="max-w-screen mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
-                <Music className="w-8 h-8 text-primary-500 group-hover:text-primary-600 transition-colors duration-200" />
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <Music className="w-5 h-5 text-white" />
+                </div>
                 <motion.div
-                  className="absolute inset-0 bg-primary-500/20 rounded-full"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl opacity-30 group-hover:opacity-50 blur-sm"
+                  animate={{ rotate: [0, 180, 360] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                Ripple
-              </span>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Ripple
+                </span>
+                <span className="text-xs text-gray-500 dark:text-slate-400 -mt-1">
+                  Studio
+                </span>
+              </div>
             </Link>
           </div>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-4 lg:mx-8">
-            <div className="flex items-center space-x-1 bg-white/50 dark:bg-dark-800/50 backdrop-blur-sm rounded-2xl px-2 py-2 border border-light-border/50 dark:border-gray-700/50 shadow-glass">
+          <div className="hidden lg:flex items-center justify-center flex-1 max-w-2xl mx-8">
+            <div className="flex items-center space-x-2 bg-gray-100/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-full px-4 py-2 border border-gray-200/60 dark:border-slate-700/60">
               {navigation.map((item) => {
                 const Icon = item.icon
                 
@@ -154,8 +161,8 @@ const Navbar = () => {
                     <div key={item.name} className="relative">
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
-                        className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-light-card/50 dark:hover:bg-gray-700/50 group ${
-                          isOpen ? 'bg-light-primary text-white dark:bg-primary-500 shadow-neon' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100'
+                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 group ${
+                          isOpen ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
                         }`}
                       >
                         <Icon className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'animate-bounce' : 'group-hover:scale-110'}`} />
@@ -170,7 +177,7 @@ const Navbar = () => {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-2 w-80 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-light-border/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
+                            className="absolute top-full left-0 mt-3 w-80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200/60 dark:border-slate-700/60 py-4 z-50"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {item.items.map((dropdownItem, index) => {
@@ -184,17 +191,17 @@ const Navbar = () => {
                                 >
                                   <Link
                                     to={dropdownItem.href}
-                                    className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-xl text-light-textSecondary dark:text-gray-300 hover:bg-light-card/50 dark:hover:bg-gray-700/50 hover:text-light-text dark:hover:text-gray-100 transition-all duration-200 group"
+                                    className="flex items-start space-x-3 px-4 py-3 mx-2 rounded-2xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-gray-900 dark:hover:text-white transition-all duration-300 group"
                                     onClick={() => setActiveDropdown(null)}
                                   >
-                                    <div className="w-10 h-10 bg-gradient-to-br from-light-primary/20 to-light-accent/20 dark:from-primary-500/20 dark:to-accent-500/20 rounded-lg flex items-center justify-center group-hover:from-light-primary/30 group-hover:to-light-accent/30 dark:group-hover:from-primary-500/30 dark:group-hover:to-accent-500/30 transition-all duration-200 group-hover:animate-pulse">
-                                      <DropdownIcon className="w-5 h-5 text-light-primary dark:text-primary-500 group-hover:animate-bounce" />
+                                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl flex items-center justify-center group-hover:from-indigo-200 group-hover:to-purple-200 dark:group-hover:from-indigo-800/40 dark:group-hover:to-purple-800/40 transition-all duration-300">
+                                      <DropdownIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                     </div>
                                     <div className="flex-1">
-                                      <div className="font-medium text-light-text dark:text-gray-100 group-hover:text-light-primary dark:group-hover:text-primary-400 transition-colors">
+                                      <div className="font-semibold text-gray-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                         {dropdownItem.name}
                                       </div>
-                                      <div className="text-sm text-light-textMuted dark:text-gray-400 mt-1">
+                                      <div className="text-sm text-gray-500 dark:text-slate-400 mt-1">
                                         {dropdownItem.description}
                                       </div>
                                     </div>
@@ -213,10 +220,10 @@ const Navbar = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
+                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 relative group ${
                       isActive(item.href)
-                        ? 'bg-light-primary text-white dark:bg-primary-500 shadow-neon'
-                        : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                        : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
                     }`}
                   >
                     <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
