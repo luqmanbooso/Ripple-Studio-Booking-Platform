@@ -162,7 +162,7 @@ const NewBooking = () => {
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="input-field w-full"
+                    className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700"
                     required
                   />
                 </Card>
@@ -244,7 +244,7 @@ const NewBooking = () => {
                     <select
                       value={duration}
                       onChange={(e) => setDuration(parseInt(e.target.value))}
-                      className="input-field w-full"
+                      className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700"
                     >
                       <option value={60}>1 hour</option>
                       <option value={120}>2 hours</option>
@@ -265,7 +265,7 @@ const NewBooking = () => {
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any special requirements or notes for the session..."
                     rows={4}
-                    className="input-field w-full resize-none"
+                    className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700 resize-none"
                   />
                 </Card>
 

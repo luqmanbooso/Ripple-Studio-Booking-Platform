@@ -39,6 +39,7 @@ import AdminDashboard from './pages/Dashboard/AdminDashboard'
 // Settings pages
 import Profile from './pages/Settings/Profile'
 import Security from './pages/Settings/Security'
+import StudioSettings from './pages/Dashboard/StudioSettings'
 
 // Store
 import { setCredentials } from './store/authSlice'
@@ -186,6 +187,12 @@ function App() {
             <Route path="/settings/security" element={
               <ProtectedRoute>
                 <Security />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/settings/studio" element={
+              <ProtectedRoute allowedRoles={['studio']}>
+                <StudioSettings />
               </ProtectedRoute>
             } />
             
