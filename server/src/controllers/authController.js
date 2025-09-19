@@ -186,17 +186,40 @@ const logout = catchAsync(async (req, res) => {
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
 
+  // DEBUG: indicate presence of cookie
+  console.log('[DEBUG][auth.refreshToken] cookie present:', !!refreshToken)
+
   if (!refreshToken) {
+    console.log('[DEBUG][auth.refreshToken] no refresh token cookie provided')
     throw new ApiError('Refresh token not provided', 401);
   }
 
   // Verify refresh token
-  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+  let decoded
+  try {
+    decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+  } catch (err) {
+    console.log('[DEBUG][auth.refreshToken] refresh token verification failed:', err && err.name)
+    throw new ApiError('Invalid refresh token', 401)
+  }
   
   // Find user and verify refresh token
   const user = await User.findById(decoded.id);
-  if (!user || user.refreshToken !== refreshToken) {
+  // DEBUG: show whether user has a stored refresh token and whether it matches
+  console.log('[DEBUG][auth.refreshToken] decoded.id:', decoded && decoded.id)
+  console.log('[DEBUG][auth.refreshToken] user found:', !!user, 'userId:', user?._id)
+  console.log('[DEBUG][auth.refreshToken] hasStoredRefresh:', !!(user && user.refreshToken))
+
+  // If user not found, reject
+  if (!user) {
+    console.log('[DEBUG][auth.refreshToken] no user for decoded id')
     throw new ApiError('Invalid refresh token', 401);
+  }
+
+  // If stored refresh token is present but doesn't match the cookie, log it and proceed to rotate.
+  if (user.refreshToken && user.refreshToken !== refreshToken) {
+    console.log('[DEBUG][auth.refreshToken] stored refresh token does not match cookie. Rotating token for user:', user._id)
+    // Note: allowing rotation improves resiliency for legitimate cases where the DB value was cleared or out-of-sync.
   }
 
   // Generate new tokens

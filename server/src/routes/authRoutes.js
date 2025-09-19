@@ -51,7 +51,9 @@ router.use(authLimiter);
 // Public routes
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
+// Support GET for refresh as well so browsers sending Lax cookies on top-level GETs
 router.post('/refresh', authController.refreshToken);
+router.get('/refresh', authController.refreshToken);
 
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
