@@ -192,74 +192,71 @@ const AdminStudios = () => {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
       
-      <div className="relative z-10 p-8">
+      <div className="relative z-10 p-4">
         <div className="max-w-7xl mx-auto">
-          {/* Modern Header */}
+          {/* Compact Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 space-y-6 lg:space-y-0"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 space-y-3 lg:space-y-0"
           >
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/25">
-                  <Building2 className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <Building2 className="w-6 h-6 text-white" />
               </div>
-              <div className="space-y-1">
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent leading-tight">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                   Studio Management
                 </h1>
-                <p className="text-gray-300 flex items-center space-x-2 text-lg">
-                  <Zap className="w-5 h-5 text-blue-400" />
-                  <span>Advanced studio oversight & analytics dashboard</span>
+                <p className="text-gray-400 flex items-center space-x-2 text-sm">
+                  <Zap className="w-4 h-4 text-blue-400" />
+                  <span>Studio oversight & analytics</span>
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl shadow-xl">
-                <span className="text-blue-300 text-lg font-bold">
-                  {studiosData?.data?.studios?.length || 0} Active Studios
+            <div className="flex items-center space-x-3">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl">
+                <span className="text-blue-300 text-sm font-semibold">
+                  {studiosData?.data?.studios?.length || 0} Studios
                 </span>
               </div>
-              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-xl border border-green-500/20 px-4 py-3 rounded-2xl">
+              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-xl border border-green-500/20 px-3 py-2 rounded-xl">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-green-300 text-sm font-medium">System Online</span>
+                  <span className="text-green-300 text-xs font-medium">Online</span>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Modern Glassmorphism Stats Cards */}
+          {/* Compact Stats Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
           >
             {/* Total Studios Card */}
             <motion.div 
-              whileHover={{ scale: 1.02, y: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ type: "spring", stiffness: 400 }}
               className="group"
             >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative p-6">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-4">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-300">Total Studios</p>
-                      <p className="text-3xl font-bold text-white">
+                    <div>
+                      <p className="text-sm font-medium text-gray-400">Total Studios</p>
+                      <p className="text-2xl font-bold text-white">
                         {statsData?.totalStudios || studiosData?.data?.studios?.length || 0}
                       </p>
-                      <p className="text-xs text-blue-400">+12% from last month</p>
+                      <p className="text-xs text-blue-400">+12% this month</p>
                     </div>
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300">
-                      <Building2 className="w-7 h-7 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
+                      <Building2 className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 </div>
@@ -268,23 +265,23 @@ const AdminStudios = () => {
 
             {/* Pending Review Card */}
             <motion.div 
-              whileHover={{ scale: 1.02, y: -5 }}
-              transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
+              whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ type: "spring", stiffness: 400, delay: 0.05 }}
               className="group"
             >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-yellow-500/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative p-6">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-yellow-500/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-4">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-300">Pending Review</p>
-                      <p className="text-3xl font-bold text-white">
+                    <div>
+                      <p className="text-sm font-medium text-gray-400">Pending Review</p>
+                      <p className="text-2xl font-bold text-white">
                         {statsData?.pendingStudios || studiosData?.data?.studios?.filter(s => !s.isApproved && s.verificationStatus !== 'rejected').length || 0}
                       </p>
-                      <p className="text-xs text-yellow-400">Requires attention</p>
+                      <p className="text-xs text-yellow-400">Needs attention</p>
                     </div>
-                    <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/25 group-hover:shadow-yellow-500/40 transition-shadow duration-300">
-                      <Clock className="w-7 h-7 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center shadow-md shadow-yellow-500/20">
+                      <Clock className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 </div>
@@ -293,23 +290,23 @@ const AdminStudios = () => {
 
             {/* Approved Studios Card */}
             <motion.div 
-              whileHover={{ scale: 1.02, y: -5 }}
-              transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+              whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ type: "spring", stiffness: 400, delay: 0.1 }}
               className="group"
             >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-green-500/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative p-6">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-green-500/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-4">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-300">Approved Studios</p>
-                      <p className="text-3xl font-bold text-white">
+                    <div>
+                      <p className="text-sm font-medium text-gray-400">Approved Studios</p>
+                      <p className="text-2xl font-bold text-white">
                         {statsData?.approvedStudios || studiosData?.data?.studios?.filter(s => s.isApproved).length || 0}
                       </p>
                       <p className="text-xs text-green-400">Active & verified</p>
                     </div>
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow duration-300">
-                      <CheckCircle className="w-7 h-7 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-green-500/20">
+                      <CheckCircle className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 </div>
@@ -317,73 +314,67 @@ const AdminStudios = () => {
             </motion.div>
           </motion.div>
 
-          {/* Modern Search & Actions Bar */}
+          {/* Compact Search & Actions Bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mb-8"
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mb-6"
           >
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-              <div className="p-6">
-                <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-                  <div className="flex items-center gap-6 flex-1">
-                    {/* Advanced Search Input */}
-                    <div className="relative flex-1 max-w-lg group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400 w-5 h-5 transition-colors duration-200" />
-                        <input
-                          type="text"
-                          placeholder="Search studios, owners, locations..."
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
-                          className="w-full pl-12 pr-6 py-4 bg-white/5 backdrop-blur border border-white/20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/10 transition-all duration-300 text-sm font-medium"
-                        />
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                      </div>
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+              <div className="p-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    {/* Compact Search Input */}
+                    <div className="relative flex-1 max-w-md">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        placeholder="Search studios, owners..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-white/5 backdrop-blur border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
+                      />
                     </div>
                     
-                    {/* Modern Status Filter */}
-                    <div className="relative group">
-                      <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4 z-10" />
+                    {/* Compact Status Filter */}
+                    <div className="relative">
+                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
                       <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="pl-11 pr-8 py-4 bg-white/5 backdrop-blur border border-white/20 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/10 min-w-[180px] appearance-none cursor-pointer transition-all duration-300 text-sm font-medium"
+                        className="pl-9 pr-8 py-2.5 bg-white/5 backdrop-blur border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px] appearance-none cursor-pointer transition-all duration-200 text-sm"
                       >
                         <option value="all" className="bg-slate-800 text-white">All Status</option>
                         <option value="approved" className="bg-slate-800 text-white">✓ Approved</option>
                         <option value="pending" className="bg-slate-800 text-white">⏳ Pending</option>
                         <option value="rejected" className="bg-slate-800 text-white">✗ Rejected</option>
                       </select>
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Create Studio CTA */}
+                  {/* Compact Create Button */}
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <Button 
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-4 text-sm font-semibold shadow-2xl shadow-blue-500/25 rounded-2xl transition-all duration-300"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200"
                       onClick={() => setIsCreateModalOpen(true)}
                     >
-                      <Plus className="w-5 h-5 mr-3" />
-                      Create New Studio
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Studio
                     </Button>
                   </motion.div>
                 </div>
               </div>
             </Card>
-        </motion.div>
-
-        {/* Studios List */}
+          </motion.div>        {/* Studios List */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -407,7 +398,7 @@ const AdminStudios = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="space-y-3"
+            className="space-y-2"
           >
             {studiosData?.data?.studios?.map((studio, index) => (
               <motion.div
@@ -416,142 +407,120 @@ const AdminStudios = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.05 }}
               >
-                <Card className="group bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-500 cursor-pointer relative overflow-hidden"
+                <Card className="group bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer"
                       onClick={() => handleStudioClick(studio)}>
-                  {/* Hover gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
-                  <div className="relative p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0 space-y-4">
-                        {/* Studio Header */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-white/10">
-                            <Building2 className="w-6 h-6 text-blue-400" />
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        {/* Compact Studio Header */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                            <Building2 className="w-5 h-5 text-blue-400" />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors duration-300 truncate">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-200 truncate">
                                 {studio.name}
                               </h3>
                               {studio.features?.featured && (
-                                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 px-3 py-1 rounded-full text-xs font-semibold border border-purple-500/30 backdrop-blur-sm">
-                                  ✨ Featured
-                                </div>
+                                <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs font-medium">
+                                  ✨
+                                </span>
                               )}
                             </div>
-                            <p className="text-gray-400 text-sm">Created {new Date(studio.createdAt).toLocaleDateString()}</p>
+                            <p className="text-gray-500 text-xs">Created {new Date(studio.createdAt).toLocaleDateString()}</p>
                           </div>
                         </div>
                         
-                        {/* Studio Info Grid */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                            <MapPin className="w-5 h-5 text-blue-400" />
-                            <div>
-                              <p className="text-xs text-gray-400">Location</p>
-                              <p className="text-sm font-medium text-white">{studio.location?.city || 'N/A'}</p>
-                            </div>
+                        {/* Compact Info Row */}
+                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4 text-blue-400" />
+                            <span className="truncate">{studio.location?.city || 'N/A'}</span>
                           </div>
-                          
-                          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                            <Users className="w-5 h-5 text-green-400" />
-                            <div>
-                              <p className="text-xs text-gray-400">Owner</p>
-                              <p className="text-sm font-medium text-white">{studio.user?.name || 'Unknown'}</p>
-                            </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4 text-green-400" />
+                            <span className="truncate">{studio.user?.name || 'Unknown'}</span>
                           </div>
-                          
                           {studio.averageRating && (
-                            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                              <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                              <div>
-                                <p className="text-xs text-gray-400">Rating</p>
-                                <p className="text-sm font-medium text-yellow-400">{studio.averageRating.toFixed(1)} ⭐</p>
-                              </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-yellow-400">{studio.averageRating.toFixed(1)}</span>
                             </div>
                           )}
                         </div>
                       </div>
                       
                       {/* Status and Actions */}
-                      <div className="flex flex-col items-end gap-4 ml-6">
+                      <div className="flex flex-col items-end gap-3 ml-4">
                         {/* Status Badge */}
-                        <div className={`px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm border shadow-lg ${
+                        <div className={`px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border ${
                           studio.isApproved
-                            ? 'bg-green-500/20 text-green-300 border-green-500/30 shadow-green-500/20'
+                            ? 'bg-green-500/20 text-green-300 border-green-500/30'
                             : studio.verificationStatus === 'rejected'
-                            ? 'bg-red-500/20 text-red-300 border-red-500/30 shadow-red-500/20'
-                            : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30 shadow-yellow-500/20'
+                            ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                            : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
                         }`}>
                           {studio.isApproved 
                             ? '✓ Approved' 
                             : studio.verificationStatus === 'rejected' 
                             ? '✗ Rejected' 
-                            : '⏳ Pending Review'}
+                            : '⏳ Pending'}
                         </div>
                         
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
                           {!studio.isApproved && studio.verificationStatus !== 'rejected' ? (
                             <>
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleStatusUpdate(studio._id, 'approve');
-                                  }}
-                                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2 rounded-xl font-semibold shadow-lg shadow-green-500/25 border-0"
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Approve
-                                </Button>
-                              </motion.div>
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleStatusUpdate(studio._id, 'reject', 'Quality standards not met');
-                                  }}
-                                  className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white px-4 py-2 rounded-xl font-semibold shadow-lg shadow-red-500/25 border-0"
-                                >
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                  Reject
-                                </Button>
-                              </motion.div>
-                            </>
-                          ) : studio.isApproved ? (
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                               <Button
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleStatusUpdate(studio._id, 'revoke', 'Re-review required');
+                                  handleStatusUpdate(studio._id, 'approve');
                                 }}
-                                className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white px-4 py-2 rounded-xl font-semibold shadow-lg shadow-orange-500/25 border-0"
+                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
                               >
-                                <AlertCircle className="w-4 h-4 mr-2" />
-                                Revoke
+                                <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                                Approve
                               </Button>
-                            </motion.div>
-                          ) : null}
-                          
-                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusUpdate(studio._id, 'reject', 'Quality standards not met');
+                                }}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+                              >
+                                <XCircle className="w-3.5 h-3.5 mr-1.5" />
+                                Reject
+                              </Button>
+                            </>
+                          ) : studio.isApproved ? (
                             <Button
-                              variant="outline"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteStudio(studio._id);
+                                handleStatusUpdate(studio._id, 'revoke', 'Re-review required');
                               }}
-                              className="border-2 border-red-500/50 text-red-400 hover:bg-red-500/20 hover:border-red-400 w-10 h-10 p-0 rounded-xl backdrop-blur-sm"
-                              disabled={isDeleting}
+                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                              Revoke
                             </Button>
-                          </motion.div>
+                          ) : null}
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteStudio(studio._id);
+                            }}
+                            className="border border-red-500/50 text-red-400 hover:bg-red-500/20 w-8 h-8 p-0 rounded-lg"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -568,7 +537,7 @@ const AdminStudios = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex justify-center mt-8"
+            className="flex justify-center mt-4"
           >
             <div className="flex items-center space-x-2">
               <Button
