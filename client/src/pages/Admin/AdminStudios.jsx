@@ -50,6 +50,7 @@ const AdminStudios = () => {
   const [selectedStudios, setSelectedStudios] = useState([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [selectedStudio, setSelectedStudio] = useState(null)
 
   // Enhanced API hooks
@@ -139,6 +140,12 @@ const AdminStudios = () => {
     }
   }
 
+  const handleStudioClick = (studio) => {
+    // Show studio details in read-only modal
+    setSelectedStudio(studio)
+    setIsDetailsModalOpen(true)
+  }
+
   const handleStudioSelection = (studioId) => {
     setSelectedStudios(prev => 
       prev.includes(studioId) 
@@ -200,99 +207,86 @@ const AdminStudios = () => {
             </div>
           </div>
 
-          <div className="flex space-x-3">
-            {selectedStudios.length > 0 && (
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction('approve')}
-                  className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Approve ({selectedStudios.length})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction('reject')}
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Reject ({selectedStudios.length})
-                </Button>
-              </div>
-            )}
+          <div className="flex items-center space-x-3">
+            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-2 rounded-full border border-blue-500/30">
+              <span className="text-blue-300 text-sm font-semibold">
+                {studiosData?.data?.studios?.length || 0} Studios
+              </span>
+            </div>
           </div>
         </motion.div>
 
-        {/* Studio Overview */}
-        {statsData && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-          >
-            <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 border-slate-700/50 backdrop-blur-xl">
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Total Studios</p>
-                    <p className="text-3xl font-bold text-white">{statsData.totalStudios || 0}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-blue-400" />
-                  </div>
+        {/* Studio Overview - Compact Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+        >
+          {/* Total Studios Card */}
+          <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-200">
+            <div className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Total Studios</p>
+                  <p className="text-2xl font-bold text-white">
+                    {statsData?.totalStudios || studiosData?.data?.studios?.length || 0}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-blue-400" />
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            <Card className="bg-gradient-to-br from-orange-900/80 to-orange-800/80 border-orange-700/50 backdrop-blur-xl">
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Pending Review</p>
-                    <p className="text-3xl font-bold text-white">{statsData.pendingStudios || 0}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-orange-400" />
-                  </div>
+          {/* Pending Review Card */}
+          <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-200">
+            <div className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Pending Review</p>
+                  <p className="text-2xl font-bold text-white">
+                    {statsData?.pendingStudios || studiosData?.data?.studios?.filter(s => !s.isApproved && s.verificationStatus !== 'rejected').length || 0}
+                  </p>
+                  <p className="text-xs text-orange-400 mt-1">Awaiting approval</p>
                 </div>
-                <p className="text-xs text-orange-400 mt-2">
-                  Awaiting admin approval
-                </p>
+                <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-orange-400" />
+                </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            <Card className="bg-gradient-to-br from-green-900/80 to-green-800/80 border-green-700/50 backdrop-blur-xl">
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Approved Studios</p>
-                    <p className="text-3xl font-bold text-white">{statsData.approvedStudios || 0}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                  </div>
+          {/* Approved Studios Card */}
+          <Card className="bg-slate-800/50 border-slate-700/50 hover:bg-slate-800/80 transition-all duration-200">
+            <div className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Approved Studios</p>
+                  <p className="text-2xl font-bold text-white">
+                    {statsData?.approvedStudios || studiosData?.data?.studios?.filter(s => s.isApproved).length || 0}
+                  </p>
+                  <p className="text-xs text-green-400 mt-1">Active & verified</p>
                 </div>
-                <p className="text-xs text-green-400 mt-2">
-                  Active and verified
-                </p>
+                <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
               </div>
-            </Card>
-          </motion.div>
-        )}
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Enhanced Filters */}
+        {/* Compact Search & Filter Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="mb-6"
         >
-          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl">
-            <div className="p-4 border-b border-slate-800/50">
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <div className="p-4">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">
@@ -302,14 +296,14 @@ const AdminStudios = () => {
                       placeholder="Search by name, owner, or location..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
                     />
                   </div>
                   
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 min-w-[140px]"
+                    className="px-3 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 min-w-[140px] text-sm"
                   >
                     <option value="all">All Status</option>
                     <option value="approved">✓ Approved</option>
@@ -317,35 +311,18 @@ const AdminStudios = () => {
                     <option value="rejected">✗ Rejected</option>
                   </select>
                 </div>
-
-                {selectedStudios.length > 0 && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400">
-                      {selectedStudios.length} selected
-                    </span>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="border-slate-700/50 bg-slate-800/30 hover:bg-slate-700/50 text-gray-300"
-                      onClick={handleSelectAll}
-                    >
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      {selectedStudios.length === studiosData?.data?.studios?.length ? 'Deselect All' : 'Select All'}
-                    </Button>
-                  </div>
-                )}
+                
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 px-4 py-2 text-sm"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Studio
+                </Button>
               </div>
             </div>
             
-            {/* Table Header */}
-            <div className="px-6 py-3 bg-slate-800/30 border-b border-slate-800/50">
-              <div className="flex items-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                <div className="w-8"></div> {/* Checkbox space */}
-                <div className="flex-1 ml-4">Studio Details</div>
-                <div className="w-32 text-center">Status</div>
-                <div className="w-40 text-center">Actions</div>
-              </div>
-            </div>
+
           </Card>
         </motion.div>
 
@@ -373,7 +350,7 @@ const AdminStudios = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {studiosData?.data?.studios?.map((studio, index) => (
               <motion.div
@@ -382,114 +359,108 @@ const AdminStudios = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.05 }}
               >
-                <Card className="bg-slate-800/50 border-slate-700/50">
-                  <div className="px-6 py-4 border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors">
-                  <div className="flex items-center">
-                    {/* Checkbox */}
-                    <div className="w-8">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudios.includes(studio._id)}
-                        onChange={() => handleStudioSelection(studio._id)}
-                        className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-1"
-                      />
-                    </div>
-                    
-                    {/* Studio Info */}
-                    <div className="flex-1 ml-4 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white truncate max-w-xs">
-                          {studio.name}
-                        </h3>
-                        {studio.features?.featured && (
-                          <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs font-medium border border-purple-500/30">
-                            ⭐ Featured
+                <Card className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-700/50 hover:border-slate-600 transition-colors cursor-pointer"
+                      onClick={() => handleStudioClick(studio)}>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-white truncate">
+                            {studio.name}
+                          </h3>
+                          {studio.features?.featured && (
+                            <span className="bg-purple-600/20 text-purple-300 px-2 py-1 rounded text-xs font-medium">
+                              ✨ Featured
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-2">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{studio.location?.city || 'N/A'}</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{studio.user?.name || 'Unknown'}</span>
+                          </div>
+                          {studio.averageRating && (
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-yellow-400">{studio.averageRating.toFixed(1)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
-                      <div className="flex items-center space-x-6 text-sm text-gray-400">
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{studio.location?.city || 'N/A'}, {studio.location?.country || 'N/A'}</span>
+                      <div className="flex items-center gap-3">
+                        <div className={`px-2 py-1 rounded-md text-xs font-medium ${
+                          studio.isApproved
+                            ? 'bg-green-600/20 text-green-300'
+                            : studio.verificationStatus === 'rejected'
+                            ? 'bg-red-600/20 text-red-300'
+                            : 'bg-yellow-600/20 text-yellow-300'
+                        }`}>
+                          {studio.isApproved 
+                            ? '✓ Approved' 
+                            : studio.verificationStatus === 'rejected' 
+                            ? '✗ Rejected' 
+                            : '⏳ Pending'}
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Users className="w-4 h-4" />
-                          <span>Owner: {studio.user?.name || 'Unknown'}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Created: {new Date(studio.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        {studio.averageRating && (
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span className="text-yellow-400">{studio.averageRating.toFixed(1)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="w-32 text-center">
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        studio.isApproved
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                          : studio.verificationStatus === 'rejected'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                      }`}>
-                        {studio.isApproved 
-                          ? '✓ Approved' 
-                          : studio.verificationStatus === 'rejected' 
-                          ? '✗ Rejected' 
-                          : '⏳ Pending'}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="w-40 flex items-center justify-center space-x-2">
-                        {!studio.isApproved && studio.verificationStatus !== 'rejected' ? (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleStatusUpdate(studio._id, 'approve')}
-                              className="bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/50"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleStatusUpdate(studio._id, 'reject', 'Quality standards not met')}
-                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/50"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reject
-                            </Button>
-                          </>
-                        ) : studio.isApproved ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleStatusUpdate(studio._id, 'revoke', 'Re-review required')}
-                            className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border-orange-500/50"
-                          >
-                            <AlertCircle className="w-4 h-4 mr-2" />
-                            Revoke
-                          </Button>
-                        ) : (
-                          <span className="text-sm text-gray-500">No actions available</span>
-                        )}
                         
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteStudio(studio._id)}
-                          className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {!studio.isApproved && studio.verificationStatus !== 'rejected' ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusUpdate(studio._id, 'approve');
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 text-xs"
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusUpdate(studio._id, 'reject', 'Quality standards not met');
+                                }}
+                                className="bg-red-600 hover:bg-red-700 text-white h-8 px-3 text-xs"
+                              >
+                                <XCircle className="w-3 h-3 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          ) : studio.isApproved ? (
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusUpdate(studio._id, 'revoke', 'Re-review required');
+                              }}
+                              className="bg-orange-600 hover:bg-orange-700 text-white h-8 px-3 text-xs"
+                            >
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Revoke
+                            </Button>
+                          ) : null}
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteStudio(studio._id);
+                            }}
+                            className="border-red-500/50 text-red-400 hover:bg-red-500/20 h-8 w-8 p-0"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -558,8 +529,99 @@ const AdminStudios = () => {
           studio={selectedStudio}
           cities={cities}
         />
+
+        {/* Studio Details Modal */}
+        <StudioDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => {
+            setIsDetailsModalOpen(false)
+            setSelectedStudio(null)
+          }}
+          studio={selectedStudio}
+        />
       </div>
     </div>
+  )
+}
+
+// Studio Details Modal Component
+const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
+  if (!studio) return null
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Studio Details">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Studio Name</label>
+            <p className="text-white bg-slate-700/50 p-2 rounded">{studio.name}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Owner</label>
+            <p className="text-white bg-slate-700/50 p-2 rounded">{studio.user?.name || 'Unknown'}</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Location</label>
+            <p className="text-white bg-slate-700/50 p-2 rounded">
+              {studio.location?.city || 'N/A'}, {studio.location?.country || 'N/A'}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
+            <p className={`p-2 rounded text-sm font-medium ${
+              studio.isApproved
+                ? 'bg-green-600/20 text-green-300'
+                : studio.verificationStatus === 'rejected'
+                ? 'bg-red-600/20 text-red-300'
+                : 'bg-yellow-600/20 text-yellow-300'
+            }`}>
+              {studio.isApproved 
+                ? '✓ Approved' 
+                : studio.verificationStatus === 'rejected' 
+                ? '✗ Rejected' 
+                : '⏳ Pending Review'}
+            </p>
+          </div>
+        </div>
+
+        {studio.description && (
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+            <p className="text-white bg-slate-700/50 p-3 rounded">{studio.description}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Created</label>
+            <p className="text-white bg-slate-700/50 p-2 rounded">
+              {new Date(studio.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+          {studio.averageRating && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Rating</label>
+              <p className="text-white bg-slate-700/50 p-2 rounded flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                {studio.averageRating.toFixed(1)}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {studio.features?.featured && (
+          <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✨</span>
+              <span className="text-purple-300 font-medium">Featured Studio</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
   )
 }
 
