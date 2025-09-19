@@ -45,6 +45,8 @@ import StudioSettings from './pages/Dashboard/StudioSettings'
 import { setCredentials } from './store/authSlice'
 import { setTheme, setReducedMotion } from './store/themeSlice'
 import { initializeSocket } from './lib/socket'
+import api from './lib/axios'
+import { store } from './store/store'
 
 function App() {
   const dispatch = useDispatch()
@@ -111,11 +113,35 @@ function App() {
   }, [mode])
 
   useEffect(() => {
-    // Initialize socket connection when user is authenticated
-    if (user && token) {
-      initializeSocket(token)
+    // Initialize socket connection when user is authenticated.
+    // Ensure access token is valid (or refreshed) before connecting.
+    if (!user) return
+
+    let mounted = true
+
+    const init = async () => {
+      try {
+        // Trigger /me to allow axios to refresh tokens via its interceptor
+        await api.get('/auth/me')
+      } catch (err) {
+        // Ignore - refresh may have failed; connection will not be established
+        console.error('Socket auth check failed', err)
+      }
+
+      if (!mounted) return
+
+      const latestToken = store.getState().auth.token
+      if (latestToken) {
+        initializeSocket(latestToken)
+      }
     }
-  }, [user, token])
+
+    init()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${

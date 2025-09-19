@@ -259,14 +259,7 @@ const Navbar = () => {
                   <MessageCircle className="w-5 h-5 group-hover:animate-bounce" />
                 </button>
 
-                {/* Dashboard Link */}
-                <Link
-                  to="/dashboard"
-                  className="hidden md:flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
-                >
-                  <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
-                  <span>Dashboard</span>
-                </Link>
+                {/* (removed) Top-level Dashboard link - use My Bookings in profile menu instead */}
 
                 {/* Admin Link */}
                 {user?.role === 'admin' && (
@@ -331,7 +324,7 @@ const Navbar = () => {
                             onClick={() => setIsProfileOpen(false)}
                           >
                             <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
-                            <span>Dashboard</span>
+                            <span>My Bookings</span>
                           </Link>
                           
                           <Link

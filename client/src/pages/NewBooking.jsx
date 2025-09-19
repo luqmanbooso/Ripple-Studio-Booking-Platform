@@ -10,6 +10,7 @@ import Spinner from '../components/ui/Spinner'
 import { useGetArtistQuery } from '../store/artistApi'
 import { useGetStudioQuery } from '../store/studioApi'
 import { useCreateBookingMutation } from '../store/bookingApi'
+import api from '../lib/axios'
 
 const NewBooking = () => {
   const [searchParams] = useSearchParams()
@@ -130,6 +131,42 @@ const NewBooking = () => {
     '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
   ]
 
+  const [bookedSlots, setBookedSlots] = useState([])
+
+  // Fetch booked slots when date or provider changes
+  useEffect(() => {
+    const fetchBooked = async () => {
+      if (!selectedDate || !provider) return
+
+  const pType = artistId ? 'artist' : 'studio'
+      const providerId = provider._id
+
+      try {
+        const res = await api.get('/bookings/by-provider', {
+          params: { providerType: pType, providerId, date: selectedDate }
+        })
+        const slots = res.data.data.bookedSlots || []
+        setBookedSlots(slots)
+        // If currently selected time is now overlapping a booked slot, clear it
+        if (selectedTime) {
+          const startDt = new Date(`${selectedDate}T${selectedTime}`)
+          const endDt = new Date(startDt.getTime() + duration * 60000)
+          const overlaps = slots.some(s => {
+            const bs = new Date(s.start)
+            const be = new Date(s.end)
+            return (startDt < be && endDt > bs)
+          })
+          if (overlaps) setSelectedTime('')
+        }
+      } catch (err) {
+        // ignore errors - no booked slots
+        setBookedSlots([])
+      }
+    }
+
+    fetchBooked()
+  }, [selectedDate, artistId, studioId, provider])
+
   return (
     <div className="min-h-screen bg-dark-950">
       <div className="container py-8">
@@ -174,20 +211,34 @@ const NewBooking = () => {
                     Select Time
                   </h3>
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                    {timeSlots.map((time) => (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setSelectedTime(time)}
-                        className={`p-3 rounded-lg border transition-colors ${
-                          selectedTime === time
-                            ? 'border-primary-500 bg-primary-500/20 text-primary-300'
-                            : 'border-gray-600 hover:border-gray-500 text-gray-300'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                    {timeSlots.map((time) => {
+                      // compute if this time would overlap any booked slot
+                      const startDt = new Date(`${selectedDate}T${time}`)
+                      const endDt = new Date(startDt.getTime() + duration * 60000)
+                      const isBooked = bookedSlots.some(s => {
+                        const bs = new Date(s.start)
+                        const be = new Date(s.end)
+                        return (startDt < be && endDt > bs)
+                      })
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => !isBooked && setSelectedTime(time)}
+                          disabled={isBooked}
+                          className={`p-3 rounded-lg border transition-colors flex items-center justify-center ${
+                            isBooked
+                              ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed line-through'
+                              : selectedTime === time
+                                ? 'border-primary-500 bg-primary-500/20 text-primary-300'
+                                : 'border-gray-600 hover:border-gray-500 text-gray-300'
+                          }`}
+                        >
+                          <span className="mr-2">{time}</span>
+                          {isBooked && <span className="text-xs text-red-400">Booked</span>}
+                        </button>
+                      )
+                    })}
                   </div>
                 </Card>
 
