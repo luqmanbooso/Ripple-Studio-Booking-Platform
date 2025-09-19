@@ -47,23 +47,21 @@ const AdminNavbar = () => {
 
   return (
     <nav className="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-2">
         <div className="flex justify-between items-center h-16">
           {/* Logo & Brand */}
-          <div className="flex items-center space-x-4">
-            <Link to="/admin" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-white">Ripple Admin</h1>
-                <p className="text-xs text-gray-400">Management Portal</p>
-              </div>
+          <div className="flex items-center -ml-12 mr-0">
+            <Link to="/admin" className="flex items-center">
+              <img 
+                src="/logo.png" 
+                alt="Ripple Logo" 
+                className="h-16 w-auto object-contain"
+              />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center p-4 space-x-2 mr-8">
             {adminNavItems.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.href

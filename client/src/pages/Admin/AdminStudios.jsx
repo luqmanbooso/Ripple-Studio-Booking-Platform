@@ -231,146 +231,114 @@ const AdminStudios = () => {
             </div>
           </motion.div>
 
-          {/* Compact Stats Cards */}
+          {/* Stats Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
           >
-            {/* Total Studios Card */}
-            <motion.div 
-              whileHover={{ scale: 1.01, y: -2 }}
-              transition={{ type: "spring", stiffness: 400 }}
-              className="group"
-            >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-300 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-400">Total Studios</p>
-                      <p className="text-2xl font-bold text-white">
-                        {statsData?.totalStudios || studiosData?.data?.studios?.length || 0}
-                      </p>
-                      <p className="text-xs text-blue-400">+12% this month</p>
-                    </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
-                      <Building2 className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Studios</p>
+                  <p className="text-2xl font-bold text-white mt-1">
+                    {statsData?.totalStudios || studiosData?.data?.studios?.length || 0}
+                  </p>
                 </div>
-              </Card>
-            </motion.div>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                  <Building2 className="w-5 h-5 text-blue-400" />
+                </div>
+              </div>
+            </Card>
 
-            {/* Pending Review Card */}
-            <motion.div 
-              whileHover={{ scale: 1.01, y: -2 }}
-              transition={{ type: "spring", stiffness: 400, delay: 0.05 }}
-              className="group"
-            >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-yellow-500/30 transition-all duration-300 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-400">Pending Review</p>
-                      <p className="text-2xl font-bold text-white">
-                        {statsData?.pendingStudios || studiosData?.data?.studios?.filter(s => !s.isApproved && s.verificationStatus !== 'rejected').length || 0}
-                      </p>
-                      <p className="text-xs text-yellow-400">Needs attention</p>
-                    </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center shadow-md shadow-yellow-500/20">
-                      <Clock className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Pending Review</p>
+                  <p className="text-2xl font-bold text-yellow-400 mt-1">
+                    {statsData?.pendingStudios || studiosData?.data?.studios?.filter(s => !s.isApproved && s.verificationStatus !== 'rejected').length || 0}
+                  </p>
                 </div>
-              </Card>
-            </motion.div>
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                  <Clock className="w-5 h-5 text-yellow-400" />
+                </div>
+              </div>
+            </Card>
 
-            {/* Approved Studios Card */}
-            <motion.div 
-              whileHover={{ scale: 1.01, y: -2 }}
-              transition={{ type: "spring", stiffness: 400, delay: 0.1 }}
-              className="group"
-            >
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-green-500/30 transition-all duration-300 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-400">Approved Studios</p>
-                      <p className="text-2xl font-bold text-white">
-                        {statsData?.approvedStudios || studiosData?.data?.studios?.filter(s => s.isApproved).length || 0}
-                      </p>
-                      <p className="text-xs text-green-400">Active & verified</p>
-                    </div>
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-green-500/20">
-                      <CheckCircle className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Approved</p>
+                  <p className="text-2xl font-bold text-green-400 mt-1">
+                    {statsData?.approvedStudios || studiosData?.data?.studios?.filter(s => s.isApproved).length || 0}
+                  </p>
                 </div>
-              </Card>
-            </motion.div>
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Active Studios</p>
+                  <p className="text-2xl font-bold text-cyan-400 mt-1">
+                    {statsData?.activeStudios || studiosData?.data?.studios?.filter(s => s.isApproved && s.isActive).length || 0}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                  <CheckCircle className="w-5 h-5 text-cyan-400" />
+                </div>
+              </div>
+            </Card>
           </motion.div>
 
-          {/* Compact Search & Actions Bar */}
+          {/* Search and Filters */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            transition={{ delay: 0.2 }}
             className="mb-6"
           >
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-              <div className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                  <div className="flex items-center gap-4 flex-1">
-                    {/* Compact Search Input */}
-                    <div className="relative flex-1 max-w-md">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        placeholder="Search studios, owners..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white/5 backdrop-blur border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
-                      />
-                    </div>
-                    
-                    {/* Compact Status Filter */}
-                    <div className="relative">
-                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="pl-9 pr-8 py-2.5 bg-white/5 backdrop-blur border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px] appearance-none cursor-pointer transition-all duration-200 text-sm"
-                      >
-                        <option value="all" className="bg-slate-800 text-white">All Status</option>
-                        <option value="approved" className="bg-slate-800 text-white">✓ Approved</option>
-                        <option value="pending" className="bg-slate-800 text-white">⏳ Pending</option>
-                        <option value="rejected" className="bg-slate-800 text-white">✗ Rejected</option>
-                      </select>
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search by studio name, owner, or location..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <div className="relative min-w-[140px]">
+                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer text-sm"
+                    >
+                      <option value="all" className="bg-slate-800 text-white">All Status</option>
+                      <option value="approved" className="bg-slate-800 text-white">✓ Approved</option>
+                      <option value="pending" className="bg-slate-800 text-white">⏳ Pending</option>
+                      <option value="rejected" className="bg-slate-800 text-white">✗ Rejected</option>
+                    </select>
                   </div>
                   
-                  {/* Compact Create Button */}
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-4 py-2.5 text-sm font-medium"
+                    onClick={() => setIsCreateModalOpen(true)}
                   >
-                    <Button 
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200"
-                      onClick={() => setIsCreateModalOpen(true)}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Studio
-                    </Button>
-                  </motion.div>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Studio
+                  </Button>
                 </div>
               </div>
             </Card>
