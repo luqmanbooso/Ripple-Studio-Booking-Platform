@@ -163,10 +163,7 @@ const AdminBookings = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl">
-              <span className="text-xs text-gray-400">Total Bookings</span>
-              <div className="font-semibold text-white">{bookingsData?.data?.pagination?.totalItems || 0}</div>
-            </div>
+            
             <Button variant="outline" className="border-slate-700 text-sm">
               <Download className="w-4 h-4 mr-2" />
               Export
@@ -179,14 +176,14 @@ const AdminBookings = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
         >
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Bookings</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {bookingsData?.data?.stats?.total || bookingsData?.data?.pagination?.totalItems || 0}
+                  {bookingsData?.data?.bookings?.length || 0}
                 </p>
               </div>
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
@@ -200,8 +197,7 @@ const AdminBookings = () => {
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Confirmed</p>
                 <p className="text-2xl font-bold text-green-400 mt-1">
-                  {bookingsData?.data?.stats?.confirmed || 
-                   bookingsData?.data?.bookings?.filter(b => b.status === 'confirmed').length || 0}
+                  {bookingsData?.data?.bookings?.filter(b => b.status === 'confirmed').length || 0}
                 </p>
               </div>
               <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
@@ -213,14 +209,13 @@ const AdminBookings = () => {
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Pending</p>
-                <p className="text-2xl font-bold text-yellow-400 mt-1">
-                  {bookingsData?.data?.stats?.pending || 
-                   bookingsData?.data?.bookings?.filter(b => ['pending', 'payment_pending'].includes(b.status)).length || 0}
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Completed</p>
+                <p className="text-2xl font-bold text-cyan-400 mt-1">
+                  {bookingsData?.data?.bookings?.filter(b => b.status === 'completed').length || 0}
                 </p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                <Clock className="w-5 h-5 text-yellow-400" />
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <CheckCircle className="w-5 h-5 text-cyan-400" />
               </div>
             </div>
           </Card>
@@ -228,27 +223,29 @@ const AdminBookings = () => {
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Completed</p>
-                <p className="text-2xl font-bold text-blue-400 mt-1">
-                  {bookingsData?.data?.stats?.completed || 
-                   bookingsData?.data?.bookings?.filter(b => b.status === 'completed').length || 0}
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Revenue</p>
+                <p className="text-2xl font-bold text-yellow-400 mt-1">
+                  ${bookingsData?.data?.bookings?.reduce((sum, booking) => {
+                    const amount = booking.totalAmount || booking.amount || 0;
+                    return sum + amount;
+                  }, 0).toLocaleString() || '0'}
                 </p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                <CheckCircle className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <DollarSign className="w-5 h-5 text-yellow-400" />
               </div>
             </div>
           </Card>
         </motion.div>
 
-        {/* Filters */}
+        {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="mb-6"
         >
-          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-6">
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -258,7 +255,7 @@ const AdminBookings = () => {
                     placeholder="Search by client name, studio, or booking ID..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="input-field pl-10 w-full"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
                   />
                 </div>
               </div>
@@ -266,17 +263,14 @@ const AdminBookings = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="input-field min-w-[150px]"
+                className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 min-w-[150px]"
               >
                 {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value} className="bg-slate-800">
+                    {option.label}
+                  </option>
                 ))}
               </select>
-              
-              <Button variant="outline" size="sm" className="border-slate-700">
-                <Filter className="w-4 h-4 mr-2" />
-                More Filters
-              </Button>
             </div>
           </Card>
         </motion.div>
