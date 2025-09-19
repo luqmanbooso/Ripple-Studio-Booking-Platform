@@ -912,51 +912,218 @@ const AdminDashboard = () => {
 
           {activeTab === 'management' && (
             <div className="space-y-8">
-              {/* Management Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Platform Management</h2>
-                  <p className="text-gray-400">Manage studios, users, and platform operations</p>
+              {/* Studio Management Header */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Studio Management</h2>
+                    <p className="text-gray-600 dark:text-gray-400">Manage recording studios, equipment, and operations</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export Data
+                    </Button>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Studio
+                    </Button>
+                  </div>
                 </div>
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Studio
-                </Button>
+
+                {/* Studio Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400">86</h3>
+                        <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">Total Studios</p>
+                      </div>
+                      <Building2 className="w-8 h-8 text-blue-500" />
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">72</h3>
+                        <p className="text-sm text-green-600 dark:text-green-300 font-medium">Active Studios</p>
+                      </div>
+                      <CheckCircle className="w-8 h-8 text-green-500" />
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">8</h3>
+                        <p className="text-sm text-yellow-600 dark:text-yellow-300 font-medium">Pending Review</p>
+                      </div>
+                      <Clock className="w-8 h-8 text-yellow-500" />
+                    </div>
+                  </div>
+
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">6</h3>
+                        <p className="text-sm text-red-600 dark:text-red-300 font-medium">Issues</p>
+                      </div>
+                      <AlertTriangle className="w-8 h-8 text-red-500" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Management Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="w-8 h-8 text-white" />
+              {/* Studio Management Tools */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800">
+                {/* Filters and Search */}
+                <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search studios..."
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                          <Filter className="w-5 h-5 text-gray-400" />
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Studio Network</h3>
-                    <p className="text-gray-400 text-sm mb-4">Manage recording studios and equipment</p>
-                    <Button variant="outline" className="w-full">Manage Studios</Button>
+                    
+                    <div className="flex gap-3">
+                      <select className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                        <option>All Status</option>
+                        <option>Active</option>
+                        <option>Pending</option>
+                        <option>Suspended</option>
+                      </select>
+                      
+                      <select className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                        <option>All Types</option>
+                        <option>Recording</option>
+                        <option>Mixing</option>
+                        <option>Mastering</option>
+                        <option>Rehearsal</option>
+                      </select>
+                    </div>
                   </div>
+                </div>
+
+                {/* Studio List */}
+                <div className="divide-y divide-gray-200 dark:divide-slate-800">
+                  {[
+                    { id: 1, name: "Harmony Studios", owner: "John Smith", location: "Los Angeles, CA", status: "active", type: "Recording", rating: 4.8, bookings: 156, revenue: "$24,500" },
+                    { id: 2, name: "Echo Chamber", owner: "Sarah Johnson", location: "Nashville, TN", status: "active", type: "Mixing", rating: 4.9, bookings: 134, revenue: "$18,900" },
+                    { id: 3, name: "Bass Trap Studios", owner: "Mike Wilson", location: "Austin, TX", status: "pending", type: "Recording", rating: 4.6, bookings: 89, revenue: "$15,200" },
+                    { id: 4, name: "Crystal Clear Audio", owner: "Emma Davis", location: "Miami, FL", status: "active", type: "Mastering", rating: 4.7, bookings: 201, revenue: "$32,100" }
+                  ].map((studio) => (
+                    <div key={studio.id} className="p-6 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <Building2 className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{studio.name}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Owner: {studio.owner}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{studio.location}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-8">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              studio.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                              studio.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                              'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                            }`}>
+                              {studio.status}
+                            </span>
+                          </div>
+
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Rating</p>
+                            <div className="flex items-center">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="ml-1 text-sm font-medium text-gray-900 dark:text-white">{studio.rating}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Bookings</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{studio.bookings}</p>
+                          </div>
+
+                          <div className="text-center">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
+                            <p className="text-sm font-semibold text-green-600 dark:text-green-400">{studio.revenue}</p>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Settings className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Showing 1-4 of 86 studios
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" disabled>Previous</Button>
+                      <Button variant="outline" size="sm">Next</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Management</h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Manage artists, producers, and client accounts</p>
+                  <Button variant="outline" className="w-full">Manage Users</Button>
                 </Card>
 
-                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Users className="w-8 h-8 text-white" />
+                <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">User Management</h3>
-                    <p className="text-gray-400 text-sm mb-4">Artists, producers, and client accounts</p>
-                    <Button variant="outline" className="w-full">Manage Users</Button>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Booking Control</h3>
                   </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Session scheduling and management</p>
+                  <Button variant="outline" className="w-full">View Bookings</Button>
                 </Card>
 
-                <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 hover:shadow-xl transition-all duration-300">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Calendar className="w-8 h-8 text-white" />
+                <Card className="p-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Booking Control</h3>
-                    <p className="text-gray-400 text-sm mb-4">Session scheduling and management</p>
-                    <Button variant="outline" className="w-full">View Bookings</Button>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Analytics</h3>
                   </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Platform performance and insights</p>
+                  <Button variant="outline" className="w-full">View Analytics</Button>
                 </Card>
               </div>
             </div>

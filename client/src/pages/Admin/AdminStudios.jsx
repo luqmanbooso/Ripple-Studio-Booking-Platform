@@ -17,7 +17,14 @@ import {
   Zap,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Settings,
+  Download,
+  TrendingUp,
+  ArrowDownRight,
+  Calendar,
+  CheckSquare
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -25,35 +32,129 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
 import { 
-  useGetStudiosQuery,
+  useGetAllStudiosForAdminQuery,
+  useGetStudioStatsQuery,
   useCreateStudioMutation,
   useUpdateStudioMutation,
+  useUpdateStudioStatusMutation,
+  useToggleStudioFeatureMutation,
   useDeleteStudioMutation,
-  useToggleStudioStatusMutation
-} from '../../store/adminApi'
+  useBulkStudioActionsMutation
+} from '../../store/studioApi'
 
 const AdminStudios = () => {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [selectedCity, setSelectedCity] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [selectedStudios, setSelectedStudios] = useState([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedStudio, setSelectedStudio] = useState(null)
 
-  // API hooks
-  const { data: studiosData, isLoading } = useGetStudiosQuery({ 
+  // Enhanced API hooks
+  const { data: studiosData, isLoading } = useGetAllStudiosForAdminQuery({ 
     page, 
-    search, 
-    city: selectedCity,
+    q: search, 
+    status: statusFilter,
+    type: typeFilter,
     limit: 10 
   })
+  const { data: statsData } = useGetStudioStatsQuery()
   const [createStudio, { isLoading: isCreating }] = useCreateStudioMutation()
   const [updateStudio, { isLoading: isUpdating }] = useUpdateStudioMutation()
-  const [deleteStudio, { isLoading: isDeleting }] = useDeleteStudioMutation()
-  const [toggleStudioStatus] = useToggleStudioStatusMutation()
+  const [updateStudioStatus] = useUpdateStudioStatusMutation()
+  const [toggleStudioFeature] = useToggleStudioFeatureMutation()
+  const [deleteStudioAction, { isLoading: isDeleting }] = useDeleteStudioMutation()
+  const [bulkStudioActions] = useBulkStudioActionsMutation()
 
   const cities = ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura', 'Negombo', 'Matara']
   
+  // Enhanced handlers
+  const handleStatusUpdate = async (studioId, action, reason = '') => {
+    try {
+      let updateData = {}
+      let successMessage = ''
+      
+      switch (action) {
+        case 'approve':
+          updateData = { isApproved: true, verificationStatus: 'verified' }
+          successMessage = 'Studio approved successfully'
+          break
+        case 'reject':
+          updateData = { isApproved: false, verificationStatus: 'rejected' }
+          successMessage = 'Studio rejected successfully'
+          break
+        case 'revoke':
+          updateData = { isApproved: false, verificationStatus: 'pending' }
+          successMessage = 'Studio approval revoked successfully'
+          break
+        default:
+          throw new Error('Invalid action')
+      }
+      
+      if (reason) {
+        updateData.reason = reason
+      }
+      
+      await updateStudioStatus({ id: studioId, ...updateData }).unwrap()
+      toast.success(successMessage)
+    } catch (error) {
+      toast.error(`Failed to ${action} studio: ${error.message}`)
+    }
+  }
+
+  const handleFeatureToggle = async (studioId, feature) => {
+    try {
+      await toggleStudioFeature({ id: studioId, feature }).unwrap()
+      toast.success(`Feature ${feature} toggled successfully`)
+    } catch (error) {
+      toast.error(`Failed to toggle feature`)
+    }
+  }
+
+  const handleDeleteStudio = async (studioId) => {
+    if (window.confirm('Are you sure you want to delete this studio? This action cannot be undone.')) {
+      try {
+        await deleteStudioAction(studioId).unwrap()
+        toast.success('Studio deleted successfully')
+      } catch (error) {
+        toast.error('Failed to delete studio')
+      }
+    }
+  }
+
+  const handleBulkAction = async (action) => {
+    if (selectedStudios.length === 0) {
+      toast.warn('Please select studios to perform bulk action')
+      return
+    }
+    
+    try {
+      await bulkStudioActions({ action, studioIds: selectedStudios }).unwrap()
+      toast.success(`Bulk ${action} completed successfully`)
+      setSelectedStudios([])
+    } catch (error) {
+      toast.error(`Failed to perform bulk ${action}`)
+    }
+  }
+
+  const handleStudioSelection = (studioId) => {
+    setSelectedStudios(prev => 
+      prev.includes(studioId) 
+        ? prev.filter(id => id !== studioId)
+        : [...prev, studioId]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedStudios.length === studiosData?.studios?.length) {
+      setSelectedStudios([])
+    } else {
+      setSelectedStudios(studiosData?.studios?.map(studio => studio._id) || [])
+    }
+  }
+
   const handleCreateStudio = async (studioData) => {
     try {
       await createStudio(studioData).unwrap()
@@ -72,26 +173,6 @@ const AdminStudios = () => {
       setSelectedStudio(null)
     } catch (error) {
       toast.error(error.data?.message || 'Failed to update studio')
-    }
-  }
-
-  const handleDeleteStudio = async (studioId, studioName) => {
-    if (window.confirm(`Are you sure you want to delete "${studioName}"? This action cannot be undone.`)) {
-      try {
-        await deleteStudio(studioId).unwrap()
-        toast.success('Studio deleted successfully!')
-      } catch (error) {
-        toast.error(error.data?.message || 'Failed to delete studio')
-      }
-    }
-  }
-
-  const handleToggleStatus = async (studioId, currentStatus) => {
-    try {
-      await toggleStudioStatus({ id: studioId, isActive: !currentStatus }).unwrap()
-      toast.success(`Studio ${!currentStatus ? 'activated' : 'deactivated'} successfully!`)
-    } catch (error) {
-      toast.error(error.data?.message || 'Failed to update studio status')
     }
   }
 
@@ -114,35 +195,117 @@ const AdminStudios = () => {
               </h1>
               <p className="text-gray-400 flex items-center space-x-2">
                 <Zap className="w-4 h-4" />
-                <span>Manage recording studios and availability</span>
+                <span>Comprehensive studio oversight & analytics</span>
               </p>
             </div>
           </div>
 
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Studio
-          </Button>
+          <div className="flex space-x-3">
+            {selectedStudios.length > 0 && (
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkAction('approve')}
+                  className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve ({selectedStudios.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkAction('reject')}
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Reject ({selectedStudios.length})
+                </Button>
+              </div>
+            )}
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Studio
+            </Button>
+          </div>
         </motion.div>
 
-        {/* Filters */}
+        {/* Studio Overview */}
+        {statsData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          >
+            <Card className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 border-slate-700/50 backdrop-blur-xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Total Studios</p>
+                    <p className="text-3xl font-bold text-white">{statsData.totalStudios || 0}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-blue-400" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-900/80 to-orange-800/80 border-orange-700/50 backdrop-blur-xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Pending Review</p>
+                    <p className="text-3xl font-bold text-white">{statsData.pendingStudios || 0}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-orange-400" />
+                  </div>
+                </div>
+                <p className="text-xs text-orange-400 mt-2">
+                  Awaiting admin approval
+                </p>
+              </div>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-900/80 to-green-800/80 border-green-700/50 backdrop-blur-xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">Approved Studios</p>
+                    <p className="text-3xl font-bold text-white">{statsData.approvedStudios || 0}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-green-400" />
+                  </div>
+                </div>
+                <p className="text-xs text-green-400 mt-2">
+                  Active and verified
+                </p>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Enhanced Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="mb-6"
         >
           <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Search studios by name or description..."
+                    placeholder="Search studios by name, description, or owner..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="input-field pl-10 w-full"
@@ -150,26 +313,47 @@ const AdminStudios = () => {
                 </div>
               </div>
               
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="input-field min-w-[150px]"
-              >
-                <option value="">All Cities</option>
-                {cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-              
-              <Button variant="outline" size="sm" className="border-slate-700">
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="input-field min-w-[140px]"
+                >
+                  <option value="all">All Status</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="input-field min-w-[140px]"
+                >
+                  <option value="all">All Types</option>
+                  <option value="professional">Professional</option>
+                  <option value="home">Home Studio</option>
+                  <option value="rehearsal">Rehearsal</option>
+                  <option value="podcast">Podcast</option>
+                </select>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-slate-700 min-w-[120px]"
+                  onClick={handleSelectAll}
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  {selectedStudios.length === studiosData?.studios?.length ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
             </div>
           </Card>
         </motion.div>
 
-        {/* Studios Grid */}
+        {/* Enhanced Studios Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -178,126 +362,204 @@ const AdminStudios = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
           >
-            {studiosData?.data?.studios?.map((studio, index) => (
+            {studiosData?.studios?.map((studio, index) => (
               <motion.div
                 key={studio._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
                 whileHover={{ y: -4 }}
               >
                 <Card className="relative overflow-hidden border border-slate-800/50 bg-gradient-to-br from-slate-900/80 to-slate-900/40 backdrop-blur-xl group hover:shadow-2xl transition-all duration-300">
-                  {/* Status Indicator */}
-                  <div className="absolute top-4 right-4">
-                    <div className={`w-3 h-3 rounded-full ${
-                      studio.user?.isActive !== false ? 'bg-green-400 shadow-lg shadow-green-400/50' : 'bg-red-400 shadow-lg shadow-red-400/50'
-                    } animate-pulse`} />
+                  {/* Selection Checkbox */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudios.includes(studio._id)}
+                      onChange={() => handleStudioSelection(studio._id)}
+                      className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                    />
                   </div>
 
-                  <div className="p-6">
+                  {/* Status Badges */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      studio.isApproved
+                        ? 'bg-green-500/20 text-green-400'
+                        : studio.verificationStatus === 'rejected'
+                        ? 'bg-red-500/20 text-red-400'
+                        : 'bg-yellow-500/20 text-yellow-400'
+                    }`}>
+                      {studio.isApproved 
+                        ? 'Approved' 
+                        : studio.verificationStatus === 'rejected' 
+                        ? 'Rejected' 
+                        : 'Pending'}
+                    </div>
+                    {studio.features?.featured && (
+                      <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs font-medium">
+                        Featured
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6 pt-12">
                     {/* Studio Info */}
                     <div className="mb-4">
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
-                        {studio.name}
-                      </h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-bold text-white group-hover:text-blue-300 transition-colors">
+                          {studio.name}
+                        </h3>
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="text-sm text-yellow-400">{studio.averageRating?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                      </div>
+                      
                       <p className="text-gray-400 text-sm line-clamp-2 mb-3">
                         {studio.description || 'No description available'}
                       </p>
                       
-                      <div className="flex items-center text-gray-400 text-sm mb-2">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        <span>{studio.location?.city}, Sri Lanka</span>
+                      <div className="grid grid-cols-2 gap-2 text-sm text-gray-400">
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          <span>{studio.location?.city || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-1" />
+                          <span>{studio.capacity || 'N/A'} people</span>
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="w-4 h-4 mr-1" />
+                          <span>${studio.hourlyRate || 0}/hr</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          <span>{studio.totalBookings || 0} bookings</span>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center text-gray-400 text-sm mb-2">
-                        <Users className="w-4 h-4 mr-1" />
-                        <span>Capacity: {studio.capacity || 'Not specified'}</span>
-                      </div>
+                    </div>
 
-                      <div className="flex items-center text-gray-400 text-sm">
-                        <DollarSign className="w-4 h-4 mr-1" />
-                        <span>Rate: ${studio.hourlyRate || 0}/hour</span>
+                    {/* Studio Type & Features */}
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
+                          {studio.studioType || 'General'}
+                        </span>
+                        {studio.features?.verified && (
+                          <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
+                            Verified
+                          </span>
+                        )}
+                        {studio.features?.premium && (
+                          <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
+                            Premium
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Owner Info */}
                     <div className="bg-slate-800/30 rounded-lg p-3 mb-4">
                       <p className="text-xs text-gray-500 mb-1">Owner</p>
-                      <p className="text-sm font-medium text-white">{studio.user?.name}</p>
-                      <p className="text-xs text-gray-400">{studio.user?.email}</p>
-                      <div className="flex items-center mt-1">
-                        {studio.user?.verified ? (
-                          <CheckCircle className="w-3 h-3 text-green-400 mr-1" />
-                        ) : (
-                          <XCircle className="w-3 h-3 text-red-400 mr-1" />
-                        )}
-                        <span className="text-xs text-gray-400">
-                          {studio.user?.verified ? 'Verified' : 'Unverified'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Equipment */}
-                    {studio.equipment && studio.equipment.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-xs text-gray-500 mb-2">Equipment</p>
-                        <div className="flex flex-wrap gap-1">
-                          {studio.equipment.slice(0, 3).map((item, idx) => (
-                            <span key={idx} className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
-                              {item}
-                            </span>
-                          ))}
-                          {studio.equipment.length > 3 && (
-                            <span className="text-xs text-gray-400">+{studio.equipment.length - 3} more</span>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">{studio.user?.name}</p>
+                          <p className="text-xs text-gray-400">{studio.user?.email}</p>
+                        </div>
+                        <div className="flex items-center">
+                          {studio.user?.verified ? (
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-400" />
                           )}
                         </div>
                       </div>
-                    )}
+                    </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStudio(studio)
-                            setIsEditModalOpen(true)
-                          }}
-                          className="border-slate-600 hover:border-blue-500 hover:text-blue-400"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                    {/* Admin Actions */}
+                    <div className="flex flex-col gap-3 pt-4 border-t border-slate-700/50">
+                      {/* Status Actions */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex space-x-2">
+                          {!studio.isApproved && studio.verificationStatus !== 'rejected' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(studio._id, 'approved')}
+                                className="bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/50 px-3"
+                                title="Approve Studio"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(studio._id, 'rejected', 'Quality standards not met')}
+                                className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/50 px-3"
+                                title="Reject Studio"
+                              >
+                                <XCircle className="w-4 h-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {studio.isApproved && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStatusUpdate(studio._id, 'rejected', 'Re-review required')}
+                              className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border-orange-500/50 px-3"
+                              title="Revoke Approval"
+                            >
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              Revoke
+                            </Button>
+                          )}
+                        </div>
                         
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteStudio(studio._id, studio.name)}
-                          className="border-slate-600 hover:border-red-500 hover:text-red-400"
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleFeatureToggle(studio._id, 'featured')}
+                            className={studio.features?.featured 
+                              ? "border-purple-500/50 text-purple-400" 
+                              : "border-slate-600 text-gray-400"
+                            }
+                          >
+                            <Star className="w-4 h-4" />
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteStudio(studio._id)}
+                            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
 
-                      <button
-                        onClick={() => handleToggleStatus(studio._id, studio.user?.isActive !== false)}
-                        className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          studio.user?.isActive !== false
-                            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                        }`}
-                      >
-                        {studio.user?.isActive !== false ? (
-                          <ToggleRight className="w-4 h-4" />
-                        ) : (
-                          <ToggleLeft className="w-4 h-4" />
-                        )}
-                        <span>{studio.user?.isActive !== false ? 'Active' : 'Inactive'}</span>
-                      </button>
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-slate-800/30 rounded p-2">
+                          <p className="text-xs text-gray-400">Revenue</p>
+                          <p className="text-sm font-bold text-white">${studio.totalRevenue || 0}</p>
+                        </div>
+                        <div className="bg-slate-800/30 rounded p-2">
+                          <p className="text-xs text-gray-400">Reviews</p>
+                          <p className="text-sm font-bold text-white">{studio.reviewCount || 0}</p>
+                        </div>
+                        <div className="bg-slate-800/30 rounded p-2">
+                          <p className="text-xs text-gray-400">Utilization</p>
+                          <p className="text-sm font-bold text-white">{studio.utilizationRate || 0}%</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Card>

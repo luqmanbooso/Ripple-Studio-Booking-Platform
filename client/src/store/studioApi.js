@@ -25,6 +25,14 @@ export const studioApi = createApi({
       query: (id) => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Studio', id }],
     }),
+    createStudio: builder.mutation({
+      query: (data) => ({
+        url: '',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Studios'],
+    }),
     updateStudio: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `/${id}`,
@@ -41,12 +49,71 @@ export const studioApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }],
     }),
+
+    // Admin endpoints
+    getAllStudiosForAdmin: builder.query({
+      query: (params) => ({
+        url: '/admin/all',
+        params,
+      }),
+      providesTags: ['Studios'],
+    }),
+    getStudioStats: builder.query({
+      query: () => '/admin/stats',
+      providesTags: ['Studios'],
+    }),
+    getStudioAnalytics: builder.query({
+      query: (params) => ({
+        url: '/admin/analytics',
+        params,
+      }),
+      providesTags: ['Studios'],
+    }),
+    updateStudioStatus: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/admin/${id}/status`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Studios'],
+    }),
+    toggleStudioFeature: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/admin/${id}/feature`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }],
+    }),
+    deleteStudio: builder.mutation({
+      query: (id) => ({
+        url: `/admin/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Studios'],
+    }),
+    bulkStudioActions: builder.mutation({
+      query: (data) => ({
+        url: '/admin/bulk-actions',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Studios'],
+    }),
   }),
 })
 
 export const {
   useGetStudiosQuery,
   useGetStudioQuery,
+  useCreateStudioMutation,
   useUpdateStudioMutation,
   useAddAvailabilityMutation,
+  useGetAllStudiosForAdminQuery,
+  useGetStudioStatsQuery,
+  useGetStudioAnalyticsQuery,
+  useUpdateStudioStatusMutation,
+  useToggleStudioFeatureMutation,
+  useDeleteStudioMutation,
+  useBulkStudioActionsMutation,
 } = studioApi
