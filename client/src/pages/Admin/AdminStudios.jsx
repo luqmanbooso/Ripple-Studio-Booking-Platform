@@ -24,7 +24,8 @@ import {
   TrendingUp,
   ArrowDownRight,
   Calendar,
-  CheckSquare
+  CheckSquare,
+  MoreHorizontal
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -342,7 +343,9 @@ const AdminStudios = () => {
                 </div>
               </div>
             </Card>
-          </motion.div>        {/* Studios List */}
+          </motion.div>
+
+        {/* Studios List */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -357,77 +360,113 @@ const AdminStudios = () => {
         ) : !studiosData?.data?.studios?.length ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-gray-400 mb-2">No studios found</p>
-              <p className="text-gray-500 text-sm">Try adjusting your search or filter criteria</p>
+              <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400 text-lg font-medium">No studios found</p>
+              <p className="text-gray-500 text-sm">Studios will appear here when they register</p>
             </div>
           </div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-2"
+            transition={{ delay: 0.2 }}
           >
-            {studiosData?.data?.studios?.map((studio, index) => (
-              <motion.div
-                key={studio._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + index * 0.05 }}
-              >
-                <Card className="group bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer"
-                      onClick={() => handleStudioClick(studio)}>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        {/* Compact Studio Header */}
-                        <div className="flex items-center gap-3 mb-3">
+            <Card className="border border-slate-800/50 bg-slate-900/50 backdrop-blur-xl overflow-hidden">
+              {/* Table Header */}
+              <div className="bg-slate-800/50 px-6 py-4 border-b border-slate-700/50">
+                <div className="grid grid-cols-12 gap-6 text-sm font-medium text-gray-300">
+                  <div className="col-span-3">Studio & Owner</div>
+                  <div className="col-span-2">Location</div>
+                  <div className="col-span-2">Created</div>
+                  <div className="col-span-2">Rating</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-1">Actions</div>
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="divide-y divide-slate-700/50">
+                {studiosData?.data?.studios?.map((studio, index) => (
+                  <motion.div
+                    key={studio._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.05 }}
+                    className="px-6 py-4 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                    onClick={() => handleStudioClick(studio)}
+                  >
+                    <div className="grid grid-cols-12 gap-6 items-center">
+                      {/* Studio & Owner */}
+                      <div className="col-span-3">
+                        <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
                             <Building2 className="w-5 h-5 text-blue-400" />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-200 truncate">
-                                {studio.name}
-                              </h3>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-white">{studio.name}</h4>
                               {studio.features?.featured && (
-                                <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs font-medium">
+                                <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded text-xs font-medium">
                                   ✨
                                 </span>
                               )}
                             </div>
-                            <p className="text-gray-500 text-xs">Created {new Date(studio.createdAt).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-400">{studio.user?.name || 'Unknown Owner'}</p>
+                            <p className="text-xs text-gray-500">ID: {studio._id?.slice(-8) || 'N/A'}</p>
                           </div>
                         </div>
-                        
-                        {/* Compact Info Row */}
-                        <div className="flex items-center gap-4 text-sm text-gray-400">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4 text-blue-400" />
-                            <span className="truncate">{studio.location?.city || 'N/A'}</span>
+                      </div>
+
+                      {/* Location */}
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-sm text-white">{studio.location?.city || 'N/A'}</p>
+                            <p className="text-xs text-gray-400">{studio.location?.state || ''}</p>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4 text-green-400" />
-                            <span className="truncate">{studio.user?.name || 'Unknown'}</span>
+                        </div>
+                      </div>
+
+                      {/* Created Date */}
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-sm text-white">{new Date(studio.createdAt).toLocaleDateString()}</p>
+                            <p className="text-xs text-gray-400">Registered</p>
                           </div>
-                          {studio.averageRating && (
-                            <div className="flex items-center gap-1">
+                        </div>
+                      </div>
+
+                      {/* Rating */}
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                          {studio.averageRating ? (
+                            <>
                               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-yellow-400">{studio.averageRating.toFixed(1)}</span>
+                              <div>
+                                <p className="text-sm text-white">{studio.averageRating.toFixed(1)}</p>
+                                <p className="text-xs text-gray-400">Rating</p>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex items-center text-gray-500">
+                              <Star className="w-4 h-4 mr-2" />
+                              <span className="text-sm">No ratings</span>
                             </div>
                           )}
                         </div>
                       </div>
-                      
-                      {/* Status and Actions */}
-                      <div className="flex flex-col items-end gap-3 ml-4">
-                        {/* Status Badge */}
-                        <div className={`px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border ${
+
+                      {/* Status */}
+                      <div className="col-span-2">
+                        <div className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
                           studio.isApproved
-                            ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                             : studio.verificationStatus === 'rejected'
-                            ? 'bg-red-500/20 text-red-300 border-red-500/30'
-                            : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+                            ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
                         }`}>
                           {studio.isApproved 
                             ? '✓ Approved' 
@@ -435,67 +474,34 @@ const AdminStudios = () => {
                             ? '✗ Rejected' 
                             : '⏳ Pending'}
                         </div>
-                        
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
-                          {!studio.isApproved && studio.verificationStatus !== 'rejected' ? (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusUpdate(studio._id, 'approve');
-                                }}
-                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
-                              >
-                                <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusUpdate(studio._id, 'reject', 'Quality standards not met');
-                                }}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
-                              >
-                                <XCircle className="w-3.5 h-3.5 mr-1.5" />
-                                Reject
-                              </Button>
-                            </>
-                          ) : studio.isApproved ? (
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-1">
+                        <div className="flex items-center justify-end">
+                          <div className="relative">
                             <Button
+                              variant="ghost"
                               size="sm"
+                              className="text-gray-400 hover:text-white w-8 h-8 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleStatusUpdate(studio._id, 'revoke', 'Re-review required');
+                                // Toggle action menu or handle direct action
+                                if (!studio.isApproved && studio.verificationStatus !== 'rejected') {
+                                  handleStatusUpdate(studio._id, 'approve');
+                                }
                               }}
-                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
                             >
-                              <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
-                              Revoke
+                              <MoreHorizontal className="w-4 h-4" />
                             </Button>
-                          ) : null}
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteStudio(studio._id);
-                            }}
-                            className="border border-red-500/50 text-red-400 hover:bg-red-500/20 w-8 h-8 p-0 rounded-lg"
-                            disabled={isDeleting}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
+              </div>
+            </Card>
           </motion.div>
         )}
 
