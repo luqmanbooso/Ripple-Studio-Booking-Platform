@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Calendar,
@@ -30,25 +30,53 @@ import { useGetBookingsQuery } from '../../store/adminApi'
 const AdminBookings = () => {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
-  // API hook
-  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({ 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1) // Reset to first page when searching
+    }, 300)
+    
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter, sortBy, sortOrder])
+
+  // API hook  
+  const queryParams = {
     page,
-    search,
-    status: statusFilter,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(statusFilter && { status: statusFilter }),
     sort: `${sortOrder === 'desc' ? '-' : ''}${sortBy}`,
     limit: 15 
-  })
+  }
+  
+  const { data: bookingsData, isLoading, error } = useGetBookingsQuery(queryParams)
 
   // Debug log to see data structure
   console.log('Bookings Data:', bookingsData)
+  console.log('Search params:', queryParams)
+  console.log('Search state:', { search, debouncedSearch })
+  console.log('API Loading:', isLoading)
+  console.log('API Error:', error)
   console.log('Is Loading:', isLoading)
   console.log('Error:', error)
+  console.log('Individual booking amounts:', bookingsData?.data?.bookings?.map(b => ({ 
+    id: b._id?.slice(-8), 
+    totalAmount: b.totalAmount, 
+    price: b.price, 
+    amount: b.amount 
+  })))
 
   const statusOptions = [
     { value: '', label: 'All Status' },
@@ -226,8 +254,8 @@ const AdminBookings = () => {
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Revenue</p>
                 <p className="text-2xl font-bold text-yellow-400 mt-1">
                   ${bookingsData?.data?.bookings?.reduce((sum, booking) => {
-                    const amount = booking.totalAmount || booking.amount || 0;
-                    return sum + amount;
+                    const amount = booking.totalAmount || booking.price || booking.amount || 0;
+                    return sum + (typeof amount === 'number' ? amount : 0);
                   }, 0).toLocaleString() || '0'}
                 </p>
               </div>
@@ -254,7 +282,10 @@ const AdminBookings = () => {
                     type="text"
                     placeholder="Search by client name, studio, or booking ID..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      console.log('Search input changed:', e.target.value)
+                      setSearch(e.target.value)
+                    }}
                     className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
                   />
                 </div>
@@ -305,19 +336,19 @@ const AdminBookings = () => {
             <Card className="border border-slate-800/50 bg-slate-900/50 backdrop-blur-xl overflow-hidden">
               {/* Table Header */}
               <div className="bg-slate-800/50 px-6 py-4 border-b border-slate-700/50">
-                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-300">
+                <div className="grid grid-cols-12 gap-6 text-sm font-medium text-gray-300">
                   <div className="col-span-3">
                     <button 
-                      onClick={() => handleSort('client')}
+                      onClick={() => handleSort('client.name')}
                       className="flex items-center space-x-1 hover:text-white transition-colors"
                     >
                       <span>Client & Service</span>
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <button 
-                      onClick={() => handleSort('start')}
+                      onClick={() => handleSort('createdAt')}
                       className="flex items-center space-x-1 hover:text-white transition-colors"
                     >
                       <span>Date & Time</span>
@@ -325,16 +356,16 @@ const AdminBookings = () => {
                     </button>
                   </div>
                   <div className="col-span-2">Provider</div>
-                  <div className="col-span-1">
+                  <div className="col-span-2">
                     <button 
-                      onClick={() => handleSort('price')}
+                      onClick={() => handleSort('totalAmount')}
                       className="flex items-center space-x-1 hover:text-white transition-colors"
                     >
                       <span>Amount</span>
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-1">
                     <button 
                       onClick={() => handleSort('status')}
                       className="flex items-center space-x-1 hover:text-white transition-colors"
@@ -343,7 +374,7 @@ const AdminBookings = () => {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="col-span-2">Actions</div>
+                  <div className="col-span-1">Actions</div>
                 </div>
               </div>
 
@@ -357,7 +388,7 @@ const AdminBookings = () => {
                     transition={{ delay: 0.3 + index * 0.05 }}
                     className="px-6 py-4 hover:bg-slate-800/30 transition-colors"
                   >
-                    <div className="grid grid-cols-12 gap-4 items-center">
+                    <div className="grid grid-cols-12 gap-6 items-center">
                       {/* Client & Service */}
                       <div className="col-span-3">
                         <div>
@@ -368,13 +399,13 @@ const AdminBookings = () => {
                       </div>
 
                       {/* Date & Time */}
-                      <div className="col-span-2">
-                        <div className="flex items-center space-x-2">
+                      <div className="col-span-3">
+                        <div className="flex items-center space-x-3">
                           <Clock className="w-4 h-4 text-gray-400" />
                           <div>
-                            <p className="text-sm text-white">{formatDate(booking.start)}</p>
+                            <p className="text-sm text-white">{formatDate(booking.date || booking.start || booking.createdAt)}</p>
                             <p className="text-xs text-gray-400">
-                              {booking.service?.durationMins || 60}min session
+                              {booking.duration || booking.service?.durationMins || 60}min session
                             </p>
                           </div>
                         </div>
@@ -382,7 +413,7 @@ const AdminBookings = () => {
 
                       {/* Provider */}
                       <div className="col-span-2">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-3">
                           {booking.studio ? (
                             <>
                               <Building2 className="w-4 h-4 text-purple-400" />
@@ -406,26 +437,26 @@ const AdminBookings = () => {
                       </div>
 
                       {/* Amount */}
-                      <div className="col-span-1">
-                        <div className="flex items-center space-x-1">
-                          <DollarSign className="w-4 h-4 text-green-400" />
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-3">
+                          <DollarSign className="w-4 h-4 text-gray-400" />
                           <span className="text-sm font-medium text-white">
-                            ${booking.price || 0}
+                            ${booking.totalAmount || booking.price || booking.amount || 0}
                           </span>
                         </div>
                       </div>
 
                       {/* Status */}
-                      <div className="col-span-2">
-                        <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(booking.status)}`}>
+                      <div className="col-span-1">
+                        <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full border text-xs font-medium ${getStatusColor(booking.status)}`}>
                           {getStatusIcon(booking.status)}
                           <span className="capitalize">{booking.status.replace('_', ' ')}</span>
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-2">
-                        <div className="flex items-center space-x-2">
+                      <div className="col-span-1">
+                        <div className="flex items-center justify-center">
                           <Button
                             variant="outline"
                             size="sm"
