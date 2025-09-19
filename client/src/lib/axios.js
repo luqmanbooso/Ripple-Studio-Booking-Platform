@@ -77,7 +77,7 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await refreshInstance.post('/auth/refresh')
+  const response = await refreshInstance.get('/auth/refresh')
         const { accessToken } = response.data.data
 
         // Update token in store
