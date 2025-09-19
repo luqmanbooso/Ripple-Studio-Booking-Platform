@@ -216,7 +216,7 @@ const getAllStudiosForAdmin = catchAsync(async (req, res) => {
         total
       }
     }
-  });
+  }); // Updated for admin studio management
 });
 
 const getStudioStats = catchAsync(async (req, res) => {
