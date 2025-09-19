@@ -45,7 +45,13 @@ const Login = () => {
       
       dispatch(setCredentials({ user, token: accessToken }))
       toast.success(`Welcome back, ${user.name}!`)
-      navigate(from, { replace: true })
+      
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed')
     } finally {

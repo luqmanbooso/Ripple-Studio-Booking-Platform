@@ -36,8 +36,22 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
 export const adminApi = createApi({
   reducerPath: 'adminApi',
+
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api/admin',
+    prepareHeaders: (headers, { getState }) => {
+      const token = getState().auth.token
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`)
+      }
+      return headers
+    },
+  }),
+  tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews', 'AdminStudios', 'Revenue'],
+
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews'],
+
   endpoints: (builder) => ({
     getAnalytics: builder.query({
       query: (params) => ({
@@ -82,6 +96,53 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ['AdminReviews'],
     }),
+    // Studio Management
+    getStudios: builder.query({
+      query: (params) => ({
+        url: '/studios',
+        params,
+      }),
+      providesTags: ['AdminStudios'],
+    }),
+    createStudio: builder.mutation({
+      query: (studioData) => ({
+        url: '/studios',
+        method: 'POST',
+        body: studioData,
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    updateStudio: builder.mutation({
+      query: ({ id, ...studioData }) => ({
+        url: `/studios/${id}`,
+        method: 'PATCH',
+        body: studioData,
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    deleteStudio: builder.mutation({
+      query: (id) => ({
+        url: `/studios/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    toggleStudioStatus: builder.mutation({
+      query: ({ id, isActive }) => ({
+        url: `/studios/${id}/status`,
+        method: 'PATCH',
+        body: { isActive },
+      }),
+      invalidatesTags: ['AdminStudios'],
+    }),
+    // Revenue Analytics
+    getRevenueAnalytics: builder.query({
+      query: (params) => ({
+        url: '/revenue',
+        params,
+      }),
+      providesTags: ['Revenue'],
+    }),
   }),
 })
 
@@ -92,4 +153,12 @@ export const {
   useGetBookingsQuery,
   useGetReviewsQuery,
   useApproveReviewMutation,
+  // Studio Management
+  useGetStudiosQuery,
+  useCreateStudioMutation,
+  useUpdateStudioMutation,
+  useDeleteStudioMutation,
+  useToggleStudioStatusMutation,
+  // Revenue Analytics
+  useGetRevenueAnalyticsQuery,
 } = adminApi
