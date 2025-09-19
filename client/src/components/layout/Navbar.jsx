@@ -127,23 +127,17 @@ const Navbar = () => {
           {/* Logo Section */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  <Music className="w-5 h-5 text-white" />
-                </div>
-                <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl opacity-30 group-hover:opacity-50 blur-sm"
-                  animate={{ rotate: [0, 180, 360] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Ripple
-                </span>
-                <span className="text-xs text-gray-500 dark:text-slate-400 -mt-1">
-                  Studio
-                </span>
+              <img 
+                src="/logo.png" 
+                alt="Ripple Studio" 
+                className="w-20 h-20 object-contain transition-transform duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 hidden">
+                <Music className="w-10 h-10 text-white" />
               </div>
             </Link>
           </div>
@@ -520,3 +514,4 @@ const Navbar = () => {
 }
 
 export default Navbar
+
