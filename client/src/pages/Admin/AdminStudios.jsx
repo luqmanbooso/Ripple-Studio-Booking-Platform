@@ -613,30 +613,30 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-white/10">
-          <Building2 className="w-6 h-6 text-blue-400" />
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+          <Building2 className="w-5 h-5 text-blue-400" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-white">{studio.name}</h2>
-          <p className="text-gray-400 text-sm">Studio Information</p>
+          <h2 className="text-xl font-semibold text-white">{studio.name}</h2>
+          <p className="text-gray-400 text-xs">Studio Information</p>
         </div>
       </div>
     }>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Studio Header Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+          <div className="grid grid-cols-2 gap-4">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-blue-400" />
-                <label className="text-sm font-semibold text-blue-200">Studio Owner</label>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-400" />
+                <label className="text-xs font-medium text-blue-200">Studio Owner</label>
               </div>
-              <p className="text-lg font-medium text-white bg-white/10 backdrop-blur p-4 rounded-xl border border-white/10">
+              <p className="text-sm font-medium text-white bg-white/10 backdrop-blur p-3 rounded-lg border border-white/10">
                 {studio.user?.name || 'Unknown Owner'}
               </p>
             </motion.div>
@@ -645,13 +645,13 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-green-400" />
-                <label className="text-sm font-semibold text-green-200">Location</label>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-green-400" />
+                <label className="text-xs font-medium text-green-200">Location</label>
               </div>
-              <p className="text-lg font-medium text-white bg-white/10 backdrop-blur p-4 rounded-xl border border-white/10">
+              <p className="text-sm font-medium text-white bg-white/10 backdrop-blur p-3 rounded-lg border border-white/10">
                 {studio.location?.city || 'N/A'}, {studio.location?.country || 'N/A'}
               </p>
             </motion.div>
@@ -659,31 +659,31 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
         </div>
         
         {/* Status and Rating Section */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-3"
+            className="space-y-2"
           >
-            <div className="flex items-center gap-3">
-              <div className={`w-5 h-5 rounded-full ${
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
                 studio.isApproved ? 'bg-green-400' : studio.verificationStatus === 'rejected' ? 'bg-red-400' : 'bg-yellow-400'
               }`} />
-              <label className="text-sm font-semibold text-gray-200">Studio Status</label>
+              <label className="text-xs font-medium text-gray-200">Studio Status</label>
             </div>
-            <div className={`p-4 rounded-2xl text-center font-semibold backdrop-blur border shadow-lg ${
+            <div className={`p-3 rounded-xl text-center text-sm font-medium backdrop-blur border ${
               studio.isApproved
-                ? 'bg-green-500/20 text-green-300 border-green-500/30 shadow-green-500/20'
+                ? 'bg-green-500/20 text-green-300 border-green-500/30'
                 : studio.verificationStatus === 'rejected'
-                ? 'bg-red-500/20 text-red-300 border-red-500/30 shadow-red-500/20'
-                : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30 shadow-yellow-500/20'
+                ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
             }`}>
               {studio.isApproved 
-                ? '✓ Approved & Active' 
+                ? '✓ Approved' 
                 : studio.verificationStatus === 'rejected' 
                 ? '✗ Rejected' 
-                : '⏳ Pending Review'}
+                : '⏳ Pending'}
             </div>
           </motion.div>
           
@@ -692,17 +692,17 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center gap-3">
-                <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                <label className="text-sm font-semibold text-yellow-200">Studio Rating</label>
+              <div className="flex items-center gap-2">
+                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                <label className="text-xs font-medium text-yellow-200">Studio Rating</label>
               </div>
-              <div className="bg-white/10 backdrop-blur p-4 rounded-2xl border border-white/10 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-400 fill-current" />
-                  <span className="text-2xl font-bold text-white">{studio.averageRating.toFixed(1)}</span>
-                  <span className="text-gray-400">/ 5.0</span>
+              <div className="bg-white/10 backdrop-blur p-3 rounded-xl border border-white/10 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                  <span className="text-lg font-semibold text-white">{studio.averageRating.toFixed(1)}</span>
+                  <span className="text-gray-400 text-sm">/ 5</span>
                 </div>
               </div>
             </motion.div>
@@ -715,14 +715,14 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="space-y-3"
+            className="space-y-2"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-400 rounded" />
-              <label className="text-sm font-semibold text-purple-200">Description</label>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400 rounded" />
+              <label className="text-xs font-medium text-purple-200">Description</label>
             </div>
-            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10">
-              <p className="text-white leading-relaxed">{studio.description}</p>
+            <div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10">
+              <p className="text-white text-sm leading-relaxed">{studio.description}</p>
             </div>
           </motion.div>
         )}
@@ -732,18 +732,17 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="space-y-3"
+          className="space-y-2"
         >
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-indigo-400" />
-            <label className="text-sm font-semibold text-indigo-200">Created</label>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3 h-3 text-indigo-400" />
+            <label className="text-xs font-medium text-indigo-200">Created</label>
           </div>
-          <div className="bg-white/10 backdrop-blur p-4 rounded-2xl border border-white/10">
-            <p className="text-white font-medium">
+          <div className="bg-white/10 backdrop-blur p-3 rounded-xl border border-white/10">
+            <p className="text-white text-sm font-medium">
               {new Date(studio.createdAt).toLocaleDateString('en-US', {
-                weekday: 'long',
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric'
               })}
             </p>
@@ -756,15 +755,15 @@ const StudioDetailsModal = ({ isOpen, onClose, studio }) => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, type: "spring" }}
-            className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-6"
+            className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4"
           >
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">✨</span>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✨</span>
               </div>
-              <span className="text-purple-300 font-bold text-lg">Featured Studio</span>
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">🌟</span>
+              <span className="text-purple-300 font-semibold text-sm">Featured Studio</span>
+              <div className="w-6 h-6 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">🌟</span>
               </div>
             </div>
           </motion.div>
