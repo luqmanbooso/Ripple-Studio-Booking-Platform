@@ -48,7 +48,7 @@ import Profile from './pages/Settings/Profile'
 import Security from './pages/Settings/Security'
 
 // Store
-import { setCredentials } from './store/authSlice'
+import { setCredentials, initializeAuth } from './store/authSlice'
 import { setTheme, setReducedMotion } from './store/themeSlice'
 import { initializeSocket } from './lib/socket'
 
@@ -63,16 +63,8 @@ function App() {
     (location.pathname === '/dashboard' && user?.role === 'admin')
 
   useEffect(() => {
-    // Check for existing auth in localStorage
-    const savedAuth = localStorage.getItem('auth')
-    if (savedAuth) {
-      try {
-        const { user, token } = JSON.parse(savedAuth)
-        dispatch(setCredentials({ user, token }))
-      } catch (error) {
-        localStorage.removeItem('auth')
-      }
-    }
+    // Initialize authentication from localStorage
+    dispatch(initializeAuth())
 
     // Initialize theme
     const savedTheme = localStorage.getItem('theme')

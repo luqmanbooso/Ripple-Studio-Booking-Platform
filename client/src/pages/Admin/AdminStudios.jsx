@@ -53,14 +53,14 @@ const AdminStudios = () => {
   const [selectedStudio, setSelectedStudio] = useState(null)
 
   // Enhanced API hooks
-  const { data: studiosData, isLoading } = useGetAllStudiosForAdminQuery({ 
+  const { data: studiosData, isLoading, error: studiosError } = useGetAllStudiosForAdminQuery({ 
     page, 
     q: search, 
     status: statusFilter,
     type: typeFilter,
     limit: 10 
   })
-  const { data: statsData } = useGetStudioStatsQuery()
+  const { data: statsData, error: statsError } = useGetStudioStatsQuery()
   const [createStudio, { isLoading: isCreating }] = useCreateStudioMutation()
   const [updateStudio, { isLoading: isUpdating }] = useUpdateStudioMutation()
   const [updateStudioStatus] = useUpdateStudioStatusMutation()
@@ -148,10 +148,10 @@ const AdminStudios = () => {
   }
 
   const handleSelectAll = () => {
-    if (selectedStudios.length === studiosData?.studios?.length) {
+    if (selectedStudios.length === studiosData?.data?.studios?.length) {
       setSelectedStudios([])
     } else {
-      setSelectedStudios(studiosData?.studios?.map(studio => studio._id) || [])
+      setSelectedStudios(studiosData?.data?.studios?.map(studio => studio._id) || [])
     }
   }
 
@@ -223,13 +223,6 @@ const AdminStudios = () => {
                 </Button>
               </div>
             )}
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Studio
-            </Button>
           </div>
         </motion.div>
 
@@ -298,56 +291,44 @@ const AdminStudios = () => {
           transition={{ delay: 0.2 }}
           className="mb-6"
         >
-          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
+          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex-1 max-w-md">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Search studios by name, description, or owner..."
+                    placeholder="Search studios..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="input-field pl-10 w-full"
+                    className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-3 items-center">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="input-field min-w-[140px]"
+                  className="px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent min-w-[120px]"
                 >
                   <option value="all">All Status</option>
                   <option value="approved">Approved</option>
                   <option value="pending">Pending</option>
                   <option value="rejected">Rejected</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
                 </select>
 
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="input-field min-w-[140px]"
-                >
-                  <option value="all">All Types</option>
-                  <option value="professional">Professional</option>
-                  <option value="home">Home Studio</option>
-                  <option value="rehearsal">Rehearsal</option>
-                  <option value="podcast">Podcast</option>
-                </select>
-
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="border-slate-700 min-w-[120px]"
-                  onClick={handleSelectAll}
-                >
-                  <CheckSquare className="w-4 h-4 mr-2" />
-                  {selectedStudios.length === studiosData?.studios?.length ? 'Deselect All' : 'Select All'}
-                </Button>
+                {selectedStudios.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-slate-700/50 bg-slate-800/30 hover:bg-slate-700/50 text-gray-300"
+                    onClick={handleSelectAll}
+                  >
+                    <CheckSquare className="w-4 h-4 mr-2" />
+                    {selectedStudios.length === studiosData?.data?.studios?.length ? 'Deselect All' : 'Select All'}
+                  </Button>
+                )}
               </div>
             </div>
           </Card>
@@ -358,6 +339,20 @@ const AdminStudios = () => {
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : studiosError ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-red-400 mb-2">Error loading studios</p>
+              <p className="text-gray-400 text-sm">{studiosError?.data?.message || 'Something went wrong'}</p>
+            </div>
+          </div>
+        ) : !studiosData?.data?.studios?.length ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-gray-400 mb-2">No studios found</p>
+              <p className="text-gray-500 text-sm">Try adjusting your search or filter criteria</p>
+            </div>
+          </div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -365,7 +360,7 @@ const AdminStudios = () => {
             transition={{ delay: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
           >
-            {studiosData?.studios?.map((studio, index) => (
+            {studiosData?.data?.studios?.map((studio, index) => (
               <motion.div
                 key={studio._id}
                 initial={{ opacity: 0, y: 20 }}
