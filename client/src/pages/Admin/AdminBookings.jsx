@@ -14,7 +14,12 @@ import {
   DollarSign,
   Eye,
   Download,
-  ArrowUpDown
+  ArrowUpDown,
+  MapPin,
+  Phone,
+  Mail,
+  Zap,
+  TrendingUp
 } from 'lucide-react'
 
 import Button from '../../components/ui/Button'
@@ -32,13 +37,18 @@ const AdminBookings = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
   // API hook
-  const { data: bookingsData, isLoading } = useGetBookingsQuery({ 
+  const { data: bookingsData, isLoading, error } = useGetBookingsQuery({ 
     page,
     search,
     status: statusFilter,
     sort: `${sortOrder === 'desc' ? '-' : ''}${sortBy}`,
     limit: 15 
   })
+
+  // Debug log to see data structure
+  console.log('Bookings Data:', bookingsData)
+  console.log('Is Loading:', isLoading)
+  console.log('Error:', error)
 
   const statusOptions = [
     { value: '', label: 'All Status' },
@@ -82,10 +92,28 @@ const AdminBookings = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
-    if (isToday(date)) return `Today, ${format(date, 'HH:mm')}`
-    if (isTomorrow(date)) return `Tomorrow, ${format(date, 'HH:mm')}`
-    if (isYesterday(date)) return `Yesterday, ${format(date, 'HH:mm')}`
-    return format(date, 'MMM dd, yyyy HH:mm')
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const bookingDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const diffTime = bookingDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    const timeString = date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    })
+    
+    if (diffDays === 0) return `Today, ${timeString}`
+    if (diffDays === 1) return `Tomorrow, ${timeString}`
+    if (diffDays === -1) return `Yesterday, ${timeString}`
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   const handleSort = (field) => {
@@ -103,35 +131,114 @@ const AdminBookings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+      
+      <div className="relative z-10 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 space-y-4 lg:space-y-0"
+          className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                 Bookings Overview
               </h1>
-              <p className="text-gray-400 flex items-center space-x-2">
-                <Users className="w-4 h-4" />
+              <p className="text-gray-400 flex items-center space-x-2 text-sm">
+                <Zap className="w-4 h-4 text-blue-400" />
                 <span>Monitor all platform booking activity</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" className="border-slate-700">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl">
+              <span className="text-xs text-gray-400">Total Bookings</span>
+              <div className="font-semibold text-white">{bookingsData?.data?.pagination?.totalItems || 0}</div>
+            </div>
+            <Button variant="outline" className="border-slate-700 text-sm">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+        >
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Bookings</p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {bookingsData?.data?.stats?.total || bookingsData?.data?.pagination?.totalItems || 0}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <Calendar className="w-5 h-5 text-blue-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Confirmed</p>
+                <p className="text-2xl font-bold text-green-400 mt-1">
+                  {bookingsData?.data?.stats?.confirmed || 
+                   bookingsData?.data?.bookings?.filter(b => b.status === 'confirmed').length || 0}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Pending</p>
+                <p className="text-2xl font-bold text-yellow-400 mt-1">
+                  {bookingsData?.data?.stats?.pending || 
+                   bookingsData?.data?.bookings?.filter(b => ['pending', 'payment_pending'].includes(b.status)).length || 0}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <Clock className="w-5 h-5 text-yellow-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Completed</p>
+                <p className="text-2xl font-bold text-blue-400 mt-1">
+                  {bookingsData?.data?.stats?.completed || 
+                   bookingsData?.data?.bookings?.filter(b => b.status === 'completed').length || 0}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                <CheckCircle className="w-5 h-5 text-blue-400" />
+              </div>
+            </div>
+          </Card>
         </motion.div>
 
         {/* Filters */}
@@ -178,6 +285,22 @@ const AdminBookings = () => {
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <p className="text-red-400 text-lg font-medium">Error loading bookings</p>
+              <p className="text-gray-500 text-sm">{error?.data?.message || 'Something went wrong'}</p>
+            </div>
+          </div>
+        ) : !bookingsData?.data?.bookings?.length ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400 text-lg font-medium">No bookings found</p>
+              <p className="text-gray-500 text-sm">Bookings will appear here when users make reservations</p>
+            </div>
           </div>
         ) : (
           <motion.div
@@ -244,9 +367,9 @@ const AdminBookings = () => {
                       {/* Client & Service */}
                       <div className="col-span-3">
                         <div>
-                          <h4 className="font-medium text-white">{booking.client?.name}</h4>
-                          <p className="text-sm text-gray-400">{booking.service?.name}</p>
-                          <p className="text-xs text-gray-500">ID: {booking._id.slice(-8)}</p>
+                          <h4 className="font-medium text-white">{booking.client?.name || 'N/A'}</h4>
+                          <p className="text-sm text-gray-400">{booking.service?.name || 'Studio Booking'}</p>
+                          <p className="text-xs text-gray-500">ID: {booking._id?.slice(-8) || 'N/A'}</p>
                         </div>
                       </div>
 
@@ -257,7 +380,7 @@ const AdminBookings = () => {
                           <div>
                             <p className="text-sm text-white">{formatDate(booking.start)}</p>
                             <p className="text-xs text-gray-400">
-                              {booking.service?.durationMins}min session
+                              {booking.service?.durationMins || 60}min session
                             </p>
                           </div>
                         </div>
@@ -293,7 +416,7 @@ const AdminBookings = () => {
                         <div className="flex items-center space-x-1">
                           <DollarSign className="w-4 h-4 text-green-400" />
                           <span className="text-sm font-medium text-white">
-                            {booking.price?.toLocaleString()}
+                            ${booking.price || 0}
                           </span>
                         </div>
                       </div>
@@ -333,7 +456,7 @@ const AdminBookings = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex justify-center mt-8"
+            className="flex justify-center mt-4"
           >
             <div className="flex items-center space-x-2">
               <Button
@@ -374,128 +497,183 @@ const AdminBookings = () => {
             }}
           />
         )}
+        </div>
       </div>
     </div>
   )
 }
 
-// Booking Detail Modal Component
+// Enhanced Booking Detail Modal Component
 const BookingDetailModal = ({ booking, isOpen, onClose }) => {
+  if (!booking) return null
+
+  const formatDateTime = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="w-4 h-4 text-green-400" />
+      case 'cancelled': 
+      case 'refunded': return <XCircle className="w-4 h-4 text-red-400" />
+      case 'confirmed': return <CheckCircle className="w-4 h-4 text-blue-400" />
+      default: return <AlertCircle className="w-4 h-4 text-yellow-400" />
+    }
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'bg-green-500/20 text-green-300 border-green-500/30'
+      case 'cancelled':
+      case 'refunded': return 'bg-red-500/20 text-red-300 border-red-500/30'
+      case 'confirmed': return 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+      case 'payment_pending': return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+      default: return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+    }
+  }
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Booking Details" size="lg">
-      <div className="space-y-6">
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-white mb-3">Client Information</h4>
-            <div className="space-y-2">
-              <p className="text-sm"><span className="text-gray-400">Name:</span> <span className="text-white">{booking.client?.name}</span></p>
-              <p className="text-sm"><span className="text-gray-400">Email:</span> <span className="text-white">{booking.client?.email}</span></p>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-3">Booking Details</h4>
-            <div className="space-y-2">
-              <p className="text-sm"><span className="text-gray-400">ID:</span> <span className="text-white font-mono">{booking._id}</span></p>
-              <p className="text-sm"><span className="text-gray-400">Created:</span> <span className="text-white">{format(new Date(booking.createdAt), 'MMM dd, yyyy HH:mm')}</span></p>
-            </div>
+    <Modal isOpen={isOpen} onClose={onClose} title={
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+          <Calendar className="w-5 h-5 text-blue-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-white">Booking Details</h2>
+          <p className="text-gray-400 text-xs">ID: {booking._id.slice(-8)}</p>
+        </div>
+      </div>
+    } size="lg">
+      <div className="space-y-4">
+        {/* Status Badge */}
+        <div className="flex justify-center">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium ${getStatusColor(booking.status)}`}>
+            {getStatusIcon(booking.status)}
+            <span className="capitalize">{booking.status.replace('_', ' ')}</span>
           </div>
         </div>
 
-        {/* Service Info */}
-        <div>
-          <h4 className="font-semibold text-white mb-3">Service Information</h4>
-          <div className="bg-slate-800/30 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-400">Service</p>
-                <p className="text-white font-medium">{booking.service?.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Duration</p>
-                <p className="text-white font-medium">{booking.service?.durationMins} minutes</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Price</p>
-                <p className="text-white font-medium">${booking.price?.toLocaleString()}</p>
-              </div>
+        {/* Client Information */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-400" />
+            Client Information
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Name</p>
+              <p className="text-sm font-medium text-white">{booking.client?.name || 'N/A'}</p>
             </div>
-            {booking.service?.description && (
-              <div className="mt-3">
-                <p className="text-sm text-gray-400">Description</p>
-                <p className="text-white text-sm">{booking.service.description}</p>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Email</p>
+              <p className="text-sm font-medium text-white">{booking.client?.email || 'N/A'}</p>
+            </div>
+            {booking.client?.phone && (
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Phone</p>
+                <p className="text-sm font-medium text-white">{booking.client.phone}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Provider Info */}
-        <div>
-          <h4 className="font-semibold text-white mb-3">Provider Information</h4>
-          <div className="bg-slate-800/30 rounded-lg p-4">
+        {/* Booking Information */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-purple-400" />
+            Booking Information
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Start Date & Time</p>
+              <p className="text-sm font-medium text-white">{formatDateTime(booking.start)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">End Date & Time</p>
+              <p className="text-sm font-medium text-white">{formatDateTime(booking.end)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Duration</p>
+              <p className="text-sm font-medium text-white">{booking.service?.durationMins || 60} minutes</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Total Amount</p>
+              <p className="text-sm font-semibold text-green-400">${booking.price || 0}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Studio/Artist Information */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
             {booking.studio ? (
-              <div className="flex items-center space-x-3">
-                <Building2 className="w-8 h-8 text-purple-400" />
-                <div>
-                  <h5 className="font-medium text-white">{booking.studio.name}</h5>
-                  <p className="text-sm text-gray-400">{booking.studio.location?.city}, Sri Lanka</p>
-                </div>
-              </div>
-            ) : booking.artist ? (
-              <div className="flex items-center space-x-3">
-                <Mic className="w-8 h-8 text-yellow-400" />
-                <div>
-                  <h5 className="font-medium text-white">{booking.artist.user?.name}</h5>
-                  <p className="text-sm text-gray-400">Professional Artist</p>
-                </div>
-              </div>
+              <>
+                <Building2 className="w-4 h-4 text-green-400" />
+                Studio Information
+              </>
             ) : (
-              <p className="text-gray-500">Provider information not available</p>
+              <>
+                <Mic className="w-4 h-4 text-yellow-400" />
+                Artist Information
+              </>
+            )}
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Name</p>
+              <p className="text-sm font-medium text-white">
+                {booking.studio?.name || booking.artist?.user?.name || 'N/A'}
+              </p>
+            </div>
+            {booking.studio?.location && (
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Location</p>
+                <p className="text-sm font-medium text-white flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-gray-400" />
+                  {booking.studio.location.city}, {booking.studio.location.country}
+                </p>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Schedule */}
-        <div>
-          <h4 className="font-semibold text-white mb-3">Schedule</h4>
-          <div className="bg-slate-800/30 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Service Details */}
+        {booking.service && (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+            <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-indigo-400" />
+              Service Details
+            </h4>
+            <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-400">Start Time</p>
-                <p className="text-white font-medium">{format(new Date(booking.start), 'MMM dd, yyyy HH:mm')}</p>
+                <p className="text-xs text-gray-400 mb-1">Service Name</p>
+                <p className="text-sm font-medium text-white">{booking.service.name}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-400">End Time</p>
-                <p className="text-white font-medium">{format(new Date(booking.end), 'MMM dd, yyyy HH:mm')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Status */}
-        <div>
-          <h4 className="font-semibold text-white mb-3">Status & Payment</h4>
-          <div className="bg-slate-800/30 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-400">Booking Status</p>
-                <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium mt-1 ${
-                  booking.status === 'completed' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-                  booking.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
-                  booking.status === 'confirmed' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                  'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                }`}>
-                  <span className="capitalize">{booking.status.replace('_', ' ')}</span>
+              {booking.service.description && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Description</p>
+                  <p className="text-sm text-gray-300">{booking.service.description}</p>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Payment Status</p>
-                <p className="text-white font-medium mt-1">{booking.paymentStatus || 'N/A'}</p>
-              </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Additional Notes */}
+        {/* Additional Notes */}
+        {booking.notes && (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+            <h4 className="font-medium text-white mb-3">Additional Notes</h4>
+            <p className="text-sm text-gray-300">{booking.notes}</p>
+          </div>
+        )}
       </div>
     </Modal>
   )
