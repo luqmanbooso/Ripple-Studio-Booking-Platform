@@ -2,7 +2,7 @@
 
 A cutting-edge MERN stack platform connecting clients, artists, and recording studios for seamless musical collaboration and booking experiences.
 
-## ✨ Features
+## ✨ Features..
 
 ### 🎯 Core Functionality
 - **Multi-Role System**: Clients, Artists, Studios, Admins with tailored dashboards

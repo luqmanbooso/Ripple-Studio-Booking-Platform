@@ -1,17 +1,53 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { setCredentials, logout } from './authSlice'
+
+// Custom baseQuery that attempts refresh when a 401 is returned
+const baseQuery = fetchBaseQuery({
+  baseUrl: '/api/bookings',
+  credentials: 'include',
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState().auth.token
+    if (token) headers.set('authorization', `Bearer ${token}`)
+    return headers
+  }
+})
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+  let result = await baseQuery(args, api, extraOptions)
+
+  if (result.error && result.error.status === 401) {
+    // Try refresh
+    try {
+      const refreshRes = await fetch('/api/auth/refresh', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json()
+        const newToken = refreshData.data.accessToken
+
+  // Update store via api context to avoid circular imports
+  const user = api.getState().auth.user
+  api.dispatch(setCredentials({ user, token: newToken }))
+
+        // Retry original request with new token
+        result = await baseQuery(args, api, extraOptions)
+      } else {
+  // Refresh failed - logout
+  api.dispatch(logout())
+      }
+    } catch (err) {
+      api.dispatch(logout())
+    }
+  }
+
+  return result
+}
 
 export const bookingApi = createApi({
   reducerPath: 'bookingApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/bookings',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth.token
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`)
-      }
-      return headers
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Booking', 'Bookings'],
   endpoints: (builder) => ({
     createBooking: builder.mutation({

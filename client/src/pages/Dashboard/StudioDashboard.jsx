@@ -17,6 +17,7 @@ import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
 import { useGetMyBookingsQuery } from '../../store/bookingApi'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const StudioDashboard = () => {
   const { user } = useSelector(state => state.auth)
@@ -28,6 +29,7 @@ const StudioDashboard = () => {
   })
 
   const studio = user?.studio
+  const navigate = useNavigate()
 
   // Calculate stats
   const bookings = bookingsData?.data?.bookings || []
@@ -98,10 +100,10 @@ const StudioDashboard = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline" icon={<Settings className="w-5 h-5" />}>
+            <Button variant="outline" icon={<Settings className="w-5 h-5" />} onClick={() => navigate('/dashboard/settings/studio')}>
               Studio Settings
             </Button>
-            <Button icon={<Plus className="w-5 h-5" />}>
+            <Button icon={<Plus className="w-5 h-5" />} onClick={() => navigate('/dashboard/settings/studio')}>
               Add Service
             </Button>
           </div>

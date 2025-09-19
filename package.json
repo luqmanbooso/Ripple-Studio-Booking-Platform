@@ -28,9 +28,10 @@
   "author": "Music Booking Platform Team",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.45.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "vite": "^7.1.5"
   },
   "engines": {
     "node": ">=18.0.0",

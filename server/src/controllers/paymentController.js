@@ -69,7 +69,30 @@ const refundBooking = catchAsync(async (req, res) => {
   });
 });
 
+const demoCompleteSession = catchAsync(async (req, res) => {
+  const { sessionId, bookingId } = req.body;
+
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    throw new ApiError('Booking not found', 404);
+  }
+
+  // Only allow client who created booking to complete demo payment
+  if (booking.client.toString() !== req.user._id.toString()) {
+    throw new ApiError('Access denied', 403);
+  }
+
+  // Mark booking as paid
+  booking.paymentIntentId = `pi_demo_${Math.random().toString(36).substr(2, 9)}`;
+  booking.status = 'confirmed';
+  booking.paidAt = new Date();
+  await booking.save();
+
+  res.json({ status: 'success', data: { booking } });
+});
+
 module.exports = {
   createCheckoutSession,
-  refundBooking
+  refundBooking,
+  demoCompleteSession
 };
