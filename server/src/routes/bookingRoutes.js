@@ -7,8 +7,9 @@ const { bookingLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-// All booking routes require authentication
-router.use(authenticate);
+// Note: Most booking routes require authentication, but some public endpoints
+// (like fetching booked slots for a provider/date) should be accessible
+// without auth so unauthenticated users can see availability when booking.
 
 // Validation schemas
 const createBookingSchema = {
@@ -50,11 +51,23 @@ const getBookingsSchema = {
   })
 };
 
+const getBookedSlotsSchema = {
+  query: z.object({
+    providerType: z.enum(['artist', 'studio']),
+    providerId: objectId,
+    date: z.string().min(10).max(10) // YYYY-MM-DD
+  })
+};
+
 // Routes
-router.post('/', bookingLimiter, validate(createBookingSchema), bookingController.createBooking);
-router.get('/my', validate(getBookingsSchema), bookingController.getMyBookings);
-router.get('/:id', bookingController.getBooking);
-router.patch('/:id/cancel', validate(cancelBookingSchema), bookingController.cancelBooking);
-router.patch('/:id/complete', validate(completeBookingSchema), bookingController.completeBooking);
+// Public route to fetch booked slots for a given provider and date
+router.get('/by-provider', validate(getBookedSlotsSchema), bookingController.getBookedSlots);
+
+// Protected booking routes
+router.post('/', bookingLimiter, validate(createBookingSchema), authenticate, bookingController.createBooking);
+router.get('/my', validate(getBookingsSchema), authenticate, bookingController.getMyBookings);
+router.get('/:id', authenticate, bookingController.getBooking);
+router.patch('/:id/cancel', validate(cancelBookingSchema), authenticate, bookingController.cancelBooking);
+router.patch('/:id/complete', validate(completeBookingSchema), authenticate, bookingController.completeBooking);
 
 module.exports = router;

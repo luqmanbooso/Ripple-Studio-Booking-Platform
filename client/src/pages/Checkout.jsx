@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Spinner from '../components/ui/Spinner'
+import api from '../lib/axios'
 
 const Checkout = () => {
   const location = useLocation()
@@ -17,6 +18,11 @@ const Checkout = () => {
     if (!booking || !checkoutUrl) {
       toast.error('Invalid checkout session')
       navigate('/search')
+      return
+    }
+
+    // If this is a demo checkout URL (local dev), don't auto-redirect; show demo button
+    if (checkoutUrl.includes('/booking/demo-checkout')) {
       return
     }
 
@@ -57,16 +63,48 @@ const Checkout = () => {
             <span className="text-sm">Secured by Stripe</span>
           </div>
 
-          <Spinner className="mx-auto mb-6" />
+          {checkoutUrl.includes('/booking/demo-checkout') ? (
+            <div>
+              <p className="text-gray-400 mb-4">Demo checkout detected. Complete a simulated payment to continue.</p>
+              <Button
+                onClick={async () => {
+                  try {
+                    const sessionId = new URL(checkoutUrl).searchParams.get('session_id') || 'cs_demo'
+                    const res = await api.post('/payments/demo-complete', { sessionId, bookingId: booking._id })
+                    toast.success('Demo payment completed')
+                    navigate('/booking/success', { state: { booking: res.data.data.booking } })
+                  } catch (err) {
+                    toast.error('Demo payment failed')
+                  }
+                }}
+                className="w-full mb-3"
+              >
+                Complete Demo Payment
+              </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            icon={<ArrowLeft className="w-4 h-4" />}
-            className="w-full"
-          >
-            Go Back
-          </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate(-1)}
+                icon={<ArrowLeft className="w-4 h-4" />}
+                className="w-full"
+              >
+                Go Back
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Spinner className="mx-auto mb-6" />
+
+              <Button
+                variant="outline"
+                onClick={() => navigate(-1)}
+                icon={<ArrowLeft className="w-4 h-4" />}
+                className="w-full"
+              >
+                Go Back
+              </Button>
+            </>
+          )}
         </Card>
       </motion.div>
     </div>

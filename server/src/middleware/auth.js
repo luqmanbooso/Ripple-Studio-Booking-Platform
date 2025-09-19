@@ -19,7 +19,16 @@ const authenticate = catchAsync(async (req, res, next) => {
   }
 
   // Verify token
-  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  let decoded
+  try {
+    decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  } catch (err) {
+    // Distinguish expired token from other verification errors
+    if (err && err.name === 'TokenExpiredError') {
+      throw new ApiError('Access token expired', 401)
+    }
+    throw new ApiError('Invalid access token', 401)
+  }
 
   // Get user from token
   const user = await User.findById(decoded.id).select('-password');
