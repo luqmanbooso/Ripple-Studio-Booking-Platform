@@ -98,7 +98,7 @@ const About = () => {
       description: 'Processed over 100,000 bookings, launched mobile app, and secured Series A funding.'
     },
     {
-      year: '2024',
+      year: '2025',
       title: 'Present Day',
       description: 'Leading platform for music collaboration with AI-powered matching and global reach.'
     }

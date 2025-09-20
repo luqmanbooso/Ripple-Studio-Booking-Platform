@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 \const { PayHere } = require('@payhere-js-sdk/client');
 const crypto = require('crypto');
 const logger = require('../utils/logger');
@@ -10,6 +11,22 @@ const payhere = new PayHere({
   app_secret: process.env.PAYHERE_APP_SECRET,
   mode: process.env.PAYHERE_MODE || 'sandbox' // 'sandbox' or 'live'
 });
+=======
+const logger = require('../utils/logger');
+
+// Initialize stripe only if a valid key is provided
+let stripe = null
+if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.includes('here')) {
+  try {
+    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+  } catch (err) {
+    logger.warn('Stripe initialization failed, falling back to demo mode')
+    stripe = null
+  }
+} else {
+  logger.warn('No valid STRIPE_SECRET_KEY provided - running in demo payment mode')
+}
+>>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
 
 /**
  * Create PayHere checkout session
@@ -17,6 +34,25 @@ const payhere = new PayHere({
  * @returns {Promise<object>} - PayHere checkout data
  */
 const createCheckoutSession = async (booking) => {
+  // If Stripe is not initialized, return demo/mock session
+  if (!stripe) {
+    const demoSession = {
+      id: `cs_demo_${Math.random().toString(36).substr(2, 9)}`,
+      object: 'checkout.session',
+      url: `${process.env.CORS_ORIGIN}/booking/demo-checkout?session_id=cs_demo`,
+      payment_status: 'unpaid',
+      amount_total: Math.round(booking.price * 100),
+      currency: booking.currency?.toLowerCase() || 'usd'
+    }
+
+    // Save a demo session id on the booking for local testing
+    booking.stripeSessionId = demoSession.id
+    await booking.save()
+
+    logger.info(`Demo checkout session created: ${demoSession.id} for booking: ${booking._id}`)
+    return demoSession
+  }
+
   try {
     // Generate unique order ID
     const orderId = `booking_${booking._id}_${Date.now()}`;
@@ -145,7 +181,22 @@ const retrievePayment = async (paymentId) => {
  * @param {string} receivedHash - Received hash from PayHere
  * @returns {boolean} - Verification result
  */
+<<<<<<< HEAD
 const verifyWebhookSignature = (payload, receivedHash) => {
+=======
+const retrieveCheckoutSession = async (sessionId) => {
+  // If demo mode or stripe not initialized, return a demo session if the id matches demo pattern
+  if (!stripe && sessionId && sessionId.startsWith('cs_demo_')) {
+    return {
+      id: sessionId,
+      object: 'checkout.session',
+      payment_status: 'unpaid',
+      url: `${process.env.CORS_ORIGIN}/booking/demo-checkout?session_id=${sessionId}`,
+      amount_total: null
+    }
+  }
+
+>>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
   try {
     const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
     const hashedSecret = crypto.createHash('md5').update(merchant_secret).digest('hex').toUpperCase();

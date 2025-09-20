@@ -301,10 +301,47 @@ const completeBooking = catchAsync(async (req, res) => {
   });
 });
 
+// Get booked slots for a provider on a specific date
+const getBookedSlots = catchAsync(async (req, res) => {
+  const { providerType, providerId, date } = req.query;
+
+  if (!providerType || !['artist', 'studio'].includes(providerType)) {
+    throw new ApiError('providerType must be "artist" or "studio"', 400);
+  }
+  if (!providerId) {
+    throw new ApiError('providerId is required', 400);
+  }
+  if (!date) {
+    throw new ApiError('date is required (YYYY-MM-DD)', 400);
+  }
+
+  // Build date range for the given date (UTC)
+  const startOfDay = new Date(`${date}T00:00:00.000Z`);
+  const endOfDay = new Date(`${date}T23:59:59.999Z`);
+
+  const query = {
+    [providerType]: providerId,
+    start: { $gte: startOfDay, $lte: endOfDay }
+  };
+
+  const bookings = await Booking.find(query).select('start end status');
+
+  // Return start and end as ISO strings so client can compute overlaps correctly
+  const bookedSlots = bookings.map(b => ({
+    start: b.start.toISOString(),
+    end: b.end.toISOString(),
+    status: b.status
+  }));
+
+  res.json({ status: 'success', data: { bookedSlots } });
+});
+
 module.exports = {
   createBooking,
   getMyBookings,
   getBooking,
   cancelBooking,
   completeBooking
+  ,
+  getBookedSlots
 };

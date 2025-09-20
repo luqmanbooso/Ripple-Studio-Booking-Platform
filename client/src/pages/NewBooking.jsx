@@ -4,12 +4,22 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, DollarSign, User, Building } from "lucide-react";
 import toast from "react-hot-toast";
 
+<<<<<<< HEAD
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
 import { useGetArtistQuery } from "../store/artistApi";
 import { useGetStudioQuery } from "../store/studioApi";
 import { useCreateBookingMutation } from "../store/bookingApi";
+=======
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Spinner from '../components/ui/Spinner'
+import { useGetArtistQuery } from '../store/artistApi'
+import { useGetStudioQuery } from '../store/studioApi'
+import { useCreateBookingMutation } from '../store/bookingApi'
+import api from '../lib/axios'
+>>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
 
 const NewBooking = () => {
   const [searchParams] = useSearchParams();
@@ -152,6 +162,42 @@ const NewBooking = () => {
     "20:00",
   ];
 
+  const [bookedSlots, setBookedSlots] = useState([])
+
+  // Fetch booked slots when date or provider changes
+  useEffect(() => {
+    const fetchBooked = async () => {
+      if (!selectedDate || !provider) return
+
+  const pType = artistId ? 'artist' : 'studio'
+      const providerId = provider._id
+
+      try {
+        const res = await api.get('/bookings/by-provider', {
+          params: { providerType: pType, providerId, date: selectedDate }
+        })
+        const slots = res.data.data.bookedSlots || []
+        setBookedSlots(slots)
+        // If currently selected time is now overlapping a booked slot, clear it
+        if (selectedTime) {
+          const startDt = new Date(`${selectedDate}T${selectedTime}`)
+          const endDt = new Date(startDt.getTime() + duration * 60000)
+          const overlaps = slots.some(s => {
+            const bs = new Date(s.start)
+            const be = new Date(s.end)
+            return (startDt < be && endDt > bs)
+          })
+          if (overlaps) setSelectedTime('')
+        }
+      } catch (err) {
+        // ignore errors - no booked slots
+        setBookedSlots([])
+      }
+    }
+
+    fetchBooked()
+  }, [selectedDate, artistId, studioId, provider])
+
   return (
     <div className="min-h-screen bg-dark-950">
       <div className="container py-8">
@@ -183,8 +229,13 @@ const NewBooking = () => {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
+<<<<<<< HEAD
                     min={new Date().toISOString().split("T")[0]}
                     className="input-field w-full"
+=======
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700"
+>>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
                     required
                   />
                 </Card>
@@ -196,6 +247,7 @@ const NewBooking = () => {
                     Select Time
                   </h3>
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+<<<<<<< HEAD
                     {timeSlots.map((time) => (
                       <button
                         key={time}
@@ -210,6 +262,36 @@ const NewBooking = () => {
                         {time}
                       </button>
                     ))}
+=======
+                    {timeSlots.map((time) => {
+                      // compute if this time would overlap any booked slot
+                      const startDt = new Date(`${selectedDate}T${time}`)
+                      const endDt = new Date(startDt.getTime() + duration * 60000)
+                      const isBooked = bookedSlots.some(s => {
+                        const bs = new Date(s.start)
+                        const be = new Date(s.end)
+                        return (startDt < be && endDt > bs)
+                      })
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => !isBooked && setSelectedTime(time)}
+                          disabled={isBooked}
+                          className={`p-3 rounded-lg border transition-colors flex items-center justify-center ${
+                            isBooked
+                              ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed line-through'
+                              : selectedTime === time
+                                ? 'border-primary-500 bg-primary-500/20 text-primary-300'
+                                : 'border-gray-600 hover:border-gray-500 text-gray-300'
+                          }`}
+                        >
+                          <span className="mr-2">{time}</span>
+                          {isBooked && <span className="text-xs text-red-400">Booked</span>}
+                        </button>
+                      )
+                    })}
+>>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
                   </div>
                 </Card>
 
@@ -268,7 +350,7 @@ const NewBooking = () => {
                     <select
                       value={duration}
                       onChange={(e) => setDuration(parseInt(e.target.value))}
-                      className="input-field w-full"
+                      className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700"
                     >
                       <option value={60}>1 hour</option>
                       <option value={120}>2 hours</option>
@@ -289,7 +371,7 @@ const NewBooking = () => {
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any special requirements or notes for the session..."
                     rows={4}
-                    className="input-field w-full resize-none"
+                    className="w-full border px-3 py-2 rounded bg-white dark:bg-dark-800 text-gray-900 dark:text-gray-100 border-gray-700 dark:border-dark-700 resize-none"
                   />
                 </Card>
 

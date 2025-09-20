@@ -52,7 +52,7 @@ const Community = () => {
     {
       id: 1,
       title: "Virtual Music Production Masterclass",
-      date: "Dec 15, 2024",
+      date: "Dec 15, 2025",
       time: "7:00 PM EST",
       attendees: 234,
       type: "Online Workshop"
@@ -60,7 +60,7 @@ const Community = () => {
     {
       id: 2,
       title: "Local Musicians Meetup - NYC",
-      date: "Dec 20, 2024",
+      date: "Dec 20, 2025",
       time: "6:30 PM EST",
       attendees: 45,
       type: "In-Person",

@@ -8,12 +8,16 @@ export const initializeSocket = (token) => {
     socket.disconnect()
   }
 
-  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
-    auth: {
-      token
-    },
-    transports: ['websocket', 'polling']
-  })
+  const opts = {
+    transports: ['websocket', 'polling'],
+    withCredentials: true,
+  }
+
+  if (token) {
+    opts.auth = { token }
+  }
+
+  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', opts)
 
   socket.on('connect', () => {
     console.log('Socket connected:', socket.id)
@@ -25,6 +29,10 @@ export const initializeSocket = (token) => {
 
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error)
+    if (import.meta.env.DEV) {
+      console.debug('Socket handshake auth:', socket && socket.auth)
+      console.debug('Socket opts:', socket && socket.io && socket.io.opts)
+    }
   })
 
   // Handle notifications

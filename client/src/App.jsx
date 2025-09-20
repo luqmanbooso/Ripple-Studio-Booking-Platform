@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Layout components
 import Navbar from './components/layout/Navbar'
+import AdminNavbar from './components/layout/AdminNavbar'
 import Footer from './components/layout/Footer'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import ParticleBackground from './components/common/ParticleBackground'
@@ -35,32 +36,38 @@ import ClientDashboard from './pages/Dashboard/ClientDashboard'
 import ArtistDashboard from './pages/Dashboard/ArtistDashboard'
 import StudioDashboard from './pages/Dashboard/StudioDashboard'
 import AdminDashboard from './pages/Dashboard/AdminDashboard'
+import AdminUsers from './pages/Admin/AdminUsers'
+import AdminBookings from './pages/Admin/AdminBookings'
+import AdminStudios from './pages/Admin/AdminStudios'
+import AdminRevenue from './pages/Admin/AdminRevenue'
+import AdminReviews from './pages/Admin/AdminReviews'
+import AdminPayments from './pages/Admin/AdminPayments'
 
 // Settings pages
 import Profile from './pages/Settings/Profile'
 import Security from './pages/Settings/Security'
+import StudioSettings from './pages/Dashboard/StudioSettings'
 
 // Store
-import { setCredentials } from './store/authSlice'
+import { setCredentials, initializeAuth } from './store/authSlice'
 import { setTheme, setReducedMotion } from './store/themeSlice'
 import { initializeSocket } from './lib/socket'
+import api from './lib/axios'
+import { store } from './store/store'
 
 function App() {
   const dispatch = useDispatch()
+  const location = useLocation()
   const { user, token } = useSelector((state) => state.auth)
   const { mode, animations } = useSelector((state) => state.theme)
 
+  // Check if we're on admin routes or admin user on dashboard
+  const isAdminRoute = location.pathname.startsWith('/admin') || 
+    (location.pathname === '/dashboard' && user?.role === 'admin')
+
   useEffect(() => {
-    // Check for existing auth in localStorage
-    const savedAuth = localStorage.getItem('auth')
-    if (savedAuth) {
-      try {
-        const { user, token } = JSON.parse(savedAuth)
-        dispatch(setCredentials({ user, token }))
-      } catch (error) {
-        localStorage.removeItem('auth')
-      }
-    }
+    // Initialize authentication from localStorage
+    dispatch(initializeAuth())
 
     // Initialize theme
     const savedTheme = localStorage.getItem('theme')
@@ -110,22 +117,49 @@ function App() {
   }, [mode])
 
   useEffect(() => {
-    // Initialize socket connection when user is authenticated
-    if (user && token) {
-      initializeSocket(token)
+    // Initialize socket connection when user is authenticated.
+    // Ensure access token is valid (or refreshed) before connecting.
+    if (!user) return
+
+    let mounted = true
+
+    const init = async () => {
+      try {
+        // Trigger /me to allow axios to refresh tokens via its interceptor
+        await api.get('/auth/me')
+      } catch (err) {
+        // Ignore - refresh may have failed; connection will not be established
+        console.error('Socket auth check failed', err)
+      }
+
+      if (!mounted) return
+
+      const latestToken = store.getState().auth.token
+      if (latestToken) {
+        initializeSocket(latestToken)
+      }
     }
-  }, [user, token])
+
+    init()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
-      mode === 'dark' 
-        ? 'bg-dark-950 text-white' 
-        : 'bg-white text-gray-900'
+      isAdminRoute 
+        ? 'bg-slate-900 text-white' 
+        : mode === 'dark' 
+          ? 'bg-dark-950 text-white' 
+          : 'bg-white text-gray-900'
     }`}>
-      {/* Particle Background */}
-      <ParticleBackground />
+      {/* Particle Background - Only show on non-admin pages */}
+      {!isAdminRoute && <ParticleBackground />}
       
-      <Navbar />
+      {/* Conditional Navbar */}
+      {isAdminRoute ? <AdminNavbar /> : <Navbar />}
       
       <main className="flex-1 relative">
         <AnimatePresence mode="wait">
@@ -188,6 +222,12 @@ function App() {
                 <Security />
               </ProtectedRoute>
             } />
+
+            <Route path="/dashboard/settings/studio" element={
+              <ProtectedRoute allowedRoles={['studio']}>
+                <StudioSettings />
+              </ProtectedRoute>
+            } />
             
             {/* Admin routes */}
             <Route path="/admin/*" element={
@@ -202,7 +242,8 @@ function App() {
         </AnimatePresence>
       </main>
       
-      <Footer />
+      {/* Footer - Only show on non-admin pages */}
+      {!isAdminRoute && <Footer />}
     </div>
   )
 }
@@ -232,6 +273,12 @@ function AdminRoutes() {
   return (
     <Routes>
       <Route index element={<AdminDashboard />} />
+      <Route path="users" element={<AdminUsers />} />
+      <Route path="bookings" element={<AdminBookings />} />
+      <Route path="studios" element={<AdminStudios />} />
+      <Route path="revenue" element={<AdminRevenue />} />
+      <Route path="reviews" element={<AdminReviews />} />
+      <Route path="payments" element={<AdminPayments />} />
     </Routes>
   )
 }
