@@ -1,162 +1,211 @@
-const express = require('express');
-const Booking = require('../models/Booking');
-const paymentService = require('../services/paymentService');
-const bookingService = require('../services/bookingService');
-const logger = require('../utils/logger');
-const { emitToUser, emitToProvider } = require('../utils/sockets');
+const express = require("express");
+const Booking = require("../models/Booking");
+const paymentService = require("../services/paymentService");
+const bookingService = require("../services/bookingService");
+const logger = require("../utils/logger");
+const { emitToUser, emitToProvider } = require("../utils/sockets");
 
 const router = express.Router();
 
-// Stripe webhook endpoint
-router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
+// PayHere webhook endpoint
+router.post(
+  "/payhere",
+  express.urlencoded({ extended: true }),
+  async (req, res) => {
+    try {
+      const payload = req.body;
+      const receivedHash = payload.md5sig;
 
-  try {
-    event = paymentService.verifyWebhookSignature(req.body, sig);
-  } catch (err) {
-    logger.error('Webhook signature verification failed:', err);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+      // Verify webhook signature
+      if (!paymentService.verifyWebhookSignature(payload, receivedHash)) {
+        logger.error("PayHere webhook signature verification failed");
+        return res.status(400).send("Invalid signature");
+      }
 
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object);
-        break;
+      // Handle different payment statuses
+      switch (parseInt(payload.status_code)) {
+        case 2: // Success
+          await handlePaymentSuccess(payload);
+          break;
+        case 0: // Pending
+          await handlePaymentPending(payload);
+          break;
+        case -1: // Canceled
+          await handlePaymentCanceled(payload);
+          break;
+        case -2: // Failed
+          await handlePaymentFailed(payload);
+          break;
+        case -3: // Chargedback
+          await handlePaymentChargeback(payload);
+          break;
+        default:
+          logger.info(`Unhandled PayHere status code: ${payload.status_code}`);
+      }
 
-      case 'payment_intent.succeeded':
-        await handlePaymentSucceeded(event.data.object);
-        break;
-
-      case 'payment_intent.payment_failed':
-        await handlePaymentFailed(event.data.object);
-        break;
-
-      case 'charge.dispute.created':
-        await handleDisputeCreated(event.data.object);
-        break;
-
-      default:
-        logger.info(`Unhandled event type: ${event.type}`);
+      res.status(200).send("OK");
+    } catch (error) {
+      logger.error("PayHere webhook handler error:", error);
+      res.status(500).json({ error: "Webhook handler failed" });
     }
-
-    res.json({ received: true });
-  } catch (error) {
-    logger.error('Webhook handler error:', error);
-    res.status(500).json({ error: 'Webhook handler failed' });
   }
-});
+);
 
 /**
- * Handle successful checkout session completion
+ * Handle successful payment
  */
-const handleCheckoutCompleted = async (session) => {
+const handlePaymentSuccess = async (payload) => {
   try {
-    const bookingId = session.metadata.bookingId;
+    const bookingId = payload.custom_1; // We stored booking ID in custom_1
     if (!bookingId) {
-      logger.error('No booking ID in session metadata');
+      logger.error("No booking ID in PayHere webhook payload");
       return;
     }
 
-    const booking = await Booking.findById(bookingId)
-      .populate([
-        { path: 'client', select: 'name email' },
-        { path: 'artist', populate: { path: 'user', select: 'name email' } },
-        { path: 'studio', populate: { path: 'user', select: 'name email' } }
-      ]);
+    const booking = await Booking.findById(bookingId).populate([
+      { path: "client", select: "name email" },
+      { path: "artist", populate: { path: "user", select: "name email" } },
+      { path: "studio", populate: { path: "user", select: "name email" } },
+    ]);
 
     if (!booking) {
       logger.error(`Booking not found: ${bookingId}`);
       return;
     }
 
-    // Confirm the booking
-    await bookingService.confirmBooking(booking, session.payment_intent);
+    // Store PayHere payment details
+    booking.payherePaymentId = payload.payment_id;
+    booking.paymentMethod = payload.method;
+    booking.paymentCardType = payload.card_type;
 
-    logger.info(`Booking confirmed via webhook: ${bookingId}`);
+    // Confirm the booking
+    await bookingService.confirmBooking(booking, payload.payment_id);
+
+    logger.info(`Booking confirmed via PayHere webhook: ${bookingId}`);
   } catch (error) {
-    logger.error('Error handling checkout completion:', error);
+    logger.error("Error handling PayHere payment success:", error);
   }
 };
 
 /**
- * Handle successful payment
+ * Handle pending payment
  */
-const handlePaymentSucceeded = async (paymentIntent) => {
+const handlePaymentPending = async (payload) => {
   try {
-    // Find booking by payment intent ID
-    const booking = await Booking.findOne({ 
-      paymentIntentId: paymentIntent.id 
-    });
+    const bookingId = payload.custom_1;
+    if (!bookingId) return;
 
-    if (booking && booking.status !== 'confirmed') {
-      await bookingService.confirmBooking(booking, paymentIntent.id);
-      logger.info(`Payment succeeded for booking: ${booking._id}`);
+    const booking = await Booking.findById(bookingId);
+    if (booking) {
+      booking.status = "payment_pending";
+      booking.payherePaymentId = payload.payment_id;
+      await booking.save();
+
+      logger.info(`Payment pending for booking: ${bookingId}`);
     }
   } catch (error) {
-    logger.error('Error handling payment success:', error);
+    logger.error("Error handling payment pending:", error);
+  }
+};
+
+/**
+ * Handle canceled payment
+ */
+const handlePaymentCanceled = async (payload) => {
+  try {
+    const bookingId = payload.custom_1;
+    if (!bookingId) return;
+
+    const booking = await Booking.findById(bookingId).populate("client");
+    if (booking) {
+      booking.status = "cancelled";
+      booking.cancellationReason = "Payment canceled by user";
+      await booking.save();
+
+      // Notify client of cancellation
+      await bookingService.createNotification(
+        booking.client._id,
+        "payment_cancelled",
+        {
+          title: "Payment Cancelled",
+          message: "Your payment was cancelled. You can try booking again.",
+          bookingId: booking._id,
+        }
+      );
+
+      logger.info(`Payment cancelled for booking: ${bookingId}`);
+    }
+  } catch (error) {
+    logger.error("Error handling payment cancellation:", error);
   }
 };
 
 /**
  * Handle failed payment
  */
-const handlePaymentFailed = async (paymentIntent) => {
+const handlePaymentFailed = async (payload) => {
   try {
-    const booking = await Booking.findOne({ 
-      paymentIntentId: paymentIntent.id 
-    }).populate('client');
+    const bookingId = payload.custom_1;
+    if (!bookingId) return;
 
+    const booking = await Booking.findById(bookingId).populate("client");
     if (booking) {
-      booking.status = 'payment_failed';
+      booking.status = "payment_failed";
       await booking.save();
 
       // Notify client of payment failure
-      await bookingService.createNotification(booking.client._id, 'payment_failed', {
-        title: 'Payment Failed',
-        message: 'Your payment could not be processed. Please try again.',
-        bookingId: booking._id
-      });
+      await bookingService.createNotification(
+        booking.client._id,
+        "payment_failed",
+        {
+          title: "Payment Failed",
+          message: "Your payment could not be processed. Please try again.",
+          bookingId: booking._id,
+        }
+      );
 
-      logger.info(`Payment failed for booking: ${booking._id}`);
+      logger.info(`Payment failed for booking: ${bookingId}`);
     }
   } catch (error) {
-    logger.error('Error handling payment failure:', error);
+    logger.error("Error handling payment failure:", error);
   }
 };
 
 /**
- * Handle dispute creation
+ * Handle payment chargeback
  */
-const handleDisputeCreated = async (charge) => {
+const handlePaymentChargeback = async (payload) => {
   try {
-    // Find booking by charge ID or payment intent
-    const booking = await Booking.findOne({
-      $or: [
-        { stripeChargeId: charge.id },
-        { paymentIntentId: charge.payment_intent }
-      ]
-    }).populate([
-      { path: 'client' },
-      { path: 'artist', populate: { path: 'user' } },
-      { path: 'studio', populate: { path: 'user' } }
+    const bookingId = payload.custom_1;
+    if (!bookingId) return;
+
+    const booking = await Booking.findById(bookingId).populate([
+      { path: "client" },
+      { path: "artist", populate: { path: "user" } },
+      { path: "studio", populate: { path: "user" } },
     ]);
 
     if (booking) {
-      // Notify relevant parties about the dispute
-      const providerUser = booking.artist ? booking.artist.user : booking.studio.user;
-      
-      await bookingService.createNotification(providerUser._id, 'dispute_created', {
-        title: 'Payment Dispute',
-        message: 'A payment dispute has been created for one of your bookings.',
-        bookingId: booking._id
-      });
+      // Notify relevant parties about the chargeback
+      const providerUser = booking.artist
+        ? booking.artist.user
+        : booking.studio.user;
 
-      logger.info(`Dispute created for booking: ${booking._id}`);
+      await bookingService.createNotification(
+        providerUser._id,
+        "chargeback_created",
+        {
+          title: "Payment Chargeback",
+          message:
+            "A payment chargeback has been initiated for one of your bookings.",
+          bookingId: booking._id,
+        }
+      );
+
+      logger.info(`Chargeback initiated for booking: ${bookingId}`);
     }
   } catch (error) {
-    logger.error('Error handling dispute creation:', error);
+    logger.error("Error handling chargeback:", error);
   }
 };
 

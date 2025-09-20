@@ -1,134 +1,156 @@
-import React, { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Calendar, Clock, DollarSign, User, Building } from 'lucide-react'
-import toast from 'react-hot-toast'
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Calendar, Clock, DollarSign, User, Building } from "lucide-react";
+import toast from "react-hot-toast";
 
-import Button from '../components/ui/Button'
-import Card from '../components/ui/Card'
-import Spinner from '../components/ui/Spinner'
-import { useGetArtistQuery } from '../store/artistApi'
-import { useGetStudioQuery } from '../store/studioApi'
-import { useCreateBookingMutation } from '../store/bookingApi'
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Spinner from "../components/ui/Spinner";
+import { useGetArtistQuery } from "../store/artistApi";
+import { useGetStudioQuery } from "../store/studioApi";
+import { useCreateBookingMutation } from "../store/bookingApi";
 
 const NewBooking = () => {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('')
-  const [selectedService, setSelectedService] = useState(null)
-  const [duration, setDuration] = useState(180) // 3 hours default
-  const [notes, setNotes] = useState('')
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedService, setSelectedService] = useState(null);
+  const [duration, setDuration] = useState(180); // 3 hours default
+  const [notes, setNotes] = useState("");
 
-  const artistId = searchParams.get('artistId')
-  const studioId = searchParams.get('studioId')
-  const serviceParam = searchParams.get('service')
+  const artistId = searchParams.get("artistId");
+  const studioId = searchParams.get("studioId");
+  const serviceParam = searchParams.get("service");
 
-  const { data: artistData, isLoading: artistLoading } = useGetArtistQuery(artistId, {
-    skip: !artistId
-  })
-  const { data: studioData, isLoading: studioLoading } = useGetStudioQuery(studioId, {
-    skip: !studioId
-  })
+  const { data: artistData, isLoading: artistLoading } = useGetArtistQuery(
+    artistId,
+    {
+      skip: !artistId,
+    }
+  );
+  const { data: studioData, isLoading: studioLoading } = useGetStudioQuery(
+    studioId,
+    {
+      skip: !studioId,
+    }
+  );
 
-  const [createBooking, { isLoading: bookingLoading }] = useCreateBookingMutation()
+  const [createBooking, { isLoading: bookingLoading }] =
+    useCreateBookingMutation();
 
-  const isLoading = artistLoading || studioLoading
-  const provider = artistData?.data?.artist || studioData?.data?.studio
-  const providerType = artistId ? 'artist' : 'studio'
+  const isLoading = artistLoading || studioLoading;
+  const provider = artistData?.data?.artist || studioData?.data?.studio;
+  const providerType = artistId ? "artist" : "studio";
 
   useEffect(() => {
     if (studioData?.data?.studio?.services && serviceParam) {
-      const service = studioData.data.studio.services.find(s => s.name === serviceParam)
+      const service = studioData.data.studio.services.find(
+        (s) => s.name === serviceParam
+      );
       if (service) {
-        setSelectedService(service)
-        setDuration(service.durationMins)
+        setSelectedService(service);
+        setDuration(service.durationMins);
       }
     }
-  }, [studioData, serviceParam])
+  }, [studioData, serviceParam]);
 
   const calculatePrice = () => {
-    if (providerType === 'artist' && provider?.hourlyRate) {
-      return (provider.hourlyRate * (duration / 60)).toFixed(2)
+    if (providerType === "artist" && provider?.hourlyRate) {
+      return (provider.hourlyRate * (duration / 60)).toFixed(2);
     }
-    if (providerType === 'studio' && selectedService) {
-      return selectedService.price
+    if (providerType === "studio" && selectedService) {
+      return selectedService.price;
     }
-    return 0
-  }
+    return 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!selectedDate || !selectedTime) {
-      toast.error('Please select a date and time')
-      return
+      toast.error("Please select a date and time");
+      return;
     }
 
-    if (providerType === 'studio' && !selectedService) {
-      toast.error('Please select a service')
-      return
+    if (providerType === "studio" && !selectedService) {
+      toast.error("Please select a service");
+      return;
     }
 
-    const startDateTime = new Date(`${selectedDate}T${selectedTime}`)
-    const endDateTime = new Date(startDateTime.getTime() + duration * 60000)
+    const startDateTime = new Date(`${selectedDate}T${selectedTime}`);
+    const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
     const bookingData = {
-      [providerType === 'artist' ? 'artistId' : 'studioId']: provider._id,
+      [providerType === "artist" ? "artistId" : "studioId"]: provider._id,
       service: {
-        name: selectedService?.name || 'Session',
+        name: selectedService?.name || "Session",
         price: parseFloat(calculatePrice()),
         durationMins: duration,
-        description: selectedService?.description || ''
+        description: selectedService?.description || "",
       },
       start: startDateTime.toISOString(),
       end: endDateTime.toISOString(),
-      notes
-    }
+      notes,
+    };
 
     try {
-      const result = await createBooking(bookingData).unwrap()
-      toast.success('Booking created! Redirecting to payment...')
-      
+      const result = await createBooking(bookingData).unwrap();
+      toast.success("Booking created! Redirecting to payment...");
+
       // Redirect to checkout with the booking data
-      navigate('/booking/checkout', { 
-        state: { 
+      navigate("/booking/checkout", {
+        state: {
           booking: result.data.booking,
-          checkoutUrl: result.data.checkoutUrl 
-        }
-      })
+          checkoutUrl: result.data.checkoutUrl,
+          checkoutData: result.data.checkoutData, // PayHere checkout data
+        },
+      });
     } catch (error) {
-      toast.error(error.data?.message || 'Failed to create booking')
+      toast.error(error.data?.message || "Failed to create booking");
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="lg" />
       </div>
-    )
+    );
   }
 
   if (!provider) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">Provider Not Found</h2>
-          <p className="text-gray-400 mb-4">The artist or studio you're trying to book doesn't exist.</p>
-          <Button onClick={() => navigate('/search')}>
-            Browse Providers
-          </Button>
+          <h2 className="text-2xl font-bold text-gray-100 mb-2">
+            Provider Not Found
+          </h2>
+          <p className="text-gray-400 mb-4">
+            The artist or studio you're trying to book doesn't exist.
+          </p>
+          <Button onClick={() => navigate("/search")}>Browse Providers</Button>
         </div>
       </div>
-    )
+    );
   }
 
-  const providerName = provider.user?.name || provider.name
+  const providerName = provider.user?.name || provider.name;
   const timeSlots = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
-    '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
-  ]
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+    "20:00",
+  ];
 
   return (
     <div className="min-h-screen bg-dark-950">
@@ -161,7 +183,7 @@ const NewBooking = () => {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={new Date().toISOString().split("T")[0]}
                     className="input-field w-full"
                     required
                   />
@@ -181,8 +203,8 @@ const NewBooking = () => {
                         onClick={() => setSelectedTime(time)}
                         className={`p-3 rounded-lg border transition-colors ${
                           selectedTime === time
-                            ? 'border-primary-500 bg-primary-500/20 text-primary-300'
-                            : 'border-gray-600 hover:border-gray-500 text-gray-300'
+                            ? "border-primary-500 bg-primary-500/20 text-primary-300"
+                            : "border-gray-600 hover:border-gray-500 text-gray-300"
                         }`}
                       >
                         {time}
@@ -192,7 +214,7 @@ const NewBooking = () => {
                 </Card>
 
                 {/* Service Selection (Studios only) */}
-                {providerType === 'studio' && provider.services && (
+                {providerType === "studio" && provider.services && (
                   <Card>
                     <h3 className="text-lg font-semibold text-gray-100 mb-4">
                       Select Service
@@ -202,18 +224,20 @@ const NewBooking = () => {
                         <div
                           key={service.name}
                           onClick={() => {
-                            setSelectedService(service)
-                            setDuration(service.durationMins)
+                            setSelectedService(service);
+                            setDuration(service.durationMins);
                           }}
                           className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                             selectedService?.name === service.name
-                              ? 'border-accent-500 bg-accent-500/20'
-                              : 'border-gray-600 hover:border-gray-500'
+                              ? "border-accent-500 bg-accent-500/20"
+                              : "border-gray-600 hover:border-gray-500"
                           }`}
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="font-medium text-gray-100">{service.name}</h4>
+                              <h4 className="font-medium text-gray-100">
+                                {service.name}
+                              </h4>
                               {service.description && (
                                 <p className="text-sm text-gray-400 mt-1">
                                   {service.description}
@@ -236,7 +260,7 @@ const NewBooking = () => {
                 )}
 
                 {/* Duration (Artists only) */}
-                {providerType === 'artist' && (
+                {providerType === "artist" && (
                   <Card>
                     <h3 className="text-lg font-semibold text-gray-100 mb-4">
                       Duration
@@ -290,15 +314,19 @@ const NewBooking = () => {
                 {/* Provider Info */}
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
-                    {providerType === 'artist' ? (
+                    {providerType === "artist" ? (
                       <User className="w-6 h-6 text-white" />
                     ) : (
                       <Building className="w-6 h-6 text-white" />
                     )}
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-100">{providerName}</h4>
-                    <p className="text-sm text-gray-400 capitalize">{providerType}</p>
+                    <h4 className="font-medium text-gray-100">
+                      {providerName}
+                    </h4>
+                    <p className="text-sm text-gray-400 capitalize">
+                      {providerType}
+                    </p>
                   </div>
                 </div>
 
@@ -312,14 +340,14 @@ const NewBooking = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   {selectedTime && (
                     <div className="flex justify-between">
                       <span className="text-gray-400">Time</span>
                       <span className="text-gray-100">{selectedTime}</span>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between">
                     <span className="text-gray-400">Duration</span>
                     <span className="text-gray-100">
@@ -330,7 +358,9 @@ const NewBooking = () => {
                   {selectedService && (
                     <div className="flex justify-between">
                       <span className="text-gray-400">Service</span>
-                      <span className="text-gray-100">{selectedService.name}</span>
+                      <span className="text-gray-100">
+                        {selectedService.name}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -338,12 +368,14 @@ const NewBooking = () => {
                 {/* Price */}
                 <div className="border-t border-gray-700 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-100">Total</span>
+                    <span className="text-lg font-semibold text-gray-100">
+                      Total
+                    </span>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary-400">
                         ${calculatePrice()}
                       </div>
-                      {providerType === 'artist' && (
+                      {providerType === "artist" && (
                         <div className="text-sm text-gray-400">
                           ${provider.hourlyRate}/hr
                         </div>
@@ -362,8 +394,8 @@ const NewBooking = () => {
                             key={i}
                             className={`w-4 h-4 ${
                               i < Math.floor(provider.ratingAvg)
-                                ? 'text-yellow-400'
-                                : 'text-gray-600'
+                                ? "text-yellow-400"
+                                : "text-gray-600"
                             }`}
                           >
                             ⭐
@@ -371,7 +403,8 @@ const NewBooking = () => {
                         ))}
                       </div>
                       <span className="text-sm text-gray-400">
-                        {provider.ratingAvg.toFixed(1)} ({provider.ratingCount} reviews)
+                        {provider.ratingAvg.toFixed(1)} ({provider.ratingCount}{" "}
+                        reviews)
                       </span>
                     </div>
                   </div>
@@ -382,7 +415,7 @@ const NewBooking = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default NewBooking
+export default NewBooking;

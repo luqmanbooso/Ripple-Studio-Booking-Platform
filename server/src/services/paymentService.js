@@ -1,123 +1,175 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+\const { PayHere } = require('@payhere-js-sdk/client');
+const crypto = require('crypto');
 const logger = require('../utils/logger');
 
+// Initialize PayHere with configuration
+const payhere = new PayHere({
+  merchant_id: process.env.PAYHERE_MERCHANT_ID,
+  merchant_secret: process.env.PAYHERE_MERCHANT_SECRET,
+  app_id: process.env.PAYHERE_APP_ID,
+  app_secret: process.env.PAYHERE_APP_SECRET,
+  mode: process.env.PAYHERE_MODE || 'sandbox' // 'sandbox' or 'live'
+});
+
 /**
- * Create Stripe checkout session
+ * Create PayHere checkout session
  * @param {object} booking - Booking object
- * @returns {Promise<object>} - Stripe session
+ * @returns {Promise<object>} - PayHere checkout data
  */
 const createCheckoutSession = async (booking) => {
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: booking.currency.toLowerCase(),
-            product_data: {
-              name: booking.service.name,
-              description: `Booking with ${booking.artist ? 'Artist' : 'Studio'}`,
-            },
-            unit_amount: Math.round(booking.price * 100), // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.CORS_ORIGIN}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+    // Generate unique order ID
+    const orderId = `booking_${booking._id}_${Date.now()}`;
+    
+    const checkoutData = {
+      merchant_id: process.env.PAYHERE_MERCHANT_ID,
+      return_url: `${process.env.CORS_ORIGIN}/booking/success`,
       cancel_url: `${process.env.CORS_ORIGIN}/booking/cancelled`,
-      metadata: {
-        bookingId: booking._id.toString(),
-      },
-    });
+      notify_url: `${process.env.SERVER_URL}/api/webhooks/payhere`,
+      order_id: orderId,
+      items: booking.service.name,
+      currency: booking.currency,
+      amount: booking.price.toFixed(2),
+      first_name: booking.client.name.split(' ')[0] || 'Customer',
+      last_name: booking.client.name.split(' ').slice(1).join(' ') || '',
+      email: booking.client.email,
+      phone: booking.client.phone || '',
+      address: '',
+      city: '',
+      country: 'LK', // Sri Lanka
+      delivery_address: '',
+      delivery_city: '',
+      delivery_country: 'LK',
+      custom_1: booking._id.toString(), // Store booking ID for webhook processing
+      custom_2: 'ripple_booking'
+    };
 
-    // Store session ID in booking
-    booking.stripeSessionId = session.id;
+    // Generate hash for security
+    const hash = generatePayHereHash(checkoutData);
+    checkoutData.hash = hash;
+
+    // Store order ID in booking
+    booking.payhereOrderId = orderId;
     await booking.save();
 
-    logger.info(`Checkout session created: ${session.id} for booking: ${booking._id}`);
-    return session;
+    // PayHere doesn't create a session like Stripe, instead returns checkout data
+    // The frontend will use this data to redirect to PayHere checkout
+    const checkoutUrl = process.env.PAYHERE_MODE === 'live' 
+      ? 'https://www.payhere.lk/pay/checkout'
+      : 'https://sandbox.payhere.lk/pay/checkout';
+
+    logger.info(`PayHere checkout data created for booking: ${booking._id}`);
+    return {
+      id: orderId,
+      url: checkoutUrl,
+      checkoutData
+    };
   } catch (error) {
-    logger.error('Error creating checkout session:', error);
+    logger.error('Error creating PayHere checkout:', error);
     throw error;
   }
 };
 
 /**
- * Refund a payment
- * @param {string} paymentIntentId - Stripe payment intent ID
+ * Generate PayHere hash for security
+ * @param {object} data - Payment data
+ * @returns {string} - Generated hash
+ */
+const generatePayHereHash = (data) => {
+  const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
+  const hashedSecret = crypto.createHash('md5').update(merchant_secret).digest('hex').toUpperCase();
+  
+  const hashString = data.merchant_id + 
+    data.order_id + 
+    data.amount + 
+    data.currency + 
+    hashedSecret;
+  
+  return crypto.createHash('md5').update(hashString).digest('hex').toUpperCase();
+};
+
+/**
+ * Refund a payment (PayHere doesn't have direct API refund, this is for manual tracking)
+ * @param {string} paymentId - PayHere payment ID
  * @param {number} amount - Amount to refund
  * @returns {Promise<object>} - Refund object
  */
-const refundPayment = async (paymentIntentId, amount) => {
+const refundPayment = async (paymentId, amount) => {
   try {
-    const refund = await stripe.refunds.create({
-      payment_intent: paymentIntentId,
-      amount: Math.round(amount * 100), // Convert to cents
-    });
+    // Note: PayHere doesn't have automatic refund API like Stripe
+    // This is mainly for tracking purposes
+    // Actual refunds need to be processed through PayHere merchant portal
+    
+    const refundData = {
+      id: `refund_${Date.now()}`,
+      payment_id: paymentId,
+      amount: amount,
+      currency: 'LKR',
+      status: 'pending_manual_processing',
+      created: new Date(),
+      reason: 'booking_cancellation'
+    };
 
-    logger.info(`Refund created: ${refund.id} for amount: $${amount}`);
-    return refund;
+    logger.info(`Refund request created: ${refundData.id} for amount: ${amount} (requires manual processing in PayHere portal)`);
+    return refundData;
   } catch (error) {
-    logger.error('Error creating refund:', error);
+    logger.error('Error creating refund request:', error);
     throw error;
   }
 };
 
 /**
- * Retrieve payment intent
- * @param {string} paymentIntentId - Stripe payment intent ID
- * @returns {Promise<object>} - Payment intent object
+ * Retrieve payment details (PayHere doesn't have direct API for this)
+ * @param {string} paymentId - PayHere payment ID
+ * @returns {Promise<object>} - Payment object
  */
-const retrievePaymentIntent = async (paymentIntentId) => {
+const retrievePayment = async (paymentId) => {
   try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    return paymentIntent;
+    // PayHere doesn't provide direct API to retrieve payment details
+    // This would need to be implemented using their merchant API if available
+    logger.info(`Payment retrieval requested for: ${paymentId} (limited API support in PayHere)`);
+    return {
+      id: paymentId,
+      status: 'unknown',
+      note: 'PayHere payment retrieval requires merchant portal access'
+    };
   } catch (error) {
-    logger.error('Error retrieving payment intent:', error);
+    logger.error('Error retrieving payment:', error);
     throw error;
   }
 };
 
 /**
- * Retrieve checkout session
- * @param {string} sessionId - Stripe session ID
- * @returns {Promise<object>} - Session object
+ * Verify PayHere webhook signature
+ * @param {object} payload - Webhook payload
+ * @param {string} receivedHash - Received hash from PayHere
+ * @returns {boolean} - Verification result
  */
-const retrieveCheckoutSession = async (sessionId) => {
+const verifyWebhookSignature = (payload, receivedHash) => {
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    return session;
+    const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
+    const hashedSecret = crypto.createHash('md5').update(merchant_secret).digest('hex').toUpperCase();
+    
+    const hashString = payload.merchant_id + 
+      payload.order_id + 
+      payload.payhere_amount + 
+      payload.payhere_currency + 
+      payload.status_code + 
+      hashedSecret;
+    
+    const computedHash = crypto.createHash('md5').update(hashString).digest('hex').toUpperCase();
+    
+    return computedHash === receivedHash.toUpperCase();
   } catch (error) {
-    logger.error('Error retrieving checkout session:', error);
-    throw error;
-  }
-};
-
-/**
- * Verify webhook signature
- * @param {string} payload - Webhook payload
- * @param {string} signature - Webhook signature
- * @returns {object} - Verified event
- */
-const verifyWebhookSignature = (payload, signature) => {
-  try {
-    const event = stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-    return event;
-  } catch (error) {
-    logger.error('Webhook signature verification failed:', error);
-    throw error;
+    logger.error('PayHere webhook signature verification failed:', error);
+    return false;
   }
 };
 
 module.exports = {
   createCheckoutSession,
   refundPayment,
-  retrievePaymentIntent,
-  retrieveCheckoutSession,
-  verifyWebhookSignature
+  retrievePayment,
+  verifyWebhookSignature,
+  generatePayHereHash
 };

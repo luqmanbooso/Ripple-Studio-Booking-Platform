@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@payhere-js-sdk/client": "^1.0.4",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.40.0",
     "cookie-parser": "^1.4.6",
