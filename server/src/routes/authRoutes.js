@@ -54,6 +54,8 @@ router.post('/login', validate(loginSchema), authController.login);
 // Support GET for refresh as well so browsers sending Lax cookies on top-level GETs
 router.post('/refresh', authController.refreshToken);
 router.get('/refresh', authController.refreshToken);
+// Google sign-in (client sends Google ID token)
+router.post('/google', authController.googleAuth);
 
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
