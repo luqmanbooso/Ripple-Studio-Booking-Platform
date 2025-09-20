@@ -121,7 +121,7 @@ app.use(errorHandler);
 // Database connection
 const connectDB = async (retries = 5) => {
   try {
-    console.log('Attempting MongoDB connection...');
+    console.log("Attempting MongoDB connection...");
     const conn = await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 10000, // 10 second timeout
       socketTimeoutMS: 45000, // 45 second socket timeout
@@ -131,21 +131,19 @@ const connectDB = async (retries = 5) => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-<<<<<<< HEAD
-    console.error("MongoDB connection error:", error);
-    process.exit(1);
-=======
-    console.error(`❌ MongoDB connection failed (${6 - retries}/5):`, error.message);
-    
+    console.error(
+      `❌ MongoDB connection failed (${6 - retries}/5):`,
+      error.message
+    );
+
     if (retries > 1) {
       console.log(`⏳ Retrying in 3 seconds...`);
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       return connectDB(retries - 1);
     } else {
-      console.error('💀 All MongoDB connection attempts failed');
+      console.error("💀 All MongoDB connection attempts failed");
       process.exit(1);
     }
->>>>>>> 255f30f0c24acdc018534457af075ad045b88f26
   }
 };
 
