@@ -24,6 +24,8 @@ const NewBooking = () => {
   const studioId = searchParams.get("studioId");
   const serviceParam = searchParams.get("service");
 
+  console.log("NewBooking - URL params:", { artistId, studioId, serviceParam });
+
   const { data: artistData, isLoading: artistLoading } = useGetArtistQuery(
     artistId,
     {
@@ -43,6 +45,8 @@ const NewBooking = () => {
   const isLoading = artistLoading || studioLoading;
   const provider = artistData?.data?.artist || studioData?.data?.studio;
   const providerType = artistId ? "artist" : "studio";
+
+  console.log("NewBooking - Provider data:", { provider, providerType });
 
   useEffect(() => {
     if (studioData?.data?.studio?.services && serviceParam) {
@@ -95,20 +99,43 @@ const NewBooking = () => {
       notes,
     };
 
+    console.log("Creating booking with data:", bookingData);
+
     try {
       const result = await createBooking(bookingData).unwrap();
+      console.log("Booking creation result:", result);
+
+      // Ensure we have the required data before navigating
+      if (!result?.data?.booking) {
+        toast.error("Booking creation failed - no booking data received");
+        return;
+      }
+
       toast.success("Booking created! Redirecting to payment...");
 
-      // Redirect to checkout with the booking data
+      // Check if we have checkout data from the booking creation
+      const navigationState = {
+        booking: result.data.booking,
+      };
+
+      // Add checkout data if available
+      if (result.data.checkoutUrl) {
+        navigationState.checkoutUrl = result.data.checkoutUrl;
+      }
+      if (result.data.checkoutData) {
+        navigationState.checkoutData = result.data.checkoutData;
+      }
+
+      console.log("Navigating to checkout with state:", navigationState);
+
       navigate("/booking/checkout", {
-        state: {
-          booking: result.data.booking,
-          checkoutUrl: result.data.checkoutUrl,
-          checkoutData: result.data.checkoutData, // PayHere checkout data
-        },
+        state: navigationState,
       });
     } catch (error) {
-      toast.error(error.data?.message || "Failed to create booking");
+      console.error("Booking creation error:", error);
+      toast.error(
+        error.data?.message || error.message || "Failed to create booking"
+      );
     }
   };
 
@@ -152,41 +179,41 @@ const NewBooking = () => {
     "20:00",
   ];
 
-  const [bookedSlots, setBookedSlots] = useState([])
+  const [bookedSlots, setBookedSlots] = useState([]);
 
   // Fetch booked slots when date or provider changes
   useEffect(() => {
     const fetchBooked = async () => {
-      if (!selectedDate || !provider) return
+      if (!selectedDate || !provider) return;
 
-  const pType = artistId ? 'artist' : 'studio'
-      const providerId = provider._id
+      const pType = artistId ? "artist" : "studio";
+      const providerId = provider._id;
 
       try {
-        const res = await api.get('/bookings/by-provider', {
-          params: { providerType: pType, providerId, date: selectedDate }
-        })
-        const slots = res.data.data.bookedSlots || []
-        setBookedSlots(slots)
+        const res = await api.get("/bookings/by-provider", {
+          params: { providerType: pType, providerId, date: selectedDate },
+        });
+        const slots = res.data.data.bookedSlots || [];
+        setBookedSlots(slots);
         // If currently selected time is now overlapping a booked slot, clear it
         if (selectedTime) {
-          const startDt = new Date(`${selectedDate}T${selectedTime}`)
-          const endDt = new Date(startDt.getTime() + duration * 60000)
-          const overlaps = slots.some(s => {
-            const bs = new Date(s.start)
-            const be = new Date(s.end)
-            return (startDt < be && endDt > bs)
-          })
-          if (overlaps) setSelectedTime('')
+          const startDt = new Date(`${selectedDate}T${selectedTime}`);
+          const endDt = new Date(startDt.getTime() + duration * 60000);
+          const overlaps = slots.some((s) => {
+            const bs = new Date(s.start);
+            const be = new Date(s.end);
+            return startDt < be && endDt > bs;
+          });
+          if (overlaps) setSelectedTime("");
         }
       } catch (err) {
         // ignore errors - no booked slots
-        setBookedSlots([])
+        setBookedSlots([]);
       }
-    }
+    };
 
-    fetchBooked()
-  }, [selectedDate, artistId, studioId, provider])
+    fetchBooked();
+  }, [selectedDate, artistId, studioId, provider]);
 
   return (
     <div className="min-h-screen bg-dark-950">
@@ -234,13 +261,15 @@ const NewBooking = () => {
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                     {timeSlots.map((time) => {
                       // compute if this time would overlap any booked slot
-                      const startDt = new Date(`${selectedDate}T${time}`)
-                      const endDt = new Date(startDt.getTime() + duration * 60000)
-                      const isBooked = bookedSlots.some(s => {
-                        const bs = new Date(s.start)
-                        const be = new Date(s.end)
-                        return (startDt < be && endDt > bs)
-                      })
+                      const startDt = new Date(`${selectedDate}T${time}`);
+                      const endDt = new Date(
+                        startDt.getTime() + duration * 60000
+                      );
+                      const isBooked = bookedSlots.some((s) => {
+                        const bs = new Date(s.start);
+                        const be = new Date(s.end);
+                        return startDt < be && endDt > bs;
+                      });
                       return (
                         <button
                           key={time}
@@ -249,16 +278,18 @@ const NewBooking = () => {
                           disabled={isBooked}
                           className={`p-3 rounded-lg border transition-colors flex items-center justify-center ${
                             isBooked
-                              ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed line-through'
+                              ? "bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed line-through"
                               : selectedTime === time
-                                ? 'border-primary-500 bg-primary-500/20 text-primary-300'
-                                : 'border-gray-600 hover:border-gray-500 text-gray-300'
+                                ? "border-primary-500 bg-primary-500/20 text-primary-300"
+                                : "border-gray-600 hover:border-gray-500 text-gray-300"
                           }`}
                         >
                           <span className="mr-2">{time}</span>
-                          {isBooked && <span className="text-xs text-red-400">Booked</span>}
+                          {isBooked && (
+                            <span className="text-xs text-red-400">Booked</span>
+                          )}
                         </button>
-                      )
+                      );
                     })}
                   </div>
                 </Card>
