@@ -26,6 +26,7 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { setCredentials } from '../../store/authSlice'
 import api from '../../lib/axios'
+import { useEffect } from 'react'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -131,6 +132,55 @@ const Register = () => {
   })
 
   const watchedRole = watch('role')
+
+  // Google Identity Services integration for register
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const handleCredentialResponse = async (response) => {
+      try {
+        const idToken = response?.credential;
+        if (!idToken) return;
+        setIsLoading(true);
+        const res = await api.post('/auth/google', { idToken });
+        const { user, accessToken } = res.data.data;
+        dispatch(setCredentials({ user, token: accessToken }));
+        toast.success(`Welcome, ${user.name}`);
+        navigate('/dashboard');
+      } catch (err) {
+        console.error('Google sign-up failed', err);
+        toast.error(err.response?.data?.message || 'Google sign-up failed');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const existing = document.getElementById('google-client-script');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.id = 'google-client-script';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleCredentialResponse
+          });
+          window.google.accounts.id.renderButton(document.getElementById('g_id_signin_register'), { theme: 'outline', size: 'large', width: '100%' });
+        }
+      };
+      document.head.appendChild(script);
+    } else if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse
+      });
+      window.google.accounts.id.renderButton(document.getElementById('g_id_signin_register'), { theme: 'outline', size: 'large', width: '100%' });
+    }
+  }, [dispatch, navigate]);
 
   const onSubmit = async (data) => {
     setIsLoading(true)

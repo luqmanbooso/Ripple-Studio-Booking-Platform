@@ -39,11 +39,8 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **Accessibility**: WCAG compliant with focus management
 - **Form Validation**: Real-time validation with proper error handling
 - **Auto-complete Support**: Enhanced form filling experience
-
-### 🎪 Interactive Authentication
-
 - **Elegant Login/Register Forms**: Dark-themed forms with proper field alignment
-- **Social Authentication**: Google and Facebook login integration
+- **Social Authentication**: Google login integration
 - **Password Visibility Toggle**: User-friendly password input experience
 - **Remember Me Functionality**: Persistent login sessions
 - **Forgot Password Flow**: Secure password reset process
