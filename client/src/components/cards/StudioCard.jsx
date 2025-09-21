@@ -1,21 +1,43 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Star, MapPin, Building, DollarSign, Users } from 'lucide-react'
-import Card from '../ui/Card'
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Star,
+  MapPin,
+  Building,
+  DollarSign,
+  Users,
+  Calendar,
+} from "lucide-react";
+import Card from "../ui/Card";
+import QuickBookingButton from "../ui/QuickBookingButton";
 
 const StudioCard = ({ studio }) => {
-  const { user, name, location, services, ratingAvg, ratingCount, description, gallery } = studio
+  const {
+    user,
+    name,
+    location,
+    services,
+    ratingAvg,
+    ratingCount,
+    description,
+    gallery,
+  } = studio;
+  const [isHovered, setIsHovered] = useState(false);
 
-  const minPrice = services?.length > 0 ? Math.min(...services.map(s => s.price)) : null
+  const minPrice =
+    services?.length > 0 ? Math.min(...services.map((s) => s.price)) : null;
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative"
     >
       <Link to={`/studios/${studio._id}`}>
-        <Card hover className="overflow-hidden">
+        <Card hover className="overflow-hidden relative">
           {/* Studio Image */}
           <div className="relative">
             <div className="aspect-video bg-gradient-to-br from-light-accent to-light-primary dark:from-accent-600 dark:to-primary-600 rounded-lg mb-4 overflow-hidden">
@@ -30,8 +52,25 @@ const StudioCard = ({ studio }) => {
                   <Building className="w-16 h-16 text-white/80" />
                 </div>
               )}
+
+              {/* Quick Book Overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isHovered ? 1 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                onClick={(e) => e.preventDefault()}
+              >
+                <QuickBookingButton
+                  studio={studio}
+                  size="sm"
+                  className="pointer-events-auto"
+                >
+                  Quick Book
+                </QuickBookingButton>
+              </motion.div>
             </div>
-            
+
             {/* Verified Badge */}
             {user?.verified && (
               <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
@@ -46,12 +85,14 @@ const StudioCard = ({ studio }) => {
               <h3 className="font-semibold text-light-text dark:text-gray-100 text-lg line-clamp-1">
                 {name}
               </h3>
-              
+
               {/* Location */}
               <div className="flex items-center text-light-textSecondary dark:text-gray-400 text-sm mt-1">
                 <MapPin className="w-4 h-4 mr-1" />
                 <span>
-                  {[location?.city, location?.country].filter(Boolean).join(', ')}
+                  {[location?.city, location?.country]
+                    .filter(Boolean)
+                    .join(", ")}
                 </span>
               </div>
             </div>
@@ -87,7 +128,7 @@ const StudioCard = ({ studio }) => {
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                 <span className="text-sm font-medium text-light-text dark:text-gray-100">
-                  {ratingAvg ? ratingAvg.toFixed(1) : 'New'}
+                  {ratingAvg ? ratingAvg.toFixed(1) : "New"}
                 </span>
                 {ratingCount > 0 && (
                   <span className="text-xs text-light-textSecondary dark:text-gray-400">
@@ -95,7 +136,7 @@ const StudioCard = ({ studio }) => {
                   </span>
                 )}
               </div>
-              
+
               {minPrice && (
                 <div className="flex items-center text-light-accent dark:text-accent-400 font-semibold">
                   <span className="text-xs mr-1">from</span>
@@ -104,11 +145,36 @@ const StudioCard = ({ studio }) => {
                 </div>
               )}
             </div>
+
+            {/* Quick Action Footer */}
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{
+                height: isHovered ? "auto" : 0,
+                opacity: isHovered ? 1 : 0,
+              }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden border-t border-light-border dark:border-gray-700"
+              onClick={(e) => e.preventDefault()}
+            >
+              <div className="pt-3 pointer-events-auto">
+                <QuickBookingButton
+                  studio={studio}
+                  className="w-full"
+                  size="sm"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span>Book Now</span>
+                    <span className="text-xs opacity-75">→ PayHere</span>
+                  </div>
+                </QuickBookingButton>
+              </div>
+            </motion.div>
           </div>
         </Card>
       </Link>
     </motion.div>
-  )
-}
+  );
+};
 
-export default StudioCard
+export default StudioCard;
