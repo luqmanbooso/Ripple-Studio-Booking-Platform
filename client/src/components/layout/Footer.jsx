@@ -1,35 +1,36 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { Music, Twitter, Instagram, Facebook, Youtube } from 'lucide-react'
+import React from "react";
+import { Link } from "react-router-dom";
+import { Music, Twitter, Instagram, Facebook, Youtube } from "lucide-react";
 
 const Footer = () => {
   const links = {
     company: [
-      { name: 'About', href: '/about' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'Blog', href: '/blog' },
+      { name: "About", href: "/about" },
+      { name: "Careers", href: "/careers" },
+      { name: "Contact", href: "/contact" },
+      { name: "Blog", href: "/blog" },
     ],
     support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Safety', href: '/safety' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Privacy Policy', href: '/privacy' },
+      { name: "Help Center", href: "/help" },
+      { name: "Feedback", href: "/feedback" },
+      { name: "Safety", href: "/safety" },
+      { name: "Terms of Service", href: "/terms" },
+      { name: "Privacy Policy", href: "/privacy" },
     ],
     community: [
-      { name: 'Artists', href: '/search?type=artists' },
-      { name: 'Studios', href: '/search?type=studios' },
-      { name: 'Reviews', href: '/reviews' },
-      { name: 'Forum', href: '/forum' },
+      { name: "Artists", href: "/search?type=artists" },
+      { name: "Studios", href: "/search?type=studios" },
+      { name: "Reviews", href: "/reviews" },
+      { name: "Forum", href: "/forum" },
     ],
-  }
+  };
 
   const socialLinks = [
-    { name: 'Twitter', icon: Twitter, href: '#' },
-    { name: 'Instagram', icon: Instagram, href: '#' },
-    { name: 'Facebook', icon: Facebook, href: '#' },
-    { name: 'YouTube', icon: Youtube, href: '#' },
-  ]
+    { name: "Twitter", icon: Twitter, href: "#" },
+    { name: "Instagram", icon: Instagram, href: "#" },
+    { name: "Facebook", icon: Facebook, href: "#" },
+    { name: "YouTube", icon: Youtube, href: "#" },
+  ];
 
   return (
     <footer className="bg-dark-900 border-t border-gray-800">
@@ -38,20 +39,20 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-2 lg:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
-              <img 
-                src="/logo.png" 
-                alt="Ripple Studio" 
+              <img
+                src="/logo.png"
+                alt="Ripple Studio"
                 className="w-20 h-20 object-contain hover:scale-110 transition-transform duration-300"
                 onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "block";
                 }}
               />
               <Music className="w-10 h-10 text-primary-500 hidden" />
             </Link>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Connecting artists, studios, and music lovers worldwide. 
-              Your next breakthrough is just a ripple away.
+              Connecting artists, studios, and music lovers worldwide. Your next
+              breakthrough is just a ripple away.
             </p>
             <div className="flex space-x-4 mt-4">
               {socialLinks.map((social) => (
@@ -128,17 +129,23 @@ const Footer = () => {
             © 2025 Ripple. All rights reserved.
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <Link to="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+            <Link
+              to="/privacy"
+              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+            <Link
+              to="/terms"
+              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
               Terms of Service
             </Link>
           </div>
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

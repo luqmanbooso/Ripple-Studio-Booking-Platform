@@ -364,6 +364,94 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
+// Google sign-in using ID token from client (Google Identity Services)
+const googleAuth = catchAsync(async (req, res) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    throw new ApiError('ID token is required', 400);
+  }
+
+  // Verify ID token by calling Google's tokeninfo endpoint
+  const https = require('https');
+  const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+
+  const verified = await new Promise((resolve, reject) => {
+    https
+      .get(tokenInfoUrl, (resp) => {
+        let data = '';
+        resp.on('data', (chunk) => (data += chunk));
+        resp.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            // tokeninfo returns an error_description if invalid
+            if (parsed.error_description || parsed.error) {
+              return reject(new Error(parsed.error_description || parsed.error));
+            }
+            return resolve(parsed);
+          } catch (err) {
+            return reject(err);
+          }
+        });
+      })
+      .on('error', (err) => reject(err));
+  });
+
+  // tokeninfo returns fields like email, email_verified, name, picture, sub (google id), aud (client id)
+  const { email, email_verified, name, picture, sub } = verified;
+  // Verify the token audience matches the configured Google client id (if provided)
+  const configuredAud = process.env.GOOGLE_CLIENT_ID;
+  if (configuredAud && verified.aud && verified.aud !== configuredAud) {
+    console.log('[DEBUG][auth.googleAuth] token audience mismatch:', verified.aud, 'expected:', configuredAud);
+    throw new ApiError('Google ID token audience mismatch', 400);
+  }
+
+  if (!email || email_verified !== 'true' && email_verified !== true) {
+    throw new ApiError('Google account email not verified', 400);
+  }
+
+  // Find or create user by email
+  let user = await User.findOne({ email });
+  if (!user) {
+    // Create a new user with role 'client' by default
+    user = await User.create({
+      name: name || 'Google User',
+      email,
+      password: crypto.randomBytes(16).toString('hex'), // random password (not used)
+      role: 'client',
+      verified: true,
+      avatar: picture || undefined
+    });
+  }
+
+  // Generate tokens
+  const { accessToken, refreshToken } = generateTokens(user._id);
+
+  // Save refresh token
+  user.refreshToken = refreshToken;
+  user.lastLogin = new Date();
+  await user.save();
+
+  // Set refresh token cookie
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
+
+  res.json({
+    status: 'success',
+    message: 'Google login successful',
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: user.verified,
+        avatar: user.avatar
+      },
+      accessToken
+    }
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -372,5 +460,6 @@ module.exports = {
   verifyEmail,
   forgotPassword,
   resetPassword,
-  getMe
+  getMe,
+  googleAuth
 };

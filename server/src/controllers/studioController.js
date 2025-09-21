@@ -5,12 +5,36 @@ const catchAsync = require('../utils/catchAsync');
 
 // Create a new studio (for studio owners and admin)
 const createStudio = catchAsync(async (req, res) => {
+  let studioOwnerId = req.user.id;
+
+  // If admin is creating a studio for someone else
+  if (req.user.role === 'admin' && req.body.ownerEmail) {
+    // Check if user with that email exists
+    let studioOwner = await User.findOne({ email: req.body.ownerEmail });
+    
+    if (!studioOwner) {
+      // Create a new user for the studio owner
+      studioOwner = await User.create({
+        email: req.body.ownerEmail,
+        name: req.body.ownerName || req.body.name + ' Owner',
+        role: 'studio',
+        isVerified: true
+      });
+    }
+    
+    studioOwnerId = studioOwner._id;
+  }
+
   const studioData = { 
     ...req.body,
-    user: req.user.id,
+    user: studioOwnerId,
     isApproved: false, // Always start as pending for review
     verificationStatus: 'pending'
   };
+
+  // Remove ownerEmail and ownerName from studioData as they're not part of the schema
+  delete studioData.ownerEmail;
+  delete studioData.ownerName;
 
   // If admin is creating, auto-approve
   if (req.user.role === 'admin') {
