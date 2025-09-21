@@ -53,6 +53,7 @@ const AdminStudios = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [selectedStudio, setSelectedStudio] = useState(null)
+  const [openActionMenu, setOpenActionMenu] = useState(null)
 
   // Enhanced API hooks
   const { data: studiosData, isLoading, error: studiosError } = useGetAllStudiosForAdminQuery({ 
@@ -71,6 +72,18 @@ const AdminStudios = () => {
   const [bulkStudioActions] = useBulkStudioActionsMutation()
 
   const cities = ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura', 'Negombo', 'Matara']
+  
+  // Close action menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openActionMenu && !event.target.closest('.relative')) {
+        setOpenActionMenu(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openActionMenu])
   
   // Enhanced handlers
   const handleStatusUpdate = async (studioId, action, reason = '') => {
@@ -182,6 +195,11 @@ const AdminStudios = () => {
     } catch (error) {
       toast.error(error.data?.message || 'Failed to update studio')
     }
+  }
+
+  const handleEditStudio = (studio) => {
+    setSelectedStudio(studio)
+    setIsEditModalOpen(true)
   }
 
   return (
@@ -486,14 +504,100 @@ const AdminStudios = () => {
                               className="text-gray-400 hover:text-white w-8 h-8 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Toggle action menu or handle direct action
-                                if (!studio.isApproved && studio.verificationStatus !== 'rejected') {
-                                  handleStatusUpdate(studio._id, 'approve');
-                                }
+                                setOpenActionMenu(openActionMenu === studio._id ? null : studio._id);
                               }}
                             >
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
+                            
+                            {/* Action Dropdown Menu */}
+                            {openActionMenu === studio._id && (
+                              <div className="absolute right-0 top-8 mt-1 w-48 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-lg shadow-xl z-50">
+                                <div className="py-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStudioClick(studio);
+                                      setOpenActionMenu(null);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-slate-700/50 hover:text-white flex items-center gap-2"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                    View Details
+                                  </button>
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditStudio(studio);
+                                      setOpenActionMenu(null);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-blue-300 hover:bg-slate-700/50 hover:text-blue-200 flex items-center gap-2"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Studio
+                                  </button>
+                                  
+                                  <div className="border-t border-slate-700/50 my-1"></div>
+                                  
+                                  {!studio.isApproved && studio.verificationStatus !== 'rejected' && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleStatusUpdate(studio._id, 'approve');
+                                        setOpenActionMenu(null);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm text-green-300 hover:bg-slate-700/50 hover:text-green-200 flex items-center gap-2"
+                                    >
+                                      <CheckCircle className="w-4 h-4" />
+                                      Approve Studio
+                                    </button>
+                                  )}
+                                  
+                                  {!studio.isApproved && studio.verificationStatus !== 'rejected' && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleStatusUpdate(studio._id, 'reject', 'Quality standards not met');
+                                        setOpenActionMenu(null);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm text-yellow-300 hover:bg-slate-700/50 hover:text-yellow-200 flex items-center gap-2"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                      Reject Studio
+                                    </button>
+                                  )}
+                                  
+                                  {studio.isApproved && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleStatusUpdate(studio._id, 'revoke', 'Re-review required');
+                                        setOpenActionMenu(null);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm text-orange-300 hover:bg-slate-700/50 hover:text-orange-200 flex items-center gap-2"
+                                    >
+                                      <AlertCircle className="w-4 h-4" />
+                                      Revoke Approval
+                                    </button>
+                                  )}
+                                  
+                                  <div className="border-t border-slate-700/50 my-1"></div>
+                                  
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteStudio(studio._id);
+                                      setOpenActionMenu(null);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-red-300 hover:bg-slate-700/50 hover:text-red-200 flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete Studio
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -762,6 +866,7 @@ const StudioFormModal = ({
     description: '',
     ownerEmail: '',
     location: {
+      country: 'Sri Lanka', // Default country
       city: '',
       address: ''
     },
@@ -780,6 +885,7 @@ const StudioFormModal = ({
         description: studio.description || '',
         ownerEmail: studio.user?.email || '',
         location: {
+          country: studio.location?.country || 'Sri Lanka',
           city: studio.location?.city || '',
           address: studio.location?.address || ''
         },
@@ -795,7 +901,11 @@ const StudioFormModal = ({
         name: '',
         description: '',
         ownerEmail: '',
-        location: { city: '', address: '' },
+        location: { 
+          country: 'Sri Lanka',
+          city: '', 
+          address: '' 
+        },
         hourlyRate: 100,
         capacity: 10,
         equipment: [],
@@ -827,187 +937,265 @@ const StudioFormModal = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Studio Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="input-field w-full"
-              required
-            />
+          {/* Studio Basic Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 className="w-5 h-5 text-blue-400" />
+              <h3 className="text-lg font-medium text-white">Basic Information</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <span className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-blue-400" />
+                    Studio Name *
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                  placeholder="Enter studio name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-green-400" />
+                    Owner Email *
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  value={formData.ownerEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-colors disabled:opacity-50"
+                  placeholder="owner@example.com"
+                  required
+                  disabled={!!studio} // Disable when editing
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <span className="flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-purple-400" />
+                  Description
+                </span>
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-colors resize-none"
+                placeholder="Describe the studio features and atmosphere..."
+                rows="3"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Owner Email *
-            </label>
-            <input
-              type="email"
-              value={formData.ownerEmail}
-              onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
-              className="input-field w-full"
-              required
-              disabled={!!studio} // Disable when editing
-            />
-          </div>
-        </div>
+          {/* Location Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPin className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-medium text-white">Location Details</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Country *
+                </label>
+                <select
+                  value={formData.location.country}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    location: { ...prev.location, country: e.target.value }
+                  }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
+                  required
+                >
+                  <option value="Sri Lanka" className="bg-slate-800">Sri Lanka</option>
+                  <option value="India" className="bg-slate-800">India</option>
+                  <option value="Singapore" className="bg-slate-800">Singapore</option>
+                  <option value="Malaysia" className="bg-slate-800">Malaysia</option>
+                </select>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Description
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="input-field w-full h-24 resize-none"
-            placeholder="Describe the studio..."
-          />
-        </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  City *
+                </label>
+                <select
+                  value={formData.location.city}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    location: { ...prev.location, city: e.target.value }
+                  }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
+                  required
+                >
+                  <option value="" className="bg-slate-800">Select City</option>
+                  {cities?.map(city => (
+                    <option key={city} value={city} className="bg-slate-800">{city}</option>
+                  ))}
+                </select>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              City *
-            </label>
-            <select
-              value={formData.location.city}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                location: { ...prev.location, city: e.target.value }
-              }))}
-              className="input-field w-full"
-              required
-            >
-              <option value="">Select City</option>
-              {cities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Address
-            </label>
-            <input
-              type="text"
-              value={formData.location.address}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                location: { ...prev.location, address: e.target.value }
-              }))}
-              className="input-field w-full"
-              placeholder="Street address"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Hourly Rate ($)
-            </label>
-            <input
-              type="number"
-              value={formData.hourlyRate}
-              onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: parseInt(e.target.value) || 0 }))}
-              className="input-field w-full"
-              min="0"
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={formData.location.address}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    location: { ...prev.location, address: e.target.value }
+                  }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
+                  placeholder="Street address"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Capacity (people)
-            </label>
-            <input
-              type="number"
-              value={formData.capacity}
-              onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
-              className="input-field w-full"
-              min="1"
-            />
-          </div>
-        </div>
+          {/* Studio Details */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-5 h-5 text-yellow-400" />
+              <h3 className="text-lg font-medium text-white">Studio Details</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <span className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-yellow-400" />
+                    Hourly Rate ($)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.hourlyRate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-colors"
+                  placeholder="100"
+                  min="0"
+                />
+              </div>
 
-        {/* Equipment */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Equipment
-          </label>
-          <div className="flex space-x-2 mb-2">
-            <input
-              type="text"
-              placeholder="Add equipment..."
-              className="input-field flex-1"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addEquipment(e.target.value)
-                  e.target.value = ''
-                }
-              }}
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-green-400" />
+                    Capacity (people)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.capacity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-colors"
+                  placeholder="10"
+                  min="1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Equipment Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Settings className="w-5 h-5 text-orange-400" />
+              <h3 className="text-lg font-medium text-white">Equipment & Amenities</h3>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Equipment
+              </label>
+              <div className="flex space-x-2 mb-3">
+                <input
+                  type="text"
+                  placeholder="Add equipment (e.g., Microphone, Piano, Drums)..."
+                  className="flex-1 px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-colors"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addEquipment(e.target.value)
+                      e.target.value = ''
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    const input = e.target.closest('.flex').querySelector('input')
+                    addEquipment(input.value)
+                    input.value = ''
+                  }}
+                  className="border-orange-500/50 text-orange-400 hover:bg-orange-500/20 px-3"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.equipment.map((item, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center bg-orange-500/20 text-orange-300 px-3 py-1.5 rounded-full text-sm border border-orange-500/30"
+                  >
+                    {item}
+                    <button
+                      type="button"
+                      onClick={() => removeEquipment(index)}
+                      className="ml-2 text-orange-300 hover:text-red-400 transition-colors"
+                    >
+                      <XCircle className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-6 border-t border-slate-700/50">
             <Button
               type="button"
               variant="outline"
-              onClick={(e) => {
-                const input = e.target.closest('.flex').querySelector('input')
-                addEquipment(input.value)
-                input.value = ''
-              }}
-              className="border-slate-700"
+              onClick={onClose}
+              className="border-slate-600/50 text-gray-300 hover:bg-slate-800/50 px-6"
             >
-              <Plus className="w-4 h-4" />
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>{studio ? 'Updating...' : 'Creating...'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  {studio ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  <span>{studio ? 'Update Studio' : 'Create Studio'}</span>
+                </div>
+              )}
             </Button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.equipment.map((item, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm"
-              >
-                {item}
-                <button
-                  type="button"
-                  onClick={() => removeEquipment(index)}
-                  className="ml-2 text-blue-300 hover:text-red-400"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end space-x-4 pt-6 border-t border-slate-700">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="border-slate-700"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500"
-          >
-            {isLoading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              studio ? 'Update Studio' : 'Create Studio'
-            )}
-          </Button>
-        </div>
-      </form>
+        </form>
     </Modal>
   )
 }
