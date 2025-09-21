@@ -121,6 +121,25 @@ const studioSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isApproved: {
+    type: Boolean,
+    default: false
+  },
+  statusReason: {
+    type: String,
+    trim: true
+  },
+  studioType: {
+    type: String,
+    enum: ['Recording', 'Mixing', 'Mastering', 'Rehearsal', 'Live'],
+    default: 'Recording'
+  },
+  features: {
+    featured: { type: Boolean, default: false },
+    promoted: { type: Boolean, default: false },
+    verified: { type: Boolean, default: false },
+    premiumListing: { type: Boolean, default: false }
+  },
   isPremium: {
     type: Boolean,
     default: false

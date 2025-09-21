@@ -1,11 +1,11 @@
-const Booking = require('../models/Booking');
-const Artist = require('../models/Artist');
-const Studio = require('../models/Studio');
-const Payout = require('../models/Payout');
-const Notification = require('../models/Notification');
-const paymentService = require('./paymentService');
-const { emitToUser, emitToProvider } = require('../utils/sockets');
-const logger = require('../utils/logger');
+const Booking = require("../models/Booking");
+const Artist = require("../models/Artist");
+const Studio = require("../models/Studio");
+const Payout = require("../models/Payout");
+const Notification = require("../models/Notification");
+const paymentService = require("./paymentService");
+const { emitToUser, emitToProvider } = require("../utils/sockets");
+const logger = require("../utils/logger");
 
 /**
  * Complete a booking
@@ -13,18 +13,18 @@ const logger = require('../utils/logger');
  * @param {string} notes - Completion notes
  * @returns {Promise<object>} - Updated booking
  */
-const completeBooking = async (booking, notes = '') => {
+const completeBooking = async (booking, notes = "") => {
   try {
     // Update booking status
-    booking.status = 'completed';
+    booking.status = "completed";
     booking.completedAt = new Date();
     booking.providerNotes = notes;
     await booking.save();
 
     // Update provider stats
-    const providerType = booking.artist ? 'artist' : 'studio';
+    const providerType = booking.artist ? "artist" : "studio";
     const providerId = booking.artist || booking.studio;
-    
+
     await updateProviderStats(providerType, providerId, booking.price);
 
     // Create payout record
@@ -36,20 +36,20 @@ const completeBooking = async (booking, notes = '') => {
       amount: booking.price,
       platformFee,
       netAmount: booking.price - platformFee,
-      status: 'pending'
+      status: "pending",
     });
 
     // Create notifications
-    await createNotification(booking.client, 'booking_completed', {
-      title: 'Booking Completed',
+    await createNotification(booking.client, "booking_completed", {
+      title: "Booking Completed",
       message: `Your booking has been completed.`,
-      bookingId: booking._id
+      bookingId: booking._id,
     });
 
     logger.info(`Booking completed: ${booking._id}`);
     return booking;
   } catch (error) {
-    logger.error('Error completing booking:', error);
+    logger.error("Error completing booking:", error);
     throw error;
   }
 };
@@ -60,50 +60,53 @@ const completeBooking = async (booking, notes = '') => {
  * @param {string} reason - Cancellation reason
  * @returns {Promise<object>} - Updated booking
  */
-const cancelBooking = async (booking, reason = '') => {
+const cancelBooking = async (booking, reason = "") => {
   try {
     const refundAmount = booking.getRefundAmount();
-    
+
     // Update booking status
-    booking.status = 'cancelled';
+    booking.status = "cancelled";
     booking.cancellationReason = reason;
     booking.refundAmount = refundAmount;
     await booking.save();
 
     // Process refund if applicable
-    if (refundAmount > 0 && booking.paymentIntentId) {
+    if (refundAmount > 0 && booking.payherePaymentId) {
       try {
-        await paymentService.refundPayment(booking.paymentIntentId, refundAmount);
-        booking.status = 'refunded';
+        await paymentService.refundPayment(
+          booking.payherePaymentId,
+          refundAmount
+        );
+        booking.status = "refunded";
         booking.refundedAt = new Date();
         await booking.save();
       } catch (refundError) {
-        logger.error('Refund failed:', refundError);
+        logger.error("Refund failed:", refundError);
         // Keep booking as cancelled even if refund fails
       }
     }
 
     // Create notifications
-    const providerType = booking.artist ? 'artist' : 'studio';
+    const providerType = booking.artist ? "artist" : "studio";
     const provider = booking.artist || booking.studio;
     const providerUser = provider.user;
 
-    await createNotification(booking.client, 'booking_cancelled', {
-      title: 'Booking Cancelled',
-      message: `Your booking has been cancelled. ${refundAmount > 0 ? `Refund amount: $${refundAmount}` : ''}`,
-      bookingId: booking._id
+    await createNotification(booking.client, "booking_cancelled", {
+      title: "Booking Cancelled",
+      message: `Your booking has been cancelled. ${refundAmount > 0 ? `Refund amount: $${refundAmount}` : ""}`,
+      bookingId: booking._id,
     });
 
-    await createNotification(providerUser._id, 'booking_cancelled', {
-      title: 'Booking Cancelled',
+    await createNotification(providerUser._id, "booking_cancelled", {
+      title: "Booking Cancelled",
       message: `A booking has been cancelled. Reason: ${reason}`,
-      bookingId: booking._id
+      bookingId: booking._id,
     });
 
     logger.info(`Booking cancelled: ${booking._id}, Refund: $${refundAmount}`);
     return booking;
   } catch (error) {
-    logger.error('Error cancelling booking:', error);
+    logger.error("Error cancelling booking:", error);
     throw error;
   }
 };
@@ -111,45 +114,45 @@ const cancelBooking = async (booking, reason = '') => {
 /**
  * Confirm a booking after payment
  * @param {object} booking - Booking object
- * @param {string} paymentIntentId - Stripe payment intent ID
+ * @param {string} paymentId - PayHere payment ID
  * @returns {Promise<object>} - Updated booking
  */
-const confirmBooking = async (booking, paymentIntentId) => {
+const confirmBooking = async (booking, paymentId) => {
   try {
-    booking.status = 'confirmed';
-    booking.paymentIntentId = paymentIntentId;
+    booking.status = "confirmed";
+    booking.payherePaymentId = paymentId;
     await booking.save();
 
     // Create notifications
-    const providerType = booking.artist ? 'artist' : 'studio';
+    const providerType = booking.artist ? "artist" : "studio";
     const provider = booking.artist || booking.studio;
     const providerUser = provider.user;
 
-    await createNotification(booking.client, 'booking_confirmed', {
-      title: 'Booking Confirmed',
-      message: 'Your payment has been processed and booking is confirmed.',
-      bookingId: booking._id
+    await createNotification(booking.client, "booking_confirmed", {
+      title: "Booking Confirmed",
+      message: "Your payment has been processed and booking is confirmed.",
+      bookingId: booking._id,
     });
 
-    await createNotification(providerUser._id, 'booking_confirmed', {
-      title: 'New Booking Confirmed',
+    await createNotification(providerUser._id, "booking_confirmed", {
+      title: "New Booking Confirmed",
       message: `You have a new confirmed booking from ${booking.client.name}.`,
-      bookingId: booking._id
+      bookingId: booking._id,
     });
 
     // Emit socket events for real-time updates
     const providerId = booking.artist?._id || booking.studio?._id;
-    emitToProvider(providerType, providerId, 'calendar_update', {
-      action: 'booking_confirmed',
+    emitToProvider(providerType, providerId, "calendar_update", {
+      action: "booking_confirmed",
       bookingId: booking._id,
       start: booking.start,
-      end: booking.end
+      end: booking.end,
     });
 
     logger.info(`Booking confirmed: ${booking._id}`);
     return booking;
   } catch (error) {
-    logger.error('Error confirming booking:', error);
+    logger.error("Error confirming booking:", error);
     throw error;
   }
 };
@@ -161,13 +164,13 @@ const confirmBooking = async (booking, paymentIntentId) => {
  * @param {number} amount - Booking amount
  */
 const updateProviderStats = async (providerType, providerId, amount) => {
-  const Model = providerType === 'artist' ? Artist : Studio;
-  
+  const Model = providerType === "artist" ? Artist : Studio;
+
   await Model.findByIdAndUpdate(providerId, {
     $inc: {
       completedBookings: 1,
-      totalEarnings: amount
-    }
+      totalEarnings: amount,
+    },
   });
 };
 
@@ -198,14 +201,14 @@ const createNotification = async (userId, type, data) => {
         bookingId: data.bookingId,
         amount: data.amount,
         currency: data.currency,
-        url: data.url
-      }
+        url: data.url,
+      },
     });
 
     // Emit real-time notification
-    emitToUser(userId, 'notification', data);
+    emitToUser(userId, "notification", data);
   } catch (error) {
-    logger.error('Error creating notification:', error);
+    logger.error("Error creating notification:", error);
   }
 };
 
@@ -218,7 +221,7 @@ const sendBookingReminders = async (reminderDate = new Date()) => {
     const tomorrow = new Date(reminderDate);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-    
+
     const dayAfterTomorrow = new Date(tomorrow);
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
@@ -226,32 +229,36 @@ const sendBookingReminders = async (reminderDate = new Date()) => {
     const upcomingBookings = await Booking.find({
       start: {
         $gte: tomorrow,
-        $lt: dayAfterTomorrow
+        $lt: dayAfterTomorrow,
       },
-      status: 'confirmed',
-      reminderSent: false
+      status: "confirmed",
+      reminderSent: false,
     }).populate([
-      { path: 'client', select: 'name email' },
-      { path: 'artist', populate: { path: 'user', select: 'name email' } },
-      { path: 'studio', populate: { path: 'user', select: 'name email' } }
+      { path: "client", select: "name email" },
+      { path: "artist", populate: { path: "user", select: "name email" } },
+      { path: "studio", populate: { path: "user", select: "name email" } },
     ]);
 
     for (const booking of upcomingBookings) {
-      const providerName = booking.artist ? booking.artist.user.name : booking.studio.name;
-      
+      const providerName = booking.artist
+        ? booking.artist.user.name
+        : booking.studio.name;
+
       // Send reminder to client
-      await createNotification(booking.client._id, 'reminder', {
-        title: 'Booking Reminder',
+      await createNotification(booking.client._id, "reminder", {
+        title: "Booking Reminder",
         message: `Your booking with ${providerName} is tomorrow at ${new Date(booking.start).toLocaleTimeString()}.`,
-        bookingId: booking._id
+        bookingId: booking._id,
       });
 
       // Send reminder to provider
-      const providerUserId = booking.artist ? booking.artist.user._id : booking.studio.user._id;
-      await createNotification(providerUserId, 'reminder', {
-        title: 'Booking Reminder',
+      const providerUserId = booking.artist
+        ? booking.artist.user._id
+        : booking.studio.user._id;
+      await createNotification(providerUserId, "reminder", {
+        title: "Booking Reminder",
         message: `You have a booking with ${booking.client.name} tomorrow at ${new Date(booking.start).toLocaleTimeString()}.`,
-        bookingId: booking._id
+        bookingId: booking._id,
       });
 
       // Mark reminder as sent
@@ -261,7 +268,7 @@ const sendBookingReminders = async (reminderDate = new Date()) => {
 
     logger.info(`Sent ${upcomingBookings.length} booking reminders`);
   } catch (error) {
-    logger.error('Error sending booking reminders:', error);
+    logger.error("Error sending booking reminders:", error);
   }
 };
 
@@ -272,5 +279,5 @@ module.exports = {
   updateProviderStats,
   calculatePlatformFee,
   createNotification,
-  sendBookingReminders
+  sendBookingReminders,
 };

@@ -11,6 +11,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@payhere-js-sdk/client": "^1.0.4",
+    "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.40.0",
     "cookie-parser": "^1.4.6",
@@ -26,7 +28,6 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.4",
     "socket.io": "^4.7.2",
-    "stripe": "^13.5.0",
     "supertest": "^6.3.3",
     "zod": "^3.22.2"
   },

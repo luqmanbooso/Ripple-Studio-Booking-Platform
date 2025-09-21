@@ -17,6 +17,31 @@ const searchSchema = {
   })
 };
 
+const createStudioSchema = {
+  body: z.object({
+    name: z.string().min(2).max(100),
+    description: z.string().max(2000).optional(),
+    location: z.object({
+      country: z.string().min(1),
+      city: z.string().min(1),
+      address: z.string().optional()
+    }),
+    equipment: z.array(z.string()).optional(),
+    services: z.array(z.object({
+      name: z.string(),
+      price: z.number().min(0),
+      durationMins: z.number().min(30),
+      description: z.string().optional()
+    })).optional(),
+    amenities: z.array(z.string()).optional(),
+    contactInfo: z.object({
+      phone: z.string().optional(),
+      email: z.string().email().optional(),
+      website: z.string().url().optional()
+    }).optional()
+  })
+};
+
 const updateStudioSchema = {
   body: z.object({
     name: z.string().min(2).max(100).optional(),
@@ -46,7 +71,17 @@ router.get('/', optionalAuth, validate(searchSchema), studioController.getStudio
 router.get('/:id', optionalAuth, studioController.getStudio);
 
 // Protected routes
+router.post('/', authenticate, allowRoles('studio', 'admin'), validate(createStudioSchema), studioController.createStudio);
 router.patch('/:id', authenticate, allowRoles('studio', 'admin'), validate(updateStudioSchema), studioController.updateStudio);
 router.post('/:id/availability', authenticate, allowRoles('studio'), validate(availabilitySchema), studioController.addAvailability);
+
+// Admin only routes
+router.get('/admin/all', authenticate, allowRoles('admin'), studioController.getAllStudiosForAdmin);
+router.get('/admin/stats', authenticate, allowRoles('admin'), studioController.getStudioStats);
+router.get('/admin/analytics', authenticate, allowRoles('admin'), studioController.getStudioAnalytics);
+router.patch('/admin/:id/status', authenticate, allowRoles('admin'), studioController.updateStudioStatus);
+router.patch('/admin/:id/feature', authenticate, allowRoles('admin'), studioController.toggleStudioFeature);
+router.delete('/admin/:id', authenticate, allowRoles('admin'), studioController.deleteStudio);
+router.post('/admin/bulk-actions', authenticate, allowRoles('admin'), studioController.bulkStudioActions);
 
 module.exports = router;

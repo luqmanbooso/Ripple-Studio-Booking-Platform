@@ -4,7 +4,7 @@ const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
 }
 
 const authSlice = createSlice({
@@ -45,10 +45,27 @@ const authSlice = createSlice({
     setLoading: (state, action) => {
       state.isLoading = action.payload
     },
+    initializeAuth: (state) => {
+      // Initialize from localStorage
+      try {
+        const savedAuth = localStorage.getItem('auth')
+        if (savedAuth) {
+          const { user, token } = JSON.parse(savedAuth)
+          if (user && token) {
+            state.user = user
+            state.token = token
+            state.isAuthenticated = true
+          }
+        }
+      } catch (error) {
+        localStorage.removeItem('auth')
+      }
+      state.isLoading = false
+    },
   },
 })
 
-export const { setCredentials, updateUser, logout, setLoading } = authSlice.actions
+export const { setCredentials, updateUser, logout, setLoading, initializeAuth } = authSlice.actions
 
 // Selectors
 export const selectCurrentUser = (state) => state.auth.user

@@ -3,6 +3,56 @@ const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 
+// Create a new studio (for studio owners and admin)
+const createStudio = catchAsync(async (req, res) => {
+  let studioOwnerId = req.user.id;
+
+  // If admin is creating a studio for someone else
+  if (req.user.role === 'admin' && req.body.ownerEmail) {
+    // Check if user with that email exists
+    let studioOwner = await User.findOne({ email: req.body.ownerEmail });
+    
+    if (!studioOwner) {
+      // Create a new user for the studio owner
+      studioOwner = await User.create({
+        email: req.body.ownerEmail,
+        name: req.body.ownerName || req.body.name + ' Owner',
+        role: 'studio',
+        isVerified: true
+      });
+    }
+    
+    studioOwnerId = studioOwner._id;
+  }
+
+  const studioData = { 
+    ...req.body,
+    user: studioOwnerId,
+    isApproved: false, // Always start as pending for review
+    verificationStatus: 'pending'
+  };
+
+  // Remove ownerEmail and ownerName from studioData as they're not part of the schema
+  delete studioData.ownerEmail;
+  delete studioData.ownerName;
+
+  // If admin is creating, auto-approve
+  if (req.user.role === 'admin') {
+    studioData.isApproved = true;
+    studioData.verificationStatus = 'verified';
+  }
+
+  const studio = await Studio.create(studioData);
+  
+  await studio.populate('user', 'name email');
+
+  res.status(201).json({
+    status: 'success',
+    message: req.user.role === 'admin' ? 'Studio created and approved' : 'Studio created and submitted for review',
+    data: { studio }
+  });
+});
+
 const getStudios = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -14,7 +64,7 @@ const getStudios = catchAsync(async (req, res) => {
     sort = '-ratingAvg'
   } = req.query;
 
-  const query = { isActive: true };
+  const query = { isActive: true, isApproved: true }; // Only show approved studios to public
 
   // Text search
   if (q) {
@@ -124,9 +174,297 @@ const addAvailability = catchAsync(async (req, res) => {
   });
 });
 
+// Admin functions
+const getAllStudiosForAdmin = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 20,
+    q,
+    status,
+    type,
+    sort = '-createdAt'
+  } = req.query;
+
+  const query = {};
+
+  // Text search across multiple fields
+  if (q) {
+    query.$or = [
+      { name: new RegExp(q, 'i') },
+      { 'location.city': new RegExp(q, 'i') },
+      { 'location.country': new RegExp(q, 'i') },
+      { description: new RegExp(q, 'i') }
+    ];
+  }
+
+  // Status filter
+  if (status && status !== 'all') {
+    if (status === 'active') {
+      query.isActive = true;
+      query.isApproved = true;
+    } else if (status === 'pending') {
+      query.isApproved = false;
+    } else if (status === 'suspended') {
+      query.isActive = false;
+    }
+  }
+
+  // Type filter
+  if (type && type !== 'all') {
+    query.studioType = type;
+  }
+
+  const studios = await Studio.find(query)
+    .populate('user', 'name email avatar phone createdAt')
+    .sort(sort)
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .lean();
+
+  const total = await Studio.countDocuments(query);
+
+  // Add calculated fields (remove bookings population since it's not in schema)
+  const studiosWithStats = studios.map(studio => ({
+    ...studio,
+    totalBookings: 0, // TODO: Calculate from Booking collection if needed
+    totalRevenue: 0   // TODO: Calculate from Booking collection if needed
+  }));
+
+  res.json({
+    status: 'success',
+    data: {
+      studios: studiosWithStats,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    }
+  }); // Updated for admin studio management
+});
+
+const getStudioStats = catchAsync(async (req, res) => {
+  const totalStudios = await Studio.countDocuments();
+  const approvedStudios = await Studio.countDocuments({ isApproved: true });
+  const pendingStudios = await Studio.countDocuments({ isApproved: false, verificationStatus: 'pending' });
+  const rejectedStudios = await Studio.countDocuments({ isApproved: false, verificationStatus: 'rejected' });
+  const activeStudios = await Studio.countDocuments({ isActive: true, isApproved: true });
+
+  res.json({
+    status: 'success',
+    data: {
+      totalStudios,
+      approvedStudios,
+      pendingStudios,
+      rejectedStudios,
+      activeStudios
+    }
+  });
+});
+
+const getStudioAnalytics = catchAsync(async (req, res) => {
+  const { period = '30d' } = req.query;
+  
+  let dateFilter = {};
+  const now = new Date();
+  
+  if (period === '7d') {
+    dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+  } else if (period === '30d') {
+    dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+  } else if (period === '90d') {
+    dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+  }
+
+  // New studios over time
+  const newStudios = await Studio.aggregate([
+    { $match: { createdAt: dateFilter } },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+  ]);
+
+  // Revenue by studio
+  const Booking = require('../models/Booking');
+  const revenueByStudio = await Booking.aggregate([
+    { $match: { status: 'completed', createdAt: dateFilter } },
+    {
+      $group: {
+        _id: '$studio',
+        totalRevenue: { $sum: '$totalAmount' },
+        bookingCount: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'studios',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'studio'
+      }
+    },
+    { $unwind: '$studio' },
+    { $sort: { totalRevenue: -1 } },
+    { $limit: 10 }
+  ]);
+
+  res.json({
+    status: 'success',
+    data: {
+      newStudios,
+      revenueByStudio,
+      period
+    }
+  });
+});
+
+const updateStudioStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { isApproved, verificationStatus, reason } = req.body;
+
+  const updateData = {};
+  
+  // Handle direct field updates
+  if (typeof isApproved !== 'undefined') {
+    updateData.isApproved = isApproved;
+  }
+  
+  if (verificationStatus) {
+    updateData.verificationStatus = verificationStatus;
+  }
+  
+  // Set isActive based on approval status
+  if (typeof isApproved !== 'undefined') {
+    updateData.isActive = isApproved;
+  }
+
+  if (reason) {
+    updateData.statusReason = reason;
+  }
+
+  const studio = await Studio.findByIdAndUpdate(id, updateData, { new: true });
+
+  if (!studio) {
+    throw new ApiError(404, 'Studio not found');
+  }
+
+  const actionMessage = isApproved === true ? 'approved' : 
+                       isApproved === false && verificationStatus === 'rejected' ? 'rejected' : 
+                       'updated';
+
+  res.json({
+    status: 'success',
+    message: `Studio ${actionMessage} successfully`,
+    data: { studio }
+  });
+});
+
+const toggleStudioFeature = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { feature, enabled } = req.body;
+
+  const updateData = {};
+  updateData[`features.${feature}`] = enabled;
+
+  const studio = await Studio.findByIdAndUpdate(id, updateData, { new: true });
+
+  if (!studio) {
+    throw new ApiError(404, 'Studio not found');
+  }
+
+  res.json({
+    status: 'success',
+    message: `Studio feature ${enabled ? 'enabled' : 'disabled'} successfully`,
+    data: { studio }
+  });
+});
+
+const deleteStudio = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  // Check for active bookings
+  const Booking = require('../models/Booking');
+  const activeBookings = await Booking.countDocuments({
+    studio: id,
+    status: { $in: ['pending', 'confirmed'] }
+  });
+
+  if (activeBookings > 0) {
+    throw new ApiError(400, 'Cannot delete studio with active bookings');
+  }
+
+  const studio = await Studio.findByIdAndDelete(id);
+
+  if (!studio) {
+    throw new ApiError(404, 'Studio not found');
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Studio deleted successfully'
+  });
+});
+
+const bulkStudioActions = catchAsync(async (req, res) => {
+  const { action, studioIds, data } = req.body;
+
+  let updateData = {};
+  let message = '';
+
+  switch (action) {
+    case 'approve':
+      updateData = { isApproved: true, isActive: true };
+      message = 'Studios approved successfully';
+      break;
+    case 'suspend':
+      updateData = { isActive: false };
+      message = 'Studios suspended successfully';
+      break;
+    case 'activate':
+      updateData = { isActive: true };
+      message = 'Studios activated successfully';
+      break;
+    case 'feature':
+      updateData[`features.${data.feature}`] = data.enabled;
+      message = `Studio feature ${data.enabled ? 'enabled' : 'disabled'} successfully`;
+      break;
+    default:
+      throw new ApiError(400, 'Invalid bulk action');
+  }
+
+  const result = await Studio.updateMany(
+    { _id: { $in: studioIds } },
+    updateData
+  );
+
+  res.json({
+    status: 'success',
+    message,
+    data: {
+      modifiedCount: result.modifiedCount
+    }
+  });
+});
+
 module.exports = {
+  createStudio,
   getStudios,
   getStudio,
   updateStudio,
-  addAvailability
+  addAvailability,
+  getAllStudiosForAdmin,
+  getStudioStats,
+  getStudioAnalytics,
+  updateStudioStatus,
+  toggleStudioFeature,
+  deleteStudio,
+  bulkStudioActions
 };

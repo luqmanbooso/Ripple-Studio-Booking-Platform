@@ -5,15 +5,17 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## ✨ Features..
 
 ### 🎯 Core Functionality
+
 - **Multi-Role System**: Clients, Artists, Studios, Admins with tailored dashboards
 - **Real-time Booking**: Live availability updates with Socket.IO
-- **Secure Payments**: Stripe integration with webhook handling and refunds
+- **Secure Payments**: PayHere integration with webhook handling and refunds
 - **Media Management**: Cloudinary integration for images, audio, and video
 - **Advanced Search**: AI-powered filters by location, genre, availability, price
 - **Reviews & Ratings**: Community-driven quality assurance system
 - **Admin Dashboard**: Complete platform management and analytics
 
 ### 🎨 Modern UI/UX
+
 - **🌓 Dark/Light Theme**: Seamless theme switching with system preference detection
 - **🎵 Music Animations**: Continuous music-themed animations and visualizers
 - **✨ Interactive Elements**: Vibrating effects, floating notes, and pulsing visualizers
@@ -26,6 +28,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **🎯 Visual Consistency**: Uniform input field designs across all forms and components
 
 ### 🚀 Advanced Features
+
 - **Real-time Chat**: Socket.IO powered messaging system
 - **File Sharing**: Upload and share project files
 - **Calendar Integration**: Smart availability management
@@ -36,8 +39,6 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **Accessibility**: WCAG compliant with focus management
 - **Form Validation**: Real-time validation with proper error handling
 - **Auto-complete Support**: Enhanced form filling experience
-
--### 🎪 Interactive Authentication
 - **Elegant Login/Register Forms**: Dark-themed forms with proper field alignment
 - **Social Authentication**: Google login integration
 - **Password Visibility Toggle**: User-friendly password input experience
@@ -47,10 +48,11 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## 🛠 Tech Stack
 
 ### Backend
+
 - **Node.js** + **Express.js** - Server framework
 - **MongoDB** + **Mongoose** - Database and ODM
 - **Socket.IO** - Real-time communication
-- **Stripe** - Payment processing
+- **PayHere** - Payment processing
 - **Cloudinary** - Media storage and optimization
 - **JWT** - Authentication and authorization
 - **Zod** - Schema validation
@@ -59,6 +61,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **Rate Limiting** - API protection
 
 ### Frontend
+
 - **React 18** + **Vite** - Modern React with fast build
 - **Redux Toolkit** + **RTK Query** - State management and API calls
 - **Tailwind CSS** - Utility-first styling with custom form components
@@ -70,6 +73,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **React Hot Toast** - Beautiful notifications
 
 ### 🎨 UI/UX Components
+
 - **Custom Input Fields**: Perfectly aligned text inputs with consistent styling
 - **Responsive Forms**: Mobile-optimized form layouts
 - **Interactive Buttons**: Animated buttons with hover effects
@@ -79,6 +83,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## 📱 Form Design Standards
 
 ### 🎯 Text Field Specifications
+
 - **Consistent Spacing**: 16px padding for all input fields
 - **Proper Alignment**: Left-aligned labels with 8px bottom margin
 - **Border Radius**: 12px for modern rounded corners
@@ -87,12 +92,14 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - **Placeholder Text**: Helpful hints with proper contrast
 
 ### 🎨 Visual Hierarchy
+
 - **Typography**: Clear font weights and sizes for labels and inputs
 - **Color Contrast**: WCAG AA compliant text contrast ratios
 - **Icon Integration**: Consistent icon placement in input fields
 - **Button Styling**: Uniform button heights and padding across forms
 
 ### 📱 Responsive Behavior
+
 - **Mobile First**: Optimized for touch interactions
 - **Tablet Layout**: Appropriate field sizing for medium screens
 - **Desktop Polish**: Enhanced interactions for mouse users
@@ -101,6 +108,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## 🎯 Form Components
 
 ### 🔐 Authentication Forms
+
 ```jsx
 // Login form with proper field alignment
 <form className="space-y-6">
@@ -116,19 +124,21 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ```
 
 ### 🔍 Search Components
+
 ```jsx
 // Search form with consistent styling
 <div className="search-container">
-  <input 
-    type="text" 
-    className="search-input" 
-    placeholder="Search artists, studios..." 
+  <input
+    type="text"
+    className="search-input"
+    placeholder="Search artists, studios..."
   />
   <button className="search-button">Search</button>
 </div>
 ```
 
 ### 📝 Profile Forms
+
 ```jsx
 // Profile editing with proper field spacing
 <div className="profile-form">
@@ -143,6 +153,7 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## 🎨 Design System
 
 ### 🎯 Input Field Classes
+
 - `.input-field` - Standard text input styling
 - `.search-input` - Enhanced search field appearance
 - `.textarea-field` - Multi-line text input styling
@@ -151,16 +162,18 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 - `.form-error` - Error message styling
 
 ### 🌈 Color Variables
+
 ```css
 /* Form-specific colors */
 --input-bg: rgba(255, 255, 255, 0.1);
 --input-border: rgba(255, 255, 255, 0.2);
---input-focus: #E91E63;
---input-error: #F44336;
+--input-focus: #e91e63;
+--input-error: #f44336;
 --placeholder-color: rgba(255, 255, 255, 0.6);
 ```
 
 ### 📏 Spacing Standards
+
 - **Field Height**: 48px minimum for touch targets
 - **Label Margin**: 8px bottom spacing
 - **Field Spacing**: 24px between form fields
@@ -170,14 +183,16 @@ A cutting-edge MERN stack platform connecting clients, artists, and recording st
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - MongoDB (local or Atlas)
-- Stripe account (for payments)
+- PayHere account (for payments)
 - Cloudinary account (optional, for media)
 
 ### Installation
 
 1. **Clone and install dependencies:**
+
 ```bash
 git clone https://github.com/your-username/ripple.git
 cd ripple
@@ -187,11 +202,13 @@ cd ../client && npm install
 ```
 
 2. **Environment setup:**
+
 ```bash
 cp .env.example .env
 ```
 
 Edit `.env` with your credentials:
+
 ```env
 # Database
 MONGO_URI=mongodb://localhost:27017/ripple
@@ -200,9 +217,12 @@ MONGO_URI=mongodb://localhost:27017/ripple
 JWT_ACCESS_SECRET=your-super-secret-access-key
 JWT_REFRESH_SECRET=your-super-secret-refresh-key
 
-# Stripe (get from https://stripe.com)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# PayHere (get from https://www.payhere.lk)
+PAYHERE_MERCHANT_ID=your_merchant_id
+PAYHERE_MERCHANT_SECRET=your_merchant_secret
+PAYHERE_APP_ID=your_app_id
+PAYHERE_APP_SECRET=your_app_secret
+PAYHERE_MODE=sandbox # or 'live' for production
 
 # Cloudinary (optional, get from https://cloudinary.com)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -211,20 +231,23 @@ CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 3. **Start development servers:**
+
 ```bash
 # From root directory - runs both client and server
 npm run dev
 ```
 
 4. **Seed database (optional):**
+
 ```bash
 npm run seed
 ```
 
-5. **Setup Stripe webhooks:**
+5. **Setup PayHere webhooks:**
+
 ```bash
-# Install Stripe CLI: https://stripe.com/docs/stripe-cli
-stripe listen --forward-to localhost:5000/api/webhooks/stripe
+# Add your webhook URL in PayHere merchant portal
+# Webhook URL: https://yourdomain.com/api/webhooks/payhere
 ```
 
 ### 🌐 Access the Application
@@ -245,24 +268,28 @@ Client: client1@example.com / password123
 ## 📱 Screenshots
 
 ### 🏠 Modern Homepage
+
 - Hero section with particle animations
 - Interactive search with AI suggestions
 - Trending genres and statistics
 - Testimonials carousel
 
 ### 🔍 Advanced Search
+
 - Smart filters and sorting
 - Real-time availability
 - Map integration
 - Infinite scroll results
 
 ### 👤 Profile Pages
+
 - Rich media galleries
 - Interactive calendars
 - Review systems
 - Social integrations
 
 ### 📊 Dashboards
+
 - Role-specific interfaces
 - Analytics and charts
 - Booking management
@@ -271,6 +298,7 @@ Client: client1@example.com / password123
 ## 🔧 API Documentation
 
 ### 🔐 Authentication
+
 ```
 POST /api/auth/register - Register new user
 POST /api/auth/login - Login user
@@ -280,6 +308,7 @@ GET /api/auth/me - Get current user
 ```
 
 ### 🎵 Artists
+
 ```
 GET /api/artists - Search artists
 GET /api/artists/:id - Get artist profile
@@ -288,6 +317,7 @@ POST /api/artists/:id/availability - Add availability (protected)
 ```
 
 ### 🏢 Studios
+
 ```
 GET /api/studios - Search studios
 GET /api/studios/:id - Get studio profile
@@ -296,6 +326,7 @@ POST /api/studios/:id/availability - Add availability (protected)
 ```
 
 ### 📅 Bookings
+
 ```
 GET /api/bookings/my - Get user's bookings (protected)
 POST /api/bookings - Create new booking (protected)
@@ -304,6 +335,7 @@ PATCH /api/bookings/:id/complete - Complete booking (protected)
 ```
 
 ### ⭐ Reviews
+
 ```
 GET /api/reviews - Get reviews
 POST /api/reviews - Create review (protected)
@@ -311,12 +343,15 @@ PATCH /api/reviews/:id - Update review (protected)
 ```
 
 ### 💳 Payments
+
 ```
-POST /api/payments/create-checkout-session - Create Stripe session (protected)
+POST /api/payments/create-checkout-session - Create PayHere session (protected)
 POST /api/payments/refund/:bookingId - Process refund (admin)
+POST /api/webhooks/payhere - PayHere webhook endpoint
 ```
 
 ### 🛡 Admin
+
 ```
 GET /api/admin/analytics - Platform analytics (admin)
 GET /api/admin/users - Manage users (admin)
@@ -337,12 +372,14 @@ cd client && npm test
 ## 📦 Deployment
 
 ### 🐳 Docker (Recommended)
+
 ```bash
 # Build and run with docker-compose
 docker-compose up --build
 ```
 
 ### ☁️ Manual Deployment
+
 1. Build frontend: `cd client && npm run build`
 2. Deploy backend to your preferred platform (Heroku, Railway, etc.)
 3. Deploy frontend to Netlify/Vercel
@@ -363,7 +400,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **React Team** for the amazing framework
-- **Stripe** for secure payment processing
+- **PayHere** for secure payment processing
 - **Cloudinary** for media management
 - **MongoDB** for flexible data storage
 - **Tailwind CSS** for utility-first styling
