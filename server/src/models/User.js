@@ -65,7 +65,23 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false
+  },
+  blockedAt: Date,
+  blockedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  blockedReason: String,
+  lastLoginAt: Date,
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: Date
 }, {
   timestamps: true
 });
@@ -86,6 +102,19 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Check if user is blocked
+userSchema.methods.isUserBlocked = function() {
+  return this.isBlocked || (this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Get user status
+userSchema.methods.getUserStatus = function() {
+  if (this.isBlocked) return 'blocked';
+  if (!this.isActive) return 'inactive';
+  if (!this.verified) return 'unverified';
+  return 'active';
 };
 
 // Remove password from JSON output

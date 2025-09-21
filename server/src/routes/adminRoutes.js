@@ -17,7 +17,15 @@ router.get('/revenue', adminController.getRevenueAnalytics);
 
 // User Management
 router.get('/users', adminController.getUsers);
+router.get('/users/stats', adminController.getUserStats);
 router.patch('/users/:id/role', adminController.updateUserRole);
+router.patch('/users/:id/verify', adminController.verifyUser);
+router.patch('/users/:id/unverify', adminController.unverifyUser);
+router.patch('/users/:id/block', adminController.blockUser);
+router.patch('/users/:id/unblock', adminController.unblockUser);
+router.patch('/users/:id/status', adminController.toggleUserStatus);
+router.delete('/users/:id', adminController.deleteUser);
+router.post('/users/bulk-actions', adminController.bulkUserActions);
 
 // Booking Management
 router.get('/bookings', adminController.getBookings);

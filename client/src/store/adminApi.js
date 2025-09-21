@@ -67,11 +67,67 @@ export const adminApi = createApi({
       }),
       providesTags: ['AdminUsers'],
     }),
+    getUserStats: builder.query({
+      query: () => '/users/stats',
+      providesTags: ['AdminUsers'],
+    }),
     updateUserRole: builder.mutation({
       query: ({ id, role }) => ({
         url: `/users/${id}/role`,
         method: 'PATCH',
         body: { role },
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    verifyUser: builder.mutation({
+      query: (id) => ({
+        url: `/users/${id}/verify`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    unverifyUser: builder.mutation({
+      query: (id) => ({
+        url: `/users/${id}/unverify`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    blockUser: builder.mutation({
+      query: ({ id, reason }) => ({
+        url: `/users/${id}/block`,
+        method: 'PATCH',
+        body: { reason },
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    unblockUser: builder.mutation({
+      query: (id) => ({
+        url: `/users/${id}/unblock`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    toggleUserStatus: builder.mutation({
+      query: ({ id, isActive }) => ({
+        url: `/users/${id}/status`,
+        method: 'PATCH',
+        body: { isActive },
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+    bulkUserActions: builder.mutation({
+      query: ({ userIds, action, reason }) => ({
+        url: '/users/bulk-actions',
+        method: 'POST',
+        body: { userIds, action, reason },
       }),
       invalidatesTags: ['AdminUsers'],
     }),
@@ -149,7 +205,16 @@ export const adminApi = createApi({
 export const {
   useGetAnalyticsQuery,
   useGetUsersQuery,
+  useGetUserStatsQuery,
   useUpdateUserRoleMutation,
+  // User Management
+  useVerifyUserMutation,
+  useUnverifyUserMutation,
+  useBlockUserMutation,
+  useUnblockUserMutation,
+  useToggleUserStatusMutation,
+  useDeleteUserMutation,
+  useBulkUserActionsMutation,
   useGetBookingsQuery,
   useGetReviewsQuery,
   useApproveReviewMutation,
