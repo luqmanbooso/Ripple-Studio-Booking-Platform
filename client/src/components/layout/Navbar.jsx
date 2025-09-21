@@ -95,11 +95,7 @@ const Navbar = () => {
       href: '/contact',
       icon: Phone
     },
-    {
-      name: 'Pricing',
-      href: '/pricing',
-      icon: TrendingUp
-    }
+    
   ]
 
   const isActive = (path) => {
