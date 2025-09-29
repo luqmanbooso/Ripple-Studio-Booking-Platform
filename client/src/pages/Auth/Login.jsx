@@ -100,7 +100,7 @@ const Login = () => {
           // Render button into container
           window.google.accounts.id.renderButton(
             document.getElementById('g_id_signin'),
-            { theme: 'outline', size: 'large', width: '100%' }
+            { theme: 'outline', size: 'large' }
           );
         }
       };
@@ -110,7 +110,7 @@ const Login = () => {
         client_id: clientId,
         callback: handleCredentialResponse
       });
-      window.google.accounts.id.renderButton(document.getElementById('g_id_signin'), { theme: 'outline', size: 'large', width: '100%' });
+      window.google.accounts.id.renderButton(document.getElementById('g_id_signin'), { theme: 'outline', size: 'large' });
     }
 
     return () => {

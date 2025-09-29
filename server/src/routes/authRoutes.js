@@ -45,6 +45,12 @@ const resetPasswordSchema = {
   })
 };
 
+const resendVerificationSchema = {
+  body: z.object({
+    email: z.string().email('Invalid email format')
+  })
+};
+
 // Apply rate limiting to auth routes
 router.use(authLimiter);
 
@@ -57,10 +63,13 @@ router.get('/refresh', authController.refreshToken);
 // Google sign-in (client sends Google ID token)
 router.post('/google', authController.googleAuth);
 
+// Email verification routes (public)
+router.get('/verify-email', authController.verifyEmail);
+router.post('/resend-verification', validate(resendVerificationSchema), authController.resendVerification);
+
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getMe);
-router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
 

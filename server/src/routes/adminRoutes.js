@@ -83,9 +83,11 @@ const updateStudioSchema = {
 };
 
 router.get('/studios', adminController.getStudios);
+router.get('/studios/pending', adminController.getPendingStudios);
 router.post('/studios', validate(studioSchema), adminController.createStudio);
 router.patch('/studios/:id', validate(updateStudioSchema), adminController.updateStudio);
+router.patch('/studios/:id/approve', adminController.approveStudio);
+router.patch('/studios/:id/reject', adminController.rejectStudio);
 router.delete('/studios/:id', adminController.deleteStudio);
-router.patch('/studios/:id/status', adminController.toggleStudioStatus);
 
 module.exports = router;

@@ -71,13 +71,23 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  blockedReason: String,
+  blockReason: String,
+  blockType: {
+    type: String,
+    enum: ['temporary', 'permanent', 'warning'],
+    default: 'temporary'
+  },
+  blockExpiresAt: Date,
+  warningCount: {
+    type: Number,
+    default: 0
+  },
+  lastWarningAt: Date,
   lastLoginAt: Date,
   loginAttempts: {
     type: Number,
     default: 0
   },
-  lockUntil: Date
 }, {
   timestamps: true
 });

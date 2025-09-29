@@ -4,6 +4,10 @@ const Review = require('../models/Review');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const { 
+  sendStudioApprovalEmail, 
+  sendStudioRejectionEmail 
+} = require('../services/emailService');
 
 const getAnalytics = catchAsync(async (req, res) => {
   const { timeframe = 'month' } = req.query;
@@ -173,7 +177,7 @@ const blockUser = catchAsync(async (req, res) => {
       isBlocked: true,
       blockedAt: new Date(),
       blockedBy: req.user._id,
-      blockedReason: reason || 'No reason provided',
+      blockReason: reason || 'No reason provided',
       isActive: false
     },
     { new: true, runValidators: true }
@@ -195,7 +199,7 @@ const unblockUser = catchAsync(async (req, res) => {
       isBlocked: false,
       blockedAt: undefined,
       blockedBy: undefined,
-      blockedReason: undefined,
+      blockReason: undefined,
       isActive: true,
       loginAttempts: 0,
       lockUntil: undefined
@@ -272,7 +276,6 @@ const getUserStats = catchAsync(async (req, res) => {
     User.countDocuments(),
     User.countDocuments({ role: 'client' }),
     User.countDocuments({ role: 'studio' }),
-    User.countDocuments({ role: 'studio' }),
     User.countDocuments({ role: 'admin' }),
     User.countDocuments({ verified: true }),
     User.countDocuments({ isActive: true }),
@@ -327,7 +330,7 @@ const bulkUserActions = catchAsync(async (req, res) => {
         isBlocked: true,
         blockedAt: new Date(),
         blockedBy: req.user._id,
-        blockedReason: reason || 'Bulk action',
+        blockReason: reason || 'Bulk action',
         isActive: false
       };
       message = 'Users blocked successfully';
@@ -337,7 +340,7 @@ const bulkUserActions = catchAsync(async (req, res) => {
         isBlocked: false,
         blockedAt: undefined,
         blockedBy: undefined,
-        blockedReason: undefined,
+        blockReason: undefined,
         isActive: true
       };
       message = 'Users unblocked successfully';
@@ -607,27 +610,6 @@ const deleteStudio = catchAsync(async (req, res) => {
   });
 });
 
-const toggleStudioStatus = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const { isActive } = req.body;
-
-  const studio = await Studio.findById(id);
-  if (!studio) {
-    throw new ApiError('Studio not found', 404);
-  }
-
-  // Update the studio's owner user status
-  await User.findByIdAndUpdate(studio.user, { isActive });
-
-  const updatedStudio = await Studio.findById(id)
-    .populate('user', 'name email verified isActive');
-
-  res.json({
-    status: 'success',
-    data: { studio: updatedStudio }
-  });
-});
-
 // Revenue Analytics
 const getRevenueAnalytics = catchAsync(async (req, res) => {
   const { timeframe = 'month', startDate, endDate } = req.query;
@@ -738,6 +720,101 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
   });
 });
 
+// Approve studio
+const approveStudio = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const studio = await Studio.findById(id).populate('user');
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  if (studio.isApproved) {
+    throw new ApiError('Studio is already approved', 400);
+  }
+
+  // Approve the studio
+  studio.isApproved = true;
+  studio.statusReason = 'Approved by admin';
+  await studio.save();
+
+  // Send approval email
+  try {
+    await sendStudioApprovalEmail(studio.user, studio);
+  } catch (error) {
+    console.error('Failed to send approval email:', error);
+    // Don't fail the approval if email fails
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Studio approved successfully',
+    data: { studio }
+  });
+});
+
+// Reject studio
+const rejectStudio = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  const studio = await Studio.findById(id).populate('user');
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  if (studio.isApproved) {
+    throw new ApiError('Cannot reject an approved studio', 400);
+  }
+
+  // Update studio status
+  studio.isApproved = false;
+  studio.statusReason = reason || 'Rejected by admin';
+  await studio.save();
+
+  // Send rejection email
+  try {
+    await sendStudioRejectionEmail(studio.user, studio, reason);
+  } catch (error) {
+    console.error('Failed to send rejection email:', error);
+    // Don't fail the rejection if email fails
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Studio rejected successfully',
+    data: { studio }
+  });
+});
+
+// Get pending studios
+const getPendingStudios = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  const [studios, total] = await Promise.all([
+    Studio.find({ isApproved: false })
+      .populate('user', 'name email phone createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit)),
+    Studio.countDocuments({ isApproved: false })
+  ]);
+
+  res.json({
+    status: 'success',
+    data: {
+      studios,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    }
+  });
+});
+
 module.exports = {
   getAnalytics,
   getUsers,
@@ -759,7 +836,10 @@ module.exports = {
   createStudio,
   updateStudio,
   deleteStudio,
-  toggleStudioStatus,
+  // Studio approval
+  approveStudio,
+  rejectStudio,
+  getPendingStudios,
   // Revenue analytics
   getRevenueAnalytics
 };

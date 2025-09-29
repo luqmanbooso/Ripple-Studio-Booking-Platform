@@ -27,13 +27,11 @@ import Feedback from "./pages/Feedback";
 // Auth pages
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import Verify from "./pages/Auth/Verify";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
 // Dashboard pages
 import ClientDashboard from "./pages/Dashboard/ClientDashboard";
-import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminBookings from "./pages/Admin/AdminBookings";
@@ -41,12 +39,19 @@ import AdminStudios from "./pages/Admin/AdminStudios";
 import AdminRevenue from "./pages/Admin/AdminRevenue";
 import AdminReviews from "./pages/Admin/AdminReviews";
 import AdminPayments from "./pages/Admin/AdminPayments";
+import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminFeedback from "./pages/Admin/AdminFeedback";
+import AdminNotifications from "./pages/Admin/AdminNotifications";
+import AdminStudioApprovals from "./pages/Admin/AdminStudioApprovals";
 
 // Settings pages
 import Profile from "./pages/Settings/Profile";
 import Security from "./pages/Settings/Security";
 import StudioSettings from "./pages/Dashboard/StudioSettings";
+import AvailabilityManager from "./pages/Dashboard/AvailabilityManager";
+import PaymentHistory from "./pages/Dashboard/PaymentHistory";
+import StudioProfileManager from "./pages/Dashboard/StudioProfileManager";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Store
 import { setCredentials, initializeAuth } from "./store/authSlice";
@@ -182,19 +187,17 @@ function App() {
             <Route path="/genres" element={<Search />} />
             <Route path="/featured" element={<Search />} />
             <Route path="/tools" element={<Blog />} />
-            <Route path="/stories" element={<Blog />} />
             <Route path="/help" element={<Blog />} />
 
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify" element={<Verify />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes */}
             <Route
-              path="/booking/new"
               element={
                 <ProtectedRoute>
                   <NewBooking />
@@ -254,6 +257,30 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard/availability"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <AvailabilityManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/profile"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioProfileManager />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin routes */}
             <Route
@@ -303,9 +330,11 @@ function AdminRoutes() {
       <Route path="users" element={<AdminUsers />} />
       <Route path="bookings" element={<AdminBookings />} />
       <Route path="studios" element={<AdminStudios />} />
+      <Route path="studios/approvals" element={<AdminStudioApprovals />} />
       <Route path="revenue" element={<AdminRevenue />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />
+      <Route path="notifications" element={<AdminNotifications />} />
       <Route path="feedback" element={<AdminFeedback />} />
     </Routes>
   );

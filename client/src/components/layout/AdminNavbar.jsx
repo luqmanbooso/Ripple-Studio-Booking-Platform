@@ -1,11 +1,10 @@
-import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Shield,
   LogOut,
   Bell,
-  Settings,
   Search,
   User,
   ChevronDown,
@@ -18,9 +17,13 @@ import {
   Star,
   BarChart3,
   Home,
-} from "lucide-react";
-import { logout } from "../../store/authSlice";
-import toast from "react-hot-toast";
+  Settings,
+} from "lucide-react"
+import toast from "react-hot-toast"
+
+import Button from '../ui/Button'
+import NotificationBell from '../common/NotificationBell'
+import { logout } from '../../store/authSlice'
 
 const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,6 +46,7 @@ const AdminNavbar = () => {
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
     { name: "Revenue", href: "/admin/revenue", icon: DollarSign },
     { name: "Reviews", href: "/admin/reviews", icon: Star },
+    { name: "Notifications", href: "/admin/notifications", icon: Bell },
     { name: "Feedback", href: "/admin/feedback", icon: BarChart3 },
   ];
 
@@ -96,10 +100,7 @@ const AdminNavbar = () => {
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationBell />
 
             {/* Admin Profile Dropdown */}
             <div className="relative">

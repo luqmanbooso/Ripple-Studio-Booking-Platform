@@ -30,12 +30,14 @@ import { logout } from '../../store/authSlice'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../ui/ThemeToggle'
+import NotificationCenter from '../notifications/NotificationCenter'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -110,15 +112,15 @@ const Navbar = () => {
     setIsProfileOpen(false)
   }
 
-  const toggleProfile = (event) => {
-    event.stopPropagation()
+  const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen)
     setActiveDropdown(null)
   }
 
   return (
-    <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
@@ -231,18 +233,29 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right Side - Theme Toggle + User Menu / Auth Buttons */}
+          {/* Right Side - Notifications + Theme Toggle + User Menu / Auth Buttons */}
           <div className="flex items-center space-x-3">
+            {/* Notifications */}
+            {isAuthenticated && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 relative"
+                >
+                  <Bell className="w-5 h-5" />
+                  {/* Notification badge */}
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Theme Toggle */}
             <ThemeToggle size="md" />
 
             {isAuthenticated ? (
               <>
-                {/* Notifications */}
-                <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <Bell className="w-5 h-5 group-hover:animate-wiggle" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-error-500 rounded-full animate-pulse"></span>
-                </button>
 
                 {/* Messages */}
                 <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
@@ -504,10 +517,20 @@ const Navbar = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </nav>
+        </div>
+      </nav>
+
+      {/* Notification Center */}
+      <AnimatePresence>
+        {isNotificationsOpen && (
+          <NotificationCenter
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
 export default Navbar
-

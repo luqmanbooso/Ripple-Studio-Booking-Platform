@@ -5,11 +5,17 @@ const catchAsync = require("../utils/catchAsync");
 const availabilityService = require("../services/availabilityService");
 const bookingService = require("../services/bookingService");
 const paymentService = require("../services/paymentService");
+const NotificationService = require("../services/notificationService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
 
 const createBooking = catchAsync(async (req, res) => {
   const { studioId, service, start, end, notes } = req.body;
   const clientId = req.user._id;
+
+  // Check if client is verified
+  if (!req.user.verified) {
+    throw new ApiError("Please verify your email address before making bookings", 403);
+  }
 
   // Get the provider (studio only)
   const provider = await Studio.findById(studioId).populate("user");
@@ -21,6 +27,11 @@ const createBooking = catchAsync(async (req, res) => {
 
   if (!provider.isActive) {
     throw new ApiError("Provider is not currently accepting bookings", 400);
+  }
+
+  // Check if studio is approved
+  if (!provider.isApproved) {
+    throw new ApiError("This studio is not yet approved for bookings", 400);
   }
 
   // Validate service for studio
@@ -71,6 +82,11 @@ const createBooking = catchAsync(async (req, res) => {
     service: service.name,
     start,
     end,
+  });
+
+  // Send notification to admin about new booking (async)
+  NotificationService.notifyBookingCreated(booking, req.user, provider).catch(error => {
+    console.error('Failed to send booking notification:', error);
   });
 
   res.status(201).json({

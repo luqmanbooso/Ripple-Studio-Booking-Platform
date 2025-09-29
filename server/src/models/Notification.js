@@ -18,7 +18,16 @@ const notificationSchema = new mongoose.Schema({
       'verification_approved',
       'verification_rejected',
       'reminder',
-      'system'
+      'system',
+      // Admin-specific notifications
+      'studio_registration',
+      'studio_approval_pending',
+      'user_registration',
+      'payment_dispute',
+      'review_flagged',
+      'system_alert',
+      'revenue_milestone',
+      'user_activity_suspicious'
     ],
     required: [true, 'Notification type is required']
   },
@@ -41,13 +50,19 @@ const notificationSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Review'
     },
-    verificationId: {
+    studioId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Verification'
+      ref: 'Studio'
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     },
     amount: Number,
     currency: String,
-    url: String
+    url: String,
+    actionRequired: Boolean,
+    metadata: mongoose.Schema.Types.Mixed
   },
   isRead: {
     type: Boolean,
