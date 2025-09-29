@@ -1,5 +1,4 @@
 const Booking = require("../models/Booking");
-const Artist = require("../models/Artist");
 const Studio = require("../models/Studio");
 const Payout = require("../models/Payout");
 const Notification = require("../models/Notification");
@@ -22,8 +21,8 @@ const completeBooking = async (booking, notes = "") => {
     await booking.save();
 
     // Update provider stats
-    const providerType = booking.artist ? "artist" : "studio";
-    const providerId = booking.artist || booking.studio;
+    const providerType = "studio";
+    const providerId = booking.studio;
 
     await updateProviderStats(providerType, providerId, booking.price);
 
@@ -141,7 +140,7 @@ const confirmBooking = async (booking, paymentId) => {
     });
 
     // Emit socket events for real-time updates
-    const providerId = booking.artist?._id || booking.studio?._id;
+    const providerId = booking.studio?._id;
     emitToProvider(providerType, providerId, "calendar_update", {
       action: "booking_confirmed",
       bookingId: booking._id,
@@ -159,14 +158,14 @@ const confirmBooking = async (booking, paymentId) => {
 
 /**
  * Update provider statistics
- * @param {string} providerType - 'artist' or 'studio'
+ * @param {string} providerType - 'studio'
  * @param {string} providerId - Provider ID
  * @param {number} amount - Booking amount
  */
 const updateProviderStats = async (providerType, providerId, amount) => {
-  const Model = providerType === "artist" ? Artist : Studio;
-
-  await Model.findByIdAndUpdate(providerId, {
+  if (providerType !== 'studio') return;
+  
+  await Studio.findByIdAndUpdate(providerId, {
     $inc: {
       completedBookings: 1,
       totalEarnings: amount,
@@ -235,14 +234,11 @@ const sendBookingReminders = async (reminderDate = new Date()) => {
       reminderSent: false,
     }).populate([
       { path: "client", select: "name email" },
-      { path: "artist", populate: { path: "user", select: "name email" } },
       { path: "studio", populate: { path: "user", select: "name email" } },
     ]);
 
     for (const booking of upcomingBookings) {
-      const providerName = booking.artist
-        ? booking.artist.user.name
-        : booking.studio.name;
+      const providerName = booking.studio.name;
 
       // Send reminder to client
       await createNotification(booking.client._id, "reminder", {
@@ -252,9 +248,7 @@ const sendBookingReminders = async (reminderDate = new Date()) => {
       });
 
       // Send reminder to provider
-      const providerUserId = booking.artist
-        ? booking.artist.user._id
-        : booking.studio.user._id;
+      const providerUserId = booking.studio.user._id;
       await createNotification(providerUserId, "reminder", {
         title: "Booking Reminder",
         message: `You have a booking with ${booking.client.name} tomorrow at ${new Date(booking.start).toLocaleTimeString()}.`,

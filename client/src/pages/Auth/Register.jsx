@@ -33,15 +33,10 @@ const registerSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
-  role: z.enum(['client', 'artist', 'studio']),
+  role: z.enum(['client', 'studio']),
   phone: z.string().optional(),
   country: z.string().min(1, 'Country is required').default('Sri Lanka'),
   city: z.string().min(1, 'City is required'),
-  // Artist-specific fields
-  genres: z.array(z.string()).optional(),
-  instruments: z.array(z.string()).optional(),
-  hourlyRate: z.number().min(0, 'Hourly rate must be positive').optional(),
-  bio: z.string().max(2000, 'Bio cannot exceed 2000 characters').optional(),
   // Studio-specific fields
   studioName: z.string().min(1, 'Studio name is required').optional(),
   studioDescription: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
@@ -58,14 +53,6 @@ const registerSchema = z.object({
   message: "Studio name is required for studio accounts",
   path: ["studioName"],
 }).refine(data => {
-  if (data.role === 'artist') {
-    return data.hourlyRate && data.hourlyRate > 0;
-  }
-  return true;
-}, {
-  message: "Hourly rate is required for artist accounts",
-  path: ["hourlyRate"],
-}).refine(data => {
   return data.country === 'Sri Lanka';
 }, {
   message: "Country must be Sri Lanka",
@@ -77,13 +64,7 @@ const roleOptions = [
     value: 'client',
     label: 'Client',
     icon: Users,
-    description: 'Book sessions with artists and studios'
-  },
-  {
-    value: 'artist',
-    label: 'Artist',
-    icon: Mic,
-    description: 'Offer your musical services'
+    description: 'Book sessions with studios'
   },
   {
     value: 'studio',
@@ -93,24 +74,13 @@ const roleOptions = [
   }
 ]
 
-const genres = [
-  'Pop', 'Rock', 'Hip Hop', 'R&B', 'Electronic', 'Jazz', 'Classical', 'Country', 'Folk', 'Blues',
-  'Reggae', 'Latin', 'Metal', 'Punk', 'Indie', 'Alternative', 'Soul', 'Funk', 'Disco', 'House',
-  'Techno', 'Drum & Bass', 'Trap', 'Lo-Fi', 'Ambient', 'Experimental'
-]
 
-const instruments = [
-  'Vocals', 'Guitar', 'Bass', 'Drums', 'Piano', 'Keyboard', 'Saxophone', 'Trumpet', 'Violin', 'Cello',
-  'Flute', 'Clarinet', 'Harp', 'Harmonica', 'Ukulele', 'Banjo', 'Mandolin', 'Synthesizer', 'Sampler'
-]
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedRole, setSelectedRole] = useState('client')
-  const [selectedGenres, setSelectedGenres] = useState([])
-  const [selectedInstruments, setSelectedInstruments] = useState([])
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -126,8 +96,6 @@ const Register = () => {
       role: 'client',
       country: 'Sri Lanka',
       city: '',
-      genres: [],
-      instruments: [],
     },
   })
 
@@ -197,14 +165,7 @@ const Register = () => {
       }
 
       // Add role-specific data
-      if (data.role === 'artist') {
-        registrationData.artist = {
-          genres: selectedGenres,
-          instruments: selectedInstruments,
-          hourlyRate: data.hourlyRate,
-          bio: data.bio || ''
-        }
-      } else if (data.role === 'studio') {
+      if (data.role === 'studio') {
         registrationData.studio = {
           name: data.studioName,
           description: data.studioDescription || '',
@@ -232,35 +193,12 @@ const Register = () => {
     setSelectedRole(role)
     setValue('role', role)
     // Reset role-specific fields when changing roles
-    if (role !== 'artist') {
-      setSelectedGenres([])
-      setSelectedInstruments([])
-      setValue('genres', [])
-      setValue('instruments', [])
-      setValue('hourlyRate', undefined)
-      setValue('bio', '')
-    }
     if (role !== 'studio') {
       setValue('studioName', '')
       setValue('studioDescription', '')
     }
   }
 
-  const handleGenreToggle = (genre) => {
-    const newGenres = selectedGenres.includes(genre)
-      ? selectedGenres.filter(g => g !== genre)
-      : [...selectedGenres, genre]
-    setSelectedGenres(newGenres)
-    setValue('genres', newGenres)
-  }
-
-  const handleInstrumentToggle = (instrument) => {
-    const newInstruments = selectedInstruments.includes(instrument)
-      ? selectedInstruments.filter(i => i !== instrument)
-      : [...selectedInstruments, instrument]
-    setSelectedInstruments(newInstruments)
-    setValue('instruments', newInstruments)
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

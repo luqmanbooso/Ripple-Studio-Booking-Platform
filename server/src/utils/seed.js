@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
@@ -17,7 +16,6 @@ const seedData = async () => {
 
     // Clear existing data
     await User.deleteMany({});
-    await Artist.deleteMany({});
     await Studio.deleteMany({});
     await Booking.deleteMany({});
     await Review.deleteMany({});
@@ -33,55 +31,7 @@ const seedData = async () => {
       isActive: true
     });
 
-    // Create sample artists
-    const artistUsers = [];
-    const artists = [];
-
-    for (let i = 1; i <= 5; i++) {
-      const user = await User.create({
-        name: `Artist ${i}`,
-        email: `artist${i}@example.com`,
-        password: 'password123',
-        role: 'artist',
-        verified: true,
-        country: 'Sri Lanka',
-        city: ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura'][i-1]
-      });
-
-      const artist = await Artist.create({
-        user: user._id,
-        genres: [
-          ['Rock', 'Alternative'],
-          ['Hip Hop', 'R&B'],
-          ['Country', 'Folk'],
-          ['Electronic', 'Pop'],
-          ['Jazz', 'Blues']
-        ][i-1],
-        instruments: [
-          ['Guitar', 'Vocals'],
-          ['Vocals', 'Piano'],
-          ['Guitar', 'Banjo'],
-          ['Synthesizer', 'Computer'],
-          ['Saxophone', 'Piano']
-        ][i-1],
-        bio: `Experienced ${['rock', 'hip hop', 'country', 'electronic', 'jazz'][i-1]} artist with over 10 years in the industry.`,
-        hourlyRate: [75, 100, 60, 90, 80][i-1],
-        ratingAvg: [4.5, 4.8, 4.3, 4.6, 4.7][i-1],
-        ratingCount: [15, 23, 8, 19, 12][i-1],
-        availability: [{
-          start: new Date('2024-01-01T09:00:00Z'),
-          end: new Date('2024-12-31T17:00:00Z'),
-          isRecurring: true,
-          daysOfWeek: [1, 2, 3, 4, 5] // Monday to Friday
-        }]
-      });
-
-      user.artist = artist._id;
-      await user.save();
-
-      artistUsers.push(user);
-      artists.push(artist);
-    }
+    // Artists removed - now studio-only platform
 
     // Create sample studios
     const studioUsers = [];
@@ -164,7 +114,7 @@ const seedData = async () => {
     // Past completed booking
     const pastBooking = await Booking.create({
       client: clients[0]._id,
-      artist: artists[0]._id,
+      studio: studios[0]._id,
       service: {
         name: 'Recording Session',
         price: 150,
@@ -200,11 +150,11 @@ const seedData = async () => {
     // Create sample reviews
     await Review.create({
       author: clients[0]._id,
-      targetType: 'artist',
-      targetId: artists[0]._id,
+      targetType: 'studio',
+      targetId: studios[0]._id,
       booking: pastBooking._id,
       rating: 5,
-      comment: 'Amazing session! Very professional and talented artist.',
+      comment: 'Amazing session! Very professional studio with great equipment.',
       isApproved: true
     });
 
@@ -223,7 +173,6 @@ const seedData = async () => {
     console.log('✅ Database seeded successfully!');
     console.log('\nSample accounts created:');
     console.log('Admin: admin@musicbooking.com / admin123');
-    console.log('Artist: artist1@example.com / password123');
     console.log('Studio: studio1@example.com / password123');
     console.log('Client: client1@example.com / password123');
 

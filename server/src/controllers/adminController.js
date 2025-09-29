@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
@@ -255,8 +254,6 @@ const deleteUser = catchAsync(async (req, res) => {
     Booking.deleteMany({ client: id }),
     // Delete reviews by the user
     Review.deleteMany({ author: id }),
-    // Remove artist profile if exists
-    Artist.deleteMany({ user: id }),
     // Remove studio profile if exists
     Studio.deleteMany({ user: id })
   ]);
@@ -274,7 +271,7 @@ const getUserStats = catchAsync(async (req, res) => {
   const stats = await Promise.all([
     User.countDocuments(),
     User.countDocuments({ role: 'client' }),
-    User.countDocuments({ role: 'artist' }),
+    User.countDocuments({ role: 'studio' }),
     User.countDocuments({ role: 'studio' }),
     User.countDocuments({ role: 'admin' }),
     User.countDocuments({ verified: true }),
@@ -292,13 +289,12 @@ const getUserStats = catchAsync(async (req, res) => {
     data: {
       total: stats[0],
       clients: stats[1],
-      artists: stats[2],
-      studios: stats[3],
-      admins: stats[4],
-      verified: stats[5],
-      active: stats[6],
-      blocked: stats[7],
-      newThisMonth: stats[8]
+      studios: stats[2],
+      admins: stats[3],
+      verified: stats[4],
+      active: stats[5],
+      blocked: stats[6],
+      newThisMonth: stats[7]
     }
   });
 });
@@ -392,7 +388,6 @@ const getBookings = catchAsync(async (req, res) => {
   const bookings = await Booking.find(query)
     .populate([
       { path: 'client', select: 'name email' },
-      { path: 'artist', populate: { path: 'user', select: 'name email' } },
       { path: 'studio', populate: { path: 'user', select: 'name email' } }
     ])
     .sort({ createdAt: -1 })
@@ -669,7 +664,7 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
     totalRevenue,
     revenueByMonth,
     revenueByStudio,
-    revenueByArtist,
+    emptyArtistArray,
     averageBookingValue
   ] = await Promise.all([
     // Total revenue
@@ -718,38 +713,8 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
       { $limit: 10 }
     ]),
     
-    // Revenue by artist
-    Booking.aggregate([
-      { $match: { status: 'completed', artist: { $exists: true }, ...dateFilter } },
-      {
-        $lookup: {
-          from: 'artists',
-          localField: 'artist',
-          foreignField: '_id',
-          as: 'artistInfo'
-        }
-      },
-      { $unwind: '$artistInfo' },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'artistInfo.user',
-          foreignField: '_id',
-          as: 'userInfo'
-        }
-      },
-      { $unwind: '$userInfo' },
-      {
-        $group: {
-          _id: '$artist',
-          name: { $first: '$userInfo.name' },
-          revenue: { $sum: '$price' },
-          bookings: { $sum: 1 }
-        }
-      },
-      { $sort: { revenue: -1 } },
-      { $limit: 10 }
-    ]),
+    // Empty array for artists (removed)
+    Promise.resolve([]),
     
     // Average booking value
     Booking.aggregate([
@@ -768,8 +733,7 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
         revenue: item.revenue,
         bookings: item.bookings
       })),
-      topStudios: revenueByStudio,
-      topArtists: revenueByArtist
+      topStudios: revenueByStudio
     }
   });
 });

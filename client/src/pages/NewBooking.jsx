@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
-import { useGetArtistQuery } from "../store/artistApi";
 import { useGetStudioQuery } from "../store/studioApi";
 import { useCreateBookingMutation } from "../store/bookingApi";
 
@@ -20,18 +19,11 @@ const NewBooking = () => {
   const [duration, setDuration] = useState(180); // 3 hours default
   const [notes, setNotes] = useState("");
 
-  const artistId = searchParams.get("artistId");
   const studioId = searchParams.get("studioId");
   const serviceParam = searchParams.get("service");
 
-  console.log("NewBooking - URL params:", { artistId, studioId, serviceParam });
+  console.log("NewBooking - URL params:", { studioId, serviceParam });
 
-  const { data: artistData, isLoading: artistLoading } = useGetArtistQuery(
-    artistId,
-    {
-      skip: !artistId,
-    }
-  );
   const { data: studioData, isLoading: studioLoading } = useGetStudioQuery(
     studioId,
     {
@@ -42,15 +34,15 @@ const NewBooking = () => {
   const [createBooking, { isLoading: bookingLoading }] =
     useCreateBookingMutation();
 
-  const isLoading = artistLoading || studioLoading;
-  const provider = artistData?.data?.artist || studioData?.data?.studio;
-  const providerType = artistId ? "artist" : "studio";
+  const isLoading = studioLoading;
+  const provider = studioData?.data?.studio;
+  const providerType = "studio";
 
   console.log("NewBooking - Provider data:", { provider, providerType });
 
   useEffect(() => {
-    if (studioData?.data?.studio?.services && serviceParam) {
-      const service = studioData.data.studio.services.find(
+    if (provider?.services && serviceParam) {
+      const service = provider.services.find(
         (s) => s.name === serviceParam
       );
       if (service) {
@@ -58,13 +50,10 @@ const NewBooking = () => {
         setDuration(service.durationMins);
       }
     }
-  }, [studioData, serviceParam]);
+  }, [provider, serviceParam]);
 
   const calculatePrice = () => {
-    if (providerType === "artist" && provider?.hourlyRate) {
-      return (provider.hourlyRate * (duration / 60)).toFixed(2);
-    }
-    if (providerType === "studio" && selectedService) {
+    if (selectedService) {
       return selectedService.price;
     }
     return 0;
@@ -78,7 +67,7 @@ const NewBooking = () => {
       return;
     }
 
-    if (providerType === "studio" && !selectedService) {
+    if (!selectedService) {
       toast.error("Please select a service");
       return;
     }
@@ -87,7 +76,7 @@ const NewBooking = () => {
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
     const bookingData = {
-      [providerType === "artist" ? "artistId" : "studioId"]: provider._id,
+      studioId: provider._id,
       service: {
         name: selectedService?.name || "Session",
         price: parseFloat(calculatePrice()),
@@ -155,7 +144,7 @@ const NewBooking = () => {
             Provider Not Found
           </h2>
           <p className="text-gray-400 mb-4">
-            The artist or studio you're trying to book doesn't exist.
+            The studio you're trying to book doesn't exist.
           </p>
           <Button onClick={() => navigate("/search")}>Browse Providers</Button>
         </div>
@@ -186,7 +175,7 @@ const NewBooking = () => {
     const fetchBooked = async () => {
       if (!selectedDate || !provider) return;
 
-      const pType = artistId ? "artist" : "studio";
+      const pType = "studio";
       const providerId = provider._id;
 
       try {
@@ -213,7 +202,7 @@ const NewBooking = () => {
     };
 
     fetchBooked();
-  }, [selectedDate, artistId, studioId, provider]);
+  }, [selectedDate, studioId, provider]);
 
   return (
     <div className="min-h-screen bg-dark-950">
@@ -340,8 +329,8 @@ const NewBooking = () => {
                   </Card>
                 )}
 
-                {/* Duration (Artists only) */}
-                {providerType === "artist" && (
+                {/* Duration - Not needed for studios with fixed services */}
+                {false && (
                   <Card>
                     <h3 className="text-lg font-semibold text-gray-100 mb-4">
                       Duration
@@ -395,11 +384,7 @@ const NewBooking = () => {
                 {/* Provider Info */}
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
-                    {providerType === "artist" ? (
-                      <User className="w-6 h-6 text-white" />
-                    ) : (
-                      <Building className="w-6 h-6 text-white" />
-                    )}
+                    <Building className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-100">
@@ -456,11 +441,6 @@ const NewBooking = () => {
                       <div className="text-2xl font-bold text-primary-400">
                         ${calculatePrice()}
                       </div>
-                      {providerType === "artist" && (
-                        <div className="text-sm text-gray-400">
-                          ${provider.hourlyRate}/hr
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

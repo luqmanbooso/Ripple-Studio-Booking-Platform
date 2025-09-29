@@ -7,7 +7,6 @@ import themeSlice from './themeSlice'
 
 // API slices
 import { userApi } from './userApi'
-import { artistApi } from './artistApi'
 import { studioApi } from './studioApi'
 import { bookingApi } from './bookingApi'
 import { reviewApi } from './reviewApi'
@@ -19,7 +18,6 @@ export const store = configureStore({
     auth: authSlice,
     theme: themeSlice,
     [userApi.reducerPath]: userApi.reducer,
-    [artistApi.reducerPath]: artistApi.reducer,
     [studioApi.reducerPath]: studioApi.reducer,
     [bookingApi.reducerPath]: bookingApi.reducer,
     [reviewApi.reducerPath]: reviewApi.reducer,
@@ -33,7 +31,6 @@ export const store = configureStore({
       },
     }).concat(
       userApi.middleware,
-      artistApi.middleware,
       studioApi.middleware,
       bookingApi.middleware,
       reviewApi.middleware,

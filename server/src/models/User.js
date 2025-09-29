@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['client', 'artist', 'studio', 'admin'],
+    enum: ['client', 'studio', 'admin'],
     default: 'client'
   },
   phone: {
@@ -45,10 +45,6 @@ const userSchema = new mongoose.Schema({
   verified: {
     type: Boolean,
     default: false
-  },
-  artist: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Artist'
   },
   studio: {
     type: mongoose.Schema.Types.ObjectId,

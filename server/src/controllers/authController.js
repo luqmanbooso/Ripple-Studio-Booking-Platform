@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
@@ -52,31 +51,22 @@ const register = catchAsync(async (req, res) => {
     throw new ApiError('User already exists with this email', 400);
   }
 
+  // Determine allowed role (artist role removed); default to client unless 'studio'
+  const userRole = role === 'studio' ? 'studio' : 'client';
+
   // Create user - always set country to Sri Lanka
   const user = await User.create({
     name,
     email,
     password,
-    role,
+    role: userRole,
     country: 'Sri Lanka', // Always set to Sri Lanka
     city,
     phone
   });
 
   // Create role-specific profile
-  if (role === 'artist') {
-    const artistData = {
-      user: user._id,
-      genres: artist?.genres || [],
-      instruments: artist?.instruments || [],
-      hourlyRate: artist?.hourlyRate || 50,
-      bio: artist?.bio || ''
-    };
-    
-    const artistProfile = await Artist.create(artistData);
-    user.artist = artistProfile._id;
-    await user.save();
-  } else if (role === 'studio') {
+  if (userRole === 'studio') {
     const studioData = {
       user: user._id,
       name: studio?.name || `${name}'s Studio`,
@@ -353,7 +343,6 @@ const resetPassword = catchAsync(async (req, res) => {
 
 const getMe = catchAsync(async (req, res) => {
   const user = await User.findById(req.user._id)
-    .populate('artist')
     .populate('studio');
 
   res.json({

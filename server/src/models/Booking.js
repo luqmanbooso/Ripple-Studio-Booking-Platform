@@ -7,13 +7,10 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Client is required"],
     },
-    artist: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Artist",
-    },
     studio: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Studio",
+      required: [true, "Studio is required"],
     },
     service: {
       name: {
@@ -99,14 +96,12 @@ const bookingSchema = new mongoose.Schema(
 
 // Indexes
 bookingSchema.index({ client: 1 });
-bookingSchema.index({ artist: 1 });
 bookingSchema.index({ studio: 1 });
 bookingSchema.index({ status: 1 });
 bookingSchema.index({ start: 1, end: 1 });
 bookingSchema.index({ createdAt: -1 });
 
 // Compound indexes for conflict checking
-bookingSchema.index({ artist: 1, start: 1, end: 1, status: 1 });
 bookingSchema.index({ studio: 1, start: 1, end: 1, status: 1 });
 
 // Validation: end time must be after start time
@@ -117,13 +112,10 @@ bookingSchema.pre("validate", function (next) {
   next();
 });
 
-// Validation: must have either artist or studio
+// Validation: must have studio
 bookingSchema.pre("validate", function (next) {
-  if (!this.artist && !this.studio) {
-    next(new Error("Booking must have either an artist or studio"));
-  }
-  if (this.artist && this.studio) {
-    next(new Error("Booking cannot have both artist and studio"));
+  if (!this.studio) {
+    next(new Error("Booking must have a studio"));
   }
   next();
 });
@@ -133,14 +125,14 @@ bookingSchema.virtual("durationMins").get(function () {
   return Math.round((this.end - this.start) / (1000 * 60));
 });
 
-// Virtual for provider (artist or studio)
+// Virtual for provider (studio)
 bookingSchema.virtual("provider").get(function () {
-  return this.artist || this.studio;
+  return this.studio;
 });
 
 // Virtual for provider type
 bookingSchema.virtual("providerType").get(function () {
-  return this.artist ? "artist" : "studio";
+  return "studio";
 });
 
 // Check if booking can be cancelled

@@ -13,7 +13,6 @@ import ParticleBackground from "./components/common/ParticleBackground";
 // Pages
 import Home from "./pages/Home";
 import Search from "./pages/Search";
-import ArtistProfile from "./pages/ArtistProfile";
 import StudioProfile from "./pages/StudioProfile";
 import NewBooking from "./pages/NewBooking";
 import Checkout from "./pages/Checkout";
@@ -34,7 +33,6 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 
 // Dashboard pages
 import ClientDashboard from "./pages/Dashboard/ClientDashboard";
-import ArtistDashboard from "./pages/Dashboard/ArtistDashboard";
 import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import AdminUsers from "./pages/Admin/AdminUsers";
@@ -174,7 +172,6 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/artists/:id" element={<ArtistProfile />} />
             <Route path="/studios/:id" element={<StudioProfile />} />
             <Route path="/community" element={<Community />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -289,8 +286,6 @@ function DashboardRouter() {
   switch (user.role) {
     case "client":
       return <ClientDashboard />;
-    case "artist":
-      return <ArtistDashboard />;
     case "studio":
       return <StudioDashboard />;
     case "admin":
