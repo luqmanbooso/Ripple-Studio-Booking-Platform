@@ -9,12 +9,17 @@ import {
   Clock,
   Edit,
   Plus,
-  Settings
+  Settings,
+  CreditCard,
+  Users,
+  BarChart3
 } from 'lucide-react'
 
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
+import BookingCard from '../../components/bookings/BookingCard'
+import StudioApprovalBanner from '../../components/common/StudioApprovalBanner'
 import { useGetMyBookingsQuery } from '../../store/bookingApi'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -51,236 +56,244 @@ const StudioDashboard = () => {
     {
       label: 'Total Revenue',
       value: `$${totalRevenue.toFixed(2)}`,
-      icon: BadgeDollarSign ,
+      icon: BadgeDollarSign,
       color: 'text-green-400',
-      change: '+15%',
-      subtitle: 'This month'
+      bg: 'bg-green-500/10'
     },
     {
-      label: 'Bookings',
-      value: thisMonthBookings.length,
+      label: 'Upcoming Bookings',
+      value: upcomingBookings.length,
       icon: Calendar,
-      color: 'text-primary-400',
-      change: '+8%',
-      subtitle: 'This month'
+      color: 'text-blue-400',
+      bg: 'bg-blue-500/10'
     },
     {
-      label: 'Rating',
-      value: studio?.ratingAvg ? studio.ratingAvg.toFixed(1) : 'New',
+      label: 'This Month',
+      value: thisMonthBookings.length,
+      icon: TrendingUp,
+      color: 'text-purple-400',
+      bg: 'bg-purple-500/10'
+    },
+    {
+      label: 'Average Rating',
+      value: studio?.ratingAvg ? `${studio.ratingAvg.toFixed(1)}/5` : 'N/A',
       icon: Star,
       color: 'text-yellow-400',
-      change: studio?.ratingCount ? `${studio.ratingCount} reviews` : 'No reviews yet',
-      subtitle: 'Average rating'
-    },
-    {
-      label: 'Utilization',
-      value: '73%',
-      icon: Building,
-      color: 'text-accent-400',
-      change: '+5%',
-      subtitle: 'This month'
+      bg: 'bg-yellow-500/10'
     }
   ]
 
+  const quickActions = [
+    {
+      label: 'Manage Availability',
+      description: 'Set your available time slots',
+      icon: Calendar,
+      color: 'bg-blue-500',
+      action: () => navigate('/dashboard/availability')
+    },
+    {
+      label: 'Studio Profile',
+      description: 'Update equipment and amenities',
+      icon: Building,
+      color: 'bg-purple-500',
+      action: () => navigate('/dashboard/profile')
+    },
+    {
+      label: 'Payment History',
+      description: 'View earnings and transactions',
+      icon: CreditCard,
+      color: 'bg-green-500',
+      action: () => navigate('/dashboard/payments')
+    },
+    {
+      label: 'Studio Settings',
+      description: 'Manage services and pricing',
+      icon: Settings,
+      color: 'bg-gray-500',
+      action: () => navigate('/dashboard/settings/studio')
+    }
+  ]
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-white dark:bg-dark-950">
+    <div className="min-h-screen bg-dark-950">
       <div className="container py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
+          className="max-w-7xl mx-auto"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Studio Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Manage your studio bookings and operations
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" icon={<Settings className="w-5 h-5" />} onClick={() => navigate('/dashboard/settings/studio')}>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-100 mb-2">
+                Studio Dashboard
+              </h1>
+              <p className="text-gray-400">
+                Welcome back, {studio?.name || user?.name}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/dashboard/settings/studio')}
+              icon={<Settings className="w-4 h-4" />}
+              variant="outline"
+            >
               Studio Settings
             </Button>
-            <Button icon={<Plus className="w-5 h-5" />} onClick={() => navigate('/dashboard/settings/studio')}>
-              Add Service
-            </Button>
           </div>
-        </motion.div>
 
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {stats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <Card key={stat.label}>
-                <div className="flex items-center justify-between mb-3">
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
-                  <span className="text-xs text-green-400">{stat.change}</span>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{stat.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">{stat.subtitle}</p>
-              </Card>
-            )
-          })}
-        </motion.div>
+          {/* Studio Approval Banner */}
+          <StudioApprovalBanner />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Today's Schedule */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-2"
-          >
-            <Card>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  Today's Schedule
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    Week View
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Month View
-                  </Button>
-                </div>
-              </div>
-              
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Spinner />
-                </div>
-              ) : upcomingBookings.length > 0 ? (
-                <div className="space-y-1">
-                  {/* Time slots */}
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const hour = 9 + i
-                    const timeSlot = `${hour.toString().padStart(2, '0')}:00`
-                    const booking = upcomingBookings.find(b => {
-                      const bookingHour = new Date(b.start).getHours()
-                      return bookingHour === hour
-                    })
-                    
-                    return (
-                      <div key={hour} className="flex items-center space-x-4 py-2 border-b border-gray-800 last:border-b-0">
-                        <div className="w-16 text-sm text-gray-400">
-                          {timeSlot}
-                        </div>
-                        <div className="flex-1">
-                          {booking ? (
-                            <div className="bg-primary-900/30 border border-primary-500/30 rounded-lg p-3">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4 className="font-medium text-gray-100">
-                                    {booking.service.name}
-                                  </h4>
-                                  <p className="text-sm text-gray-400">
-                                    {booking.client?.name}
-                                  </p>
-                                </div>
-                                <div className="text-sm font-medium text-primary-400">
-                                  ${booking.price}
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-gray-600 dark:text-gray-400 text-sm italic">
-                              Available
-                            </div>
-                          )}
-                        </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon
+              return (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-400 mb-1">
+                          {stat.label}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-100">
+                          {stat.value}
+                        </p>
                       </div>
+                      <div className={`w-12 h-12 ${stat.bg} rounded-lg flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${stat.color}`} />
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Quick Actions */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-100 mb-6">Quick Actions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {quickActions.map((action, index) => {
+                    const Icon = action.icon
+                    return (
+                      <motion.button
+                        key={action.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={action.action}
+                        className="p-4 bg-dark-700 rounded-lg border border-dark-600 hover:border-primary-500 transition-all duration-200 text-left group"
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-100 group-hover:text-primary-400 transition-colors duration-200">
+                              {action.label}
+                            </h3>
+                            <p className="text-sm text-gray-400 mt-1">
+                              {action.description}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.button>
                     )
                   })}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-gray-600 dark:text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">No bookings today</p>
-                </div>
-              )}
-            </Card>
-          </motion.div>
+              </Card>
 
-          {/* Studio Management */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            {/* Studio Status */}
-            <Card>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Studio Status</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Current Status</span>
-                  <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm">
-                    Available
-                  </span>
+              {/* Recent Bookings */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-100">Recent Bookings</h2>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate('/bookings')}
+                  >
+                    View All
+                  </Button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Next Booking</span>
-                  <span className="text-gray-900 dark:text-gray-100 text-sm">
-                    {upcomingBookings[0] ? 
-                      new Date(upcomingBookings[0].start).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      }) : 'None today'
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Services Active</span>
-                  <span className="text-gray-900 dark:text-gray-100">{studio?.services?.length || 0}</span>
-                </div>
-              </div>
-            </Card>
+                
+                {bookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {bookings.slice(0, 3).map((booking) => (
+                      <BookingCard 
+                        key={booking._id} 
+                        booking={booking} 
+                        userRole="studio"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400">
+                    <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No bookings yet</p>
+                  </div>
+                )}
+              </Card>
+            </div>
 
-            {/* Revenue Chart Placeholder */}
-            <Card>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Revenue Trend</h3>
-              <div className="h-32 bg-gray-100 dark:bg-dark-700 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <TrendingUp className="w-8 h-8 text-gray-600 dark:text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Chart coming soon</p>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Studio Status */}
+              <Card className="p-6">
+                <h3 className="font-semibold text-gray-100 mb-4">Studio Status</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Current Status</span>
+                    <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm">
+                      Available
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Next Booking</span>
+                    <span className="text-gray-100 text-sm">
+                      {upcomingBookings[0] ? 
+                        new Date(upcomingBookings[0].start).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        }) : 'None today'
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Services Active</span>
+                    <span className="text-gray-100">{studio?.services?.length || 0}</span>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Clock className="w-4 h-4 mr-2" />
-                  Block Time Slot
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Update Services
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  View Reports
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Equipment List
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
-        </div>
+              {/* Revenue Chart Placeholder */}
+              <Card className="p-6">
+                <h3 className="font-semibold text-gray-100 mb-4">Revenue Trend</h3>
+                <div className="h-32 bg-dark-700 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Chart coming soon</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

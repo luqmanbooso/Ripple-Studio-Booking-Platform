@@ -1,10 +1,13 @@
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const { 
+  sendStudioApprovalEmail, 
+  sendStudioRejectionEmail 
+} = require('../services/emailService');
 
 const getAnalytics = catchAsync(async (req, res) => {
   const { timeframe = 'month' } = req.query;
@@ -110,6 +113,275 @@ const updateUserRole = catchAsync(async (req, res) => {
   });
 });
 
+const verifyUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { 
+      verified: true,
+      emailVerificationToken: undefined,
+      emailVerificationExpires: undefined
+    },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  res.json({
+    status: 'success',
+    message: 'User verified successfully',
+    data: { user }
+  });
+});
+
+const unverifyUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { verified: false },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  res.json({
+    status: 'success',
+    message: 'User unverified successfully',
+    data: { user }
+  });
+});
+
+const blockUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  // Prevent blocking admin users
+  const targetUser = await User.findById(id);
+  if (!targetUser) {
+    throw new ApiError('User not found', 404);
+  }
+
+  if (targetUser.role === 'admin') {
+    throw new ApiError('Cannot block admin users', 403);
+  }
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { 
+      isBlocked: true,
+      blockedAt: new Date(),
+      blockedBy: req.user._id,
+      blockReason: reason || 'No reason provided',
+      isActive: false
+    },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+
+  res.json({
+    status: 'success',
+    message: 'User blocked successfully',
+    data: { user }
+  });
+});
+
+const unblockUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { 
+      isBlocked: false,
+      blockedAt: undefined,
+      blockedBy: undefined,
+      blockReason: undefined,
+      isActive: true,
+      loginAttempts: 0,
+      lockUntil: undefined
+    },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  res.json({
+    status: 'success',
+    message: 'User unblocked successfully',
+    data: { user }
+  });
+});
+
+const toggleUserStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    id,
+    { isActive },
+    { new: true, runValidators: true }
+  ).select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  res.json({
+    status: 'success',
+    message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+    data: { user }
+  });
+});
+
+const deleteUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  // Prevent deleting admin users
+  const targetUser = await User.findById(id);
+  if (!targetUser) {
+    throw new ApiError('User not found', 404);
+  }
+
+  if (targetUser.role === 'admin') {
+    throw new ApiError('Cannot delete admin users', 403);
+  }
+
+  // Delete related data
+  await Promise.all([
+    // Delete bookings where user is client
+    Booking.deleteMany({ client: id }),
+    // Delete reviews by the user
+    Review.deleteMany({ author: id }),
+    // Remove studio profile if exists
+    Studio.deleteMany({ user: id })
+  ]);
+
+  // Delete the user
+  await User.findByIdAndDelete(id);
+
+  res.json({
+    status: 'success',
+    message: 'User and all related data deleted successfully'
+  });
+});
+
+const getUserStats = catchAsync(async (req, res) => {
+  const stats = await Promise.all([
+    User.countDocuments(),
+    User.countDocuments({ role: 'client' }),
+    User.countDocuments({ role: 'studio' }),
+    User.countDocuments({ role: 'admin' }),
+    User.countDocuments({ verified: true }),
+    User.countDocuments({ isActive: true }),
+    User.countDocuments({ isBlocked: true }),
+    User.countDocuments({ 
+      createdAt: { 
+        $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) 
+      } 
+    })
+  ]);
+
+  res.json({
+    status: 'success',
+    data: {
+      total: stats[0],
+      clients: stats[1],
+      studios: stats[2],
+      admins: stats[3],
+      verified: stats[4],
+      active: stats[5],
+      blocked: stats[6],
+      newThisMonth: stats[7]
+    }
+  });
+});
+
+const bulkUserActions = catchAsync(async (req, res) => {
+  const { userIds, action, reason } = req.body;
+
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    throw new ApiError('User IDs array is required', 400);
+  }
+
+  let updateData = {};
+  let message = '';
+
+  switch (action) {
+    case 'verify':
+      updateData = { 
+        verified: true,
+        emailVerificationToken: undefined,
+        emailVerificationExpires: undefined
+      };
+      message = 'Users verified successfully';
+      break;
+    case 'unverify':
+      updateData = { verified: false };
+      message = 'Users unverified successfully';
+      break;
+    case 'block':
+      updateData = { 
+        isBlocked: true,
+        blockedAt: new Date(),
+        blockedBy: req.user._id,
+        blockReason: reason || 'Bulk action',
+        isActive: false
+      };
+      message = 'Users blocked successfully';
+      break;
+    case 'unblock':
+      updateData = { 
+        isBlocked: false,
+        blockedAt: undefined,
+        blockedBy: undefined,
+        blockReason: undefined,
+        isActive: true
+      };
+      message = 'Users unblocked successfully';
+      break;
+    case 'activate':
+      updateData = { isActive: true };
+      message = 'Users activated successfully';
+      break;
+    case 'deactivate':
+      updateData = { isActive: false };
+      message = 'Users deactivated successfully';
+      break;
+    default:
+      throw new ApiError('Invalid action', 400);
+  }
+
+  // Prevent bulk actions on admin users
+  const adminUsers = await User.find({ 
+    _id: { $in: userIds }, 
+    role: 'admin' 
+  }).select('_id');
+
+  if (adminUsers.length > 0) {
+    throw new ApiError('Cannot perform bulk actions on admin users', 403);
+  }
+
+  const result = await User.updateMany(
+    { _id: { $in: userIds } },
+    updateData
+  );
+
+  res.json({
+    status: 'success',
+    message,
+    data: {
+      modifiedCount: result.modifiedCount,
+      matchedCount: result.matchedCount
+    }
+  });
+});
+
 const getBookings = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
 
@@ -119,7 +391,6 @@ const getBookings = catchAsync(async (req, res) => {
   const bookings = await Booking.find(query)
     .populate([
       { path: 'client', select: 'name email' },
-      { path: 'artist', populate: { path: 'user', select: 'name email' } },
       { path: 'studio', populate: { path: 'user', select: 'name email' } }
     ])
     .sort({ createdAt: -1 })
@@ -339,27 +610,6 @@ const deleteStudio = catchAsync(async (req, res) => {
   });
 });
 
-const toggleStudioStatus = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const { isActive } = req.body;
-
-  const studio = await Studio.findById(id);
-  if (!studio) {
-    throw new ApiError('Studio not found', 404);
-  }
-
-  // Update the studio's owner user status
-  await User.findByIdAndUpdate(studio.user, { isActive });
-
-  const updatedStudio = await Studio.findById(id)
-    .populate('user', 'name email verified isActive');
-
-  res.json({
-    status: 'success',
-    data: { studio: updatedStudio }
-  });
-});
-
 // Revenue Analytics
 const getRevenueAnalytics = catchAsync(async (req, res) => {
   const { timeframe = 'month', startDate, endDate } = req.query;
@@ -396,7 +646,7 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
     totalRevenue,
     revenueByMonth,
     revenueByStudio,
-    revenueByArtist,
+    emptyArtistArray,
     averageBookingValue
   ] = await Promise.all([
     // Total revenue
@@ -445,38 +695,8 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
       { $limit: 10 }
     ]),
     
-    // Revenue by artist
-    Booking.aggregate([
-      { $match: { status: 'completed', artist: { $exists: true }, ...dateFilter } },
-      {
-        $lookup: {
-          from: 'artists',
-          localField: 'artist',
-          foreignField: '_id',
-          as: 'artistInfo'
-        }
-      },
-      { $unwind: '$artistInfo' },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'artistInfo.user',
-          foreignField: '_id',
-          as: 'userInfo'
-        }
-      },
-      { $unwind: '$userInfo' },
-      {
-        $group: {
-          _id: '$artist',
-          name: { $first: '$userInfo.name' },
-          revenue: { $sum: '$price' },
-          bookings: { $sum: 1 }
-        }
-      },
-      { $sort: { revenue: -1 } },
-      { $limit: 10 }
-    ]),
+    // Empty array for artists (removed)
+    Promise.resolve([]),
     
     // Average booking value
     Booking.aggregate([
@@ -495,8 +715,102 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
         revenue: item.revenue,
         bookings: item.bookings
       })),
-      topStudios: revenueByStudio,
-      topArtists: revenueByArtist
+      topStudios: revenueByStudio
+    }
+  });
+});
+
+// Approve studio
+const approveStudio = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const studio = await Studio.findById(id).populate('user');
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  if (studio.isApproved) {
+    throw new ApiError('Studio is already approved', 400);
+  }
+
+  // Approve the studio
+  studio.isApproved = true;
+  studio.statusReason = 'Approved by admin';
+  await studio.save();
+
+  // Send approval email
+  try {
+    await sendStudioApprovalEmail(studio.user, studio);
+  } catch (error) {
+    console.error('Failed to send approval email:', error);
+    // Don't fail the approval if email fails
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Studio approved successfully',
+    data: { studio }
+  });
+});
+
+// Reject studio
+const rejectStudio = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  const studio = await Studio.findById(id).populate('user');
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  if (studio.isApproved) {
+    throw new ApiError('Cannot reject an approved studio', 400);
+  }
+
+  // Update studio status
+  studio.isApproved = false;
+  studio.statusReason = reason || 'Rejected by admin';
+  await studio.save();
+
+  // Send rejection email
+  try {
+    await sendStudioRejectionEmail(studio.user, studio, reason);
+  } catch (error) {
+    console.error('Failed to send rejection email:', error);
+    // Don't fail the rejection if email fails
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Studio rejected successfully',
+    data: { studio }
+  });
+});
+
+// Get pending studios
+const getPendingStudios = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  const [studios, total] = await Promise.all([
+    Studio.find({ isApproved: false })
+      .populate('user', 'name email phone createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit)),
+    Studio.countDocuments({ isApproved: false })
+  ]);
+
+  res.json({
+    status: 'success',
+    data: {
+      studios,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
     }
   });
 });
@@ -505,6 +819,15 @@ module.exports = {
   getAnalytics,
   getUsers,
   updateUserRole,
+  // User management
+  verifyUser,
+  unverifyUser,
+  blockUser,
+  unblockUser,
+  toggleUserStatus,
+  deleteUser,
+  getUserStats,
+  bulkUserActions,
   getBookings,
   getReviews,
   approveReview,
@@ -513,7 +836,10 @@ module.exports = {
   createStudio,
   updateStudio,
   deleteStudio,
-  toggleStudioStatus,
+  // Studio approval
+  approveStudio,
+  rejectStudio,
+  getPendingStudios,
   // Revenue analytics
   getRevenueAnalytics
 };

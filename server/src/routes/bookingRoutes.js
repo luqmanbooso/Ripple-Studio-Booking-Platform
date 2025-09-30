@@ -14,8 +14,7 @@ const router = express.Router();
 // Validation schemas
 const createBookingSchema = {
   body: z.object({
-    artistId: objectId.optional(),
-    studioId: objectId.optional(),
+    studioId: objectId,
     service: z.object({
       name: z.string(),
       price: z.number().min(0).optional(),
@@ -25,8 +24,6 @@ const createBookingSchema = {
     start: z.string().datetime(),
     end: z.string().datetime(),
     notes: z.string().max(1000).optional()
-  }).refine(data => data.artistId || data.studioId, {
-    message: "Either artistId or studioId must be provided"
   })
 };
 
@@ -53,14 +50,13 @@ const getBookingsSchema = {
 
 const getBookedSlotsSchema = {
   query: z.object({
-    providerType: z.enum(['artist', 'studio']),
-    providerId: objectId,
+    studioId: objectId,
     date: z.string().min(10).max(10) // YYYY-MM-DD
   })
 };
 
 // Routes
-// Public route to fetch booked slots for a given provider and date
+// Public route to fetch booked slots for a given studio and date
 router.get('/by-provider', validate(getBookedSlotsSchema), bookingController.getBookedSlots);
 
 // Protected booking routes

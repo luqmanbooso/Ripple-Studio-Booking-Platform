@@ -44,6 +44,9 @@ const initializeSocket = (server) => {
 
     // Join user-specific room
     socket.join(`user:${socket.userId}`);
+    
+    // Join role-specific room
+    socket.join(`role:${socket.userRole}`);
 
     // Join provider rooms if applicable
     socket.on('join-provider-room', (data) => {
@@ -181,9 +184,16 @@ const emitToProvider = (providerType, providerId, event, data) => {
   }
 };
 
+const emitToRole = (role, event, data) => {
+  if (io) {
+    io.to(`role:${role}`).emit(event, data);
+  }
+};
+
 module.exports = {
   initializeSocket,
   getIO,
   emitToUser,
-  emitToProvider
+  emitToProvider,
+  emitToRole
 };
