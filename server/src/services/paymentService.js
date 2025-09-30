@@ -1,15 +1,38 @@
-const { Payhere } = require("@payhere-js-sdk/client");
 const crypto = require("crypto");
 const logger = require("../utils/logger");
 
-// Initialize PayHere with configuration
-const payhere = new Payhere({
-  merchant_id: process.env.PAYHERE_MERCHANT_ID,
-  merchant_secret: process.env.PAYHERE_MERCHANT_SECRET,
-  app_id: process.env.PAYHERE_APP_ID,
-  app_secret: process.env.PAYHERE_APP_SECRET,
-  mode: process.env.PAYHERE_MODE || "sandbox", // 'sandbox' or 'live'
-});
+/**
+ * Create MD5 hash
+ * @param {string} str - String to hash
+ * @returns {string} - MD5 hash
+ */
+const getMd5Hash = (str) => {
+  return crypto.createHash("md5").update(str).digest("hex");
+};
+
+/**
+ * Generate PayHere hash for security
+ * @param {object} data - Payment data
+ * @returns {string} - MD5 hash
+ */
+const generatePayHereHash = (data) => {
+  const { merchant_id, order_id, amount, currency, merchant_secret } = data;
+
+  // PayHere hash format: merchant_id + order_id + amount + currency + md5(merchant_secret)
+  const hashedSecret = getMd5Hash(merchant_secret).toUpperCase();
+  const hashString = merchant_id + order_id + amount + currency + hashedSecret;
+
+  console.log("Hash components:", {
+    merchant_id,
+    order_id,
+    amount,
+    currency,
+    hashedSecret,
+    hashString,
+  });
+
+  return getMd5Hash(hashString).toUpperCase();
+};
 
 /**
  * Create PayHere checkout session
@@ -22,104 +45,75 @@ const createCheckoutSession = async (booking) => {
     !process.env.PAYHERE_MERCHANT_ID ||
     !process.env.PAYHERE_MERCHANT_SECRET
   ) {
-    const demoSession = {
-      id: `cs_demo_${Math.random().toString(36).substr(2, 9)}`,
-      object: "checkout.session",
-      url: `${process.env.CORS_ORIGIN}/booking/demo-checkout?session_id=cs_demo`,
-      payment_status: "unpaid",
-      amount_total: Math.round(booking.price * 100),
-      currency: booking.currency?.toLowerCase() || "lkr",
-    };
-
-    // Save a demo session id on the booking for local testing
-    booking.payhereOrderId = demoSession.id;
-    await booking.save();
-
-    logger.info(
-      `Demo checkout session created: ${demoSession.id} for booking: ${booking._id}`
+    throw new Error(
+      "PayHere configuration missing. Please check environment variables."
     );
-    return demoSession;
   }
 
   try {
     // Generate unique order ID
     const orderId = `booking_${booking._id}_${Date.now()}`;
 
-    const checkoutData = {
+    // Prepare payment data according to PayHere API
+    const paymentData = {
       merchant_id: process.env.PAYHERE_MERCHANT_ID,
-      return_url: `${process.env.CORS_ORIGIN}/booking/success`,
-      cancel_url: `${process.env.CORS_ORIGIN}/booking/cancelled`,
-      notify_url: `${process.env.SERVER_URL}/api/webhooks/payhere`,
+      return_url: `${process.env.CORS_ORIGIN}/thank-you`,
+      cancel_url: `${process.env.CORS_ORIGIN}/checkout`,
+      notify_url: `${process.env.SERVER_URL}/api/webhook/payhere`,
       order_id: orderId,
-      items: booking.service.name,
-      currency: booking.currency || "LKR",
-      amount: booking.price.toFixed(2),
+      items: booking.service?.name || "Studio Booking",
+      currency: (booking.currency || "LKR").toUpperCase(),
+      amount: parseFloat(booking.price).toFixed(2),
       first_name: booking.client.name.split(" ")[0] || "Customer",
       last_name: booking.client.name.split(" ").slice(1).join(" ") || "",
       email: booking.client.email,
       phone: booking.client.phone || "",
-      address: "",
-      city: "",
-      country: "LK", // Sri Lanka
-      delivery_address: "",
-      delivery_city: "",
-      delivery_country: "LK",
-      custom_1: booking._id.toString(), // Store booking ID for webhook processing
-      custom_2: "ripple_booking",
+      address: booking.client.address || "",
+      city: booking.client.city || "",
+      country: "LK",
+      merchant_secret: process.env.PAYHERE_MERCHANT_SECRET,
     };
 
     // Generate hash for security
-    const hash = generatePayHereHash(checkoutData);
+    const hash = generatePayHereHash(paymentData);
+
+    logger.info("PayHere payment data:", {
+      merchant_id: paymentData.merchant_id,
+      order_id: paymentData.order_id,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      hash: hash,
+    });
+
+    // Remove merchant_secret from the data that goes to frontend
+    const { merchant_secret, ...checkoutData } = paymentData;
     checkoutData.hash = hash;
 
     // Store order ID in booking
     booking.payhereOrderId = orderId;
+    booking.payherePaymentData = checkoutData;
     await booking.save();
 
-    // PayHere doesn't create a session like Stripe, instead returns checkout data
-    // The frontend will use this data to redirect to PayHere checkout
-    const checkoutUrl =
-      process.env.PAYHERE_MODE === "live"
-        ? "https://www.payhere.lk/pay/checkout"
-        : "https://sandbox.payhere.lk/pay/checkout";
+    logger.info(
+      `PayHere checkout session created: ${orderId} for booking: ${booking._id}`
+    );
 
-    logger.info(`PayHere checkout data created for booking: ${booking._id}`);
+    // Return checkout data for frontend
     return {
       id: orderId,
-      url: checkoutUrl,
+      url:
+        process.env.PAYHERE_MODE === "sandbox"
+          ? "https://sandbox.payhere.lk/pay/checkout"
+          : "https://sandbox.payhere.lk/pay/checkout",
       checkoutData,
+      amount_total: Math.round(booking.price * 100), // in cents
+      currency: booking.currency?.toLowerCase() || "lkr",
+      payment_status: "unpaid",
     };
   } catch (error) {
     logger.error("Error creating PayHere checkout:", error);
     throw error;
   }
-};
-
-/**
- * Generate PayHere hash for security
- * @param {object} data - Payment data
- * @returns {string} - Generated hash
- */
-const generatePayHereHash = (data) => {
-  const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
-  const hashedSecret = crypto
-    .createHash("md5")
-    .update(merchant_secret)
-    .digest("hex")
-    .toUpperCase();
-
-  const hashString =
-    data.merchant_id +
-    data.order_id +
-    data.amount +
-    data.currency +
-    hashedSecret;
-
-  return crypto
-    .createHash("md5")
-    .update(hashString)
-    .digest("hex")
-    .toUpperCase();
 };
 
 /**
@@ -186,29 +180,26 @@ const retrievePayment = async (paymentId) => {
 const verifyWebhookSignature = (payload, receivedHash) => {
   try {
     const merchant_secret = process.env.PAYHERE_MERCHANT_SECRET;
-    const hashedSecret = crypto
-      .createHash("md5")
-      .update(merchant_secret)
-      .digest("hex")
-      .toUpperCase();
+    const hashedSecret = getMd5Hash(merchant_secret).toUpperCase();
 
-    const hashString =
-      payload.merchant_id +
-      payload.order_id +
-      payload.payhere_amount +
-      payload.payhere_currency +
-      payload.status_code +
-      hashedSecret;
+    const hashString = [
+      payload.merchant_id,
+      payload.order_id,
+      payload.payhere_amount,
+      payload.payhere_currency,
+      payload.status_code,
+      hashedSecret,
+    ].join("");
 
-    const computedHash = crypto
-      .createHash("md5")
-      .update(hashString)
-      .digest("hex")
-      .toUpperCase();
+    const computedHash = getMd5Hash(hashString).toUpperCase();
+
+    logger.info(
+      `Webhook verification - Received: ${receivedHash}, Computed: ${computedHash}`
+    );
 
     return computedHash === receivedHash.toUpperCase();
   } catch (error) {
-    logger.error("PayHere webhook signature verification failed:", error);
+    logger.error("Error verifying webhook signature:", error);
     return false;
   }
 };
