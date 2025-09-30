@@ -32,37 +32,20 @@ const PayHereGateway = ({
   const providerType = booking?.artist ? "artist" : "studio";
   const providerName = provider?.user?.name || provider?.name;
 
-  // Create PayHere form
+  // Log checkout data when available
   useEffect(() => {
-    if (checkoutData && !paymentForm) {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "https://sandbox.payhere.lk/pay/checkout";
-      form.style.display = "none";
-
-      // Add all PayHere fields
-      Object.entries(checkoutData).forEach(([key, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      setPaymentForm(form);
-
-      return () => {
-        if (form && form.parentNode) {
-          form.parentNode.removeChild(form);
-        }
-      };
+    if (checkoutData) {
+      console.log("PayHere checkout data received:", checkoutData);
     }
-  }, [checkoutData, paymentForm]);
+  }, [checkoutData]);
 
   const handlePayNow = async () => {
-    if (!paymentForm) {
-      toast.error("Payment form not ready. Please try again.");
+    console.log("handlePayNow called");
+    console.log("checkoutData:", checkoutData);
+
+    if (!checkoutData) {
+      console.error("Checkout data not available");
+      toast.error("Payment data not available. Please try again.");
       return;
     }
 
@@ -72,12 +55,37 @@ const PayHereGateway = ({
       // Show loading toast
       toast.loading("Redirecting to PayHere...", {
         id: "payment-redirect",
-        duration: 3000,
+        duration: 5000,
       });
 
-      // Small delay for better UX
+      console.log("Creating direct form submission to PayHere");
+
+      // Create a new form for each submission to avoid conflicts
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://sandbox.payhere.lk/pay/checkout";
+      form.target = "_self"; // Open in same window
+
+      // Add all PayHere fields
+      Object.entries(checkoutData).forEach(([key, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+        console.log(`Adding field: ${key} = ${value}`);
+      });
+
+      // Add form to document and submit immediately
+      document.body.appendChild(form);
+      console.log("Submitting form to PayHere...");
+      form.submit();
+
+      // Clean up
       setTimeout(() => {
-        paymentForm.submit();
+        if (form.parentNode) {
+          form.parentNode.removeChild(form);
+        }
       }, 1000);
     } catch (error) {
       console.error("Payment submission error:", error);

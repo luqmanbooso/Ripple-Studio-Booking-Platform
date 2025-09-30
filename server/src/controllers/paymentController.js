@@ -91,8 +91,58 @@ const demoCompleteSession = catchAsync(async (req, res) => {
   res.json({ status: "success", data: { booking } });
 });
 
+const verifyPayherePayment = catchAsync(async (req, res) => {
+  const { order_id, payment_id, status_code } = req.body;
+
+  if (!order_id || !payment_id) {
+    throw new ApiError("Missing payment parameters", 400);
+  }
+
+  // Extract booking ID from order_id (format: booking_ID_timestamp)
+  const orderIdParts = order_id.split("_");
+  const bookingId = orderIdParts[1];
+
+  if (!bookingId) {
+    throw new ApiError("Invalid order ID format", 400);
+  }
+
+  const booking = await Booking.findById(bookingId).populate([
+    { path: "client", select: "name email" },
+    { path: "artist", populate: { path: "user", select: "name email" } },
+    { path: "studio", populate: { path: "user", select: "name email" } },
+  ]);
+
+  if (!booking) {
+    throw new ApiError("Booking not found", 404);
+  }
+
+  // Check if payment was successful
+  if (parseInt(status_code) === 2) {
+    // Payment successful
+    res.json({
+      success: true,
+      message: "Payment verified successfully",
+      booking: {
+        _id: booking._id,
+        scheduledDate: booking.scheduledDate,
+        duration: booking.duration,
+        totalAmount: booking.totalAmount,
+        status: booking.status,
+      },
+    });
+  } else {
+    // Payment failed or cancelled
+    res.json({
+      success: false,
+      message: "Payment verification failed",
+      statusCode: status_code,
+    });
+  }
+});
+
 module.exports = {
   createCheckoutSession,
   refundBooking,
   demoCompleteSession,
+  verifyPayherePayment,
 };
