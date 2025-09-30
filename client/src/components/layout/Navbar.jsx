@@ -45,12 +45,21 @@ const Navbar = () => {
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveDropdown(null)
-      setIsProfileOpen(false)
+    const handleClickOutside = (event) => {
+      // Check if the click is outside any dropdown or profile menu
+      const isClickInsideDropdown = event.target.closest('[data-dropdown]') || 
+                                   event.target.closest('[data-profile-menu]') ||
+                                   event.target.closest('button[data-dropdown-trigger]') ||
+                                   event.target.closest('button[data-profile-trigger]')
+      
+      if (!isClickInsideDropdown) {
+        setActiveDropdown(null)
+        setIsProfileOpen(false)
+      }
     }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const handleLogout = async () => {
@@ -112,7 +121,8 @@ const Navbar = () => {
     setIsProfileOpen(false)
   }
 
-  const toggleProfile = () => {
+  const toggleProfile = (event) => {
+    event.stopPropagation()
     setIsProfileOpen(!isProfileOpen)
     setActiveDropdown(null)
   }
@@ -150,9 +160,10 @@ const Navbar = () => {
                   const isOpen = activeDropdown === item.dropdownId
                   
                   return (
-                    <div key={item.name} className="relative">
+                    <div key={item.name} className="relative" data-dropdown>
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
+                        data-dropdown-trigger
                         className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${
                           isOpen ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
                         }`}
@@ -170,6 +181,7 @@ const Navbar = () => {
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
                             className="absolute top-full left-0 mt-3 w-80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200/60 dark:border-slate-700/60 py-4 z-50"
+                            data-dropdown
                             onClick={(e) => e.stopPropagation()}
                           >
                             {item.items.map((dropdownItem, index) => {
@@ -276,9 +288,10 @@ const Navbar = () => {
                 )}
 
                 {/* Profile Dropdown */}
-                <div className="relative">
+                <div className="relative" data-profile-menu>
                   <button
-                    onClick={toggleProfile}
+                    onClick={(e) => toggleProfile(e)}
+                    data-profile-trigger
                     className="flex items-center space-x-3 p-2 rounded-xl hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
                     <div className="flex items-center space-x-3">
@@ -313,6 +326,7 @@ const Navbar = () => {
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
                         className="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-light-border/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
+                        data-profile-menu
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="px-4 py-3 border-b border-light-border/30 dark:border-gray-700/30">
@@ -409,9 +423,10 @@ const Navbar = () => {
                     const isOpen = activeDropdown === item.dropdownId
                     
                     return (
-                      <div key={item.name}>
+                      <div key={item.name} data-dropdown>
                         <button
                           onClick={(e) => toggleDropdown(item.dropdownId, e)}
+                          data-dropdown-trigger
                           className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium transition-all duration-200 rounded-xl ${
                             isOpen ? 'bg-light-primary text-white dark:bg-primary-500' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
                           }`}
@@ -431,6 +446,7 @@ const Navbar = () => {
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.2 }}
                               className="ml-4 mt-2 space-y-1"
+                              data-dropdown
                             >
                               {item.items.map((dropdownItem) => {
                                 const DropdownIcon = dropdownItem.icon

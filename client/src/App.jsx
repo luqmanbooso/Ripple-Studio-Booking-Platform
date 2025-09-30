@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // Layout components
 import Navbar from "./components/layout/Navbar";
 import AdminNavbar from "./components/layout/AdminNavbar";
+import StudioNavbar from "./components/layout/StudioNavbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import ParticleBackground from "./components/common/ParticleBackground";
@@ -43,6 +44,24 @@ import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminFeedback from "./pages/Admin/AdminFeedback";
 import AdminNotifications from "./pages/Admin/AdminNotifications";
 import AdminStudioApprovals from "./pages/Admin/AdminStudioApprovals";
+import AdminMediaManager from "./pages/Admin/AdminMediaManager";
+import AdminEquipmentManager from "./pages/Admin/AdminEquipmentManager";
+import EnhancedStudioBookings from "./pages/Dashboard/EnhancedStudioBookings";
+import StudioServicesManager from "./pages/Dashboard/StudioServicesManager";
+import StudioAvailabilityManager from "./pages/Dashboard/StudioAvailabilityManager";
+import StudioMediaManager from "./pages/Dashboard/StudioMediaManager";
+import StudioEquipmentManager from "./pages/Dashboard/StudioEquipmentManager";
+import StudioAnalytics from "./pages/Dashboard/StudioAnalytics";
+import StudioRevenue from "./pages/Dashboard/StudioRevenue";
+import StudioAmenities from "./pages/Dashboard/StudioAmenities";
+import TestPage from "./pages/Dashboard/TestPage";
+import DiagnosticPage from "./pages/Dashboard/DiagnosticPage";
+import SimpleStudioLayout from "./components/layout/SimpleStudioLayout";
+import SimpleStudioDashboard from "./pages/Dashboard/SimpleStudioDashboard";
+import CompleteStudioServices from "./pages/Dashboard/CompleteStudioServices";
+import CompleteStudioBookings from "./pages/Dashboard/CompleteStudioBookings";
+import CompleteStudioAvailability from "./pages/Dashboard/CompleteStudioAvailability";
+import CompleteStudioMedia from "./pages/Dashboard/CompleteStudioMedia";
 
 // Settings pages
 import Profile from "./pages/Settings/Profile";
@@ -70,6 +89,9 @@ function App() {
   const isAdminRoute =
     location.pathname.startsWith("/admin") ||
     (location.pathname === "/dashboard" && user?.role === "admin");
+    
+  // Check if we're on studio routes or studio user logged in
+  const isStudioRoute = user?.role === "studio" && !isAdminRoute;
 
   useEffect(() => {
     // Initialize authentication from localStorage
@@ -165,11 +187,17 @@ function App() {
             : "bg-white text-gray-900"
       }`}
     >
-      {/* Particle Background - Only show on non-admin pages */}
-      {!isAdminRoute && <ParticleBackground />}
+      {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
+      {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
 
       {/* Conditional Navbar */}
-      {isAdminRoute ? <AdminNavbar /> : <Navbar />}
+      {isAdminRoute ? (
+        <AdminNavbar />
+      ) : isStudioRoute ? (
+        <StudioNavbar />
+      ) : (
+        <Navbar />
+      )}
 
       <main className="flex-1 relative">
         <AnimatePresence mode="wait">
@@ -248,12 +276,27 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/dashboard/settings/studio"
+              path="/dashboard/bookings"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioSettings />
+                  <CompleteStudioBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/services"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <CompleteStudioServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <SimpleStudioDashboard />
                 </ProtectedRoute>
               }
             />
@@ -261,15 +304,23 @@ function App() {
               path="/dashboard/availability"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <AvailabilityManager />
+                  <CompleteStudioAvailability />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/dashboard/payments"
+              path="/dashboard/media"
               element={
-                <ProtectedRoute>
-                  <PaymentHistory />
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <CompleteStudioMedia />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/equipment"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioEquipmentManager />
                 </ProtectedRoute>
               }
             />
@@ -278,6 +329,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
                   <StudioProfileManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/analytics"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioAnalytics />
                 </ProtectedRoute>
               }
             />
@@ -298,8 +357,8 @@ function App() {
         </AnimatePresence>
       </main>
 
-      {/* Footer - Only show on non-admin pages */}
-      {!isAdminRoute && <Footer />}
+      {/* Footer - Only show on non-admin/non-studio dashboard pages */}
+      {!isAdminRoute && !isStudioRoute && <Footer />}
     </div>
   );
 }
@@ -336,6 +395,8 @@ function AdminRoutes() {
       <Route path="payments" element={<AdminPayments />} />
       <Route path="notifications" element={<AdminNotifications />} />
       <Route path="feedback" element={<AdminFeedback />} />
+      <Route path="media" element={<AdminMediaManager />} />
+      <Route path="equipment" element={<AdminEquipmentManager />} />
     </Routes>
   );
 }

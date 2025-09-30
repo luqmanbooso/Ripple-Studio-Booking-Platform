@@ -12,6 +12,8 @@ import { bookingApi } from './bookingApi'
 import { reviewApi } from './reviewApi'
 import { paymentApi } from './paymentApi'
 import { adminApi } from './adminApi'
+import { mediaApi } from './mediaApi'
+import { equipmentApi } from './equipmentApi'
 
 export const store = configureStore({
   reducer: {
@@ -23,6 +25,8 @@ export const store = configureStore({
     [reviewApi.reducerPath]: reviewApi.reducer,
     [paymentApi.reducerPath]: paymentApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
+    [mediaApi.reducerPath]: mediaApi.reducer,
+    [equipmentApi.reducerPath]: equipmentApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -35,7 +39,9 @@ export const store = configureStore({
       bookingApi.middleware,
       reviewApi.middleware,
       paymentApi.middleware,
-      adminApi.middleware
+      adminApi.middleware,
+      mediaApi.middleware,
+      equipmentApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })
