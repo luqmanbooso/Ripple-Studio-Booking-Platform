@@ -8,7 +8,7 @@ const reviewSchema = new mongoose.Schema({
   },
   targetType: {
     type: String,
-    enum: ['artist', 'studio'],
+    enum: ['studio'],
     required: [true, 'Target type is required']
   },
   targetId: {

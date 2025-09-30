@@ -30,21 +30,36 @@ const authenticate = catchAsync(async (req, res, next) => {
     throw new ApiError('Invalid access token', 401)
   }
 
-  // Get user from token
   const user = await User.findById(decoded.id).select('-password');
   if (!user) {
     throw new ApiError('User not found', 401);
   }
 
-  // Check if user is active
-  if (!user.isActive) {
-    throw new ApiError('Account has been deactivated', 401);
+  // Check if user exists and is active
+  if (!user || !user.isActive) {
+    throw new ApiError('User not found or inactive', 401);
+  }
+
+  // Check if user is blocked
+  if (user.isBlocked) {
+    // Check if temporary block has expired
+    if (user.blockType === 'temporary' && user.blockExpiresAt && user.blockExpiresAt < new Date()) {
+      // Unblock user automatically
+      user.isBlocked = false;
+      user.blockExpiresAt = null;
+      user.blockReason = null;
+      await user.save();
+    } else {
+      const blockMessage = user.blockType === 'permanent'
+        ? 'Your account has been permanently blocked'
+        : `Your account is temporarily blocked. ${user.blockReason ? 'Reason: ' + user.blockReason : ''}`;
+      throw new ApiError(blockMessage, 403);
+    }
   }
 
   req.user = user;
   next();
 });
-
 /**
  * Optional authentication - doesn't fail if no token provided
  */
@@ -78,6 +93,3 @@ module.exports = {
   authenticate,
   optionalAuth
 };
-
-
-module.exports = { authenticate, optionalAuth };

@@ -14,12 +14,16 @@ import {
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
+import BookingCard from '../../components/bookings/BookingCard'
+import VerificationBanner from '../../components/common/VerificationBanner'
 import { useGetMyBookingsQuery } from '../../store/bookingApi'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const ClientDashboard = () => {
   const { user } = useSelector(state => state.auth)
   const [filter, setFilter] = useState('all')
+  const navigate = useNavigate()
   
   const { data: bookingsData, isLoading } = useGetMyBookingsQuery({
     page: 1,
@@ -75,6 +79,9 @@ const ClientDashboard = () => {
             Manage your bookings and discover new talent
           </p>
         </motion.div>
+
+        {/* Verification Banner */}
+        <VerificationBanner />
 
         {/* Quick Actions */}
         <motion.div
@@ -164,7 +171,6 @@ const ClientDashboard = () => {
                 const provider = booking.artist || booking.studio
                 const providerType = booking.artist ? 'artist' : 'studio'
                 const providerName = provider?.user?.name || provider?.name
-                
                 const statusColors = {
                   confirmed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
                   completed: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -173,59 +179,55 @@ const ClientDashboard = () => {
                 }
 
                 return (
-                  <Card key={booking._id} hover>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-medium">
-                            {providerName?.charAt(0)}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-100">
-                            {booking.service.name} with {providerName}
-                          </h3>
-                          <div className="flex items-center space-x-4 text-gray-400 text-sm">
-                            <span>{new Date(booking.start).toLocaleDateString()}</span>
-                            <span>{new Date(booking.start).toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}</span>
-                            <span className="capitalize">{providerType}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[booking.status] || statusColors.confirmed}`}>
-                          {booking.status.replace('_', ' ')}
-                        </span>
-                        <span className="font-semibold text-gray-100">
-                          ${booking.price}
-                        </span>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      </div>
-                    </div>
-                  </Card>
+                  <BookingCard 
+                    key={booking._id} 
+                    booking={booking} 
+                    userRole="client"
+                  />
                 )
               })}
             </div>
           ) : (
-            <Card className="text-center py-12">
-              <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-100 mb-2">
-                No bookings yet
-              </h3>
-              <p className="text-gray-400 mb-6">
-                Start by exploring our talented artists and professional studios
-              </p>
+            <div className="text-center py-12">
+              <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+              <h3 className="text-lg font-medium text-gray-100 mb-2">No bookings yet</h3>
+              <p className="text-gray-400 mb-6">Start by finding studios or artists to book</p>
               <Link to="/search">
-                <Button icon={<Search className="w-5 h-5" />}>
-                  Start Exploring
+                <Button>
+                  <Search className="w-4 h-4 mr-2" />
+                  Browse Studios
                 </Button>
               </Link>
-            </Card>
+            </div>
           )}
+
+          {/* Quick Actions */}
+          <Card className="p-6 mt-8">
+            <h2 className="text-xl font-semibold text-light-text dark:text-gray-100 mb-4">
+              Quick Actions
+            </h2>
+            <div className="space-y-3">
+              <Link to="/search">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Search className="w-4 h-4 mr-2" />
+                  Find Studios
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start"
+                onClick={() => navigate('/dashboard/payments')}
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Payment History
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter Bookings
+              </Button>
+            </div>
+          </Card>
         </motion.div>
       </div>
     </div>

@@ -30,12 +30,14 @@ import { logout } from '../../store/authSlice'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../ui/ThemeToggle'
+import NotificationCenter from '../notifications/NotificationCenter'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -43,12 +45,21 @@ const Navbar = () => {
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveDropdown(null)
-      setIsProfileOpen(false)
+    const handleClickOutside = (event) => {
+      // Check if the click is outside any dropdown or profile menu
+      const isClickInsideDropdown = event.target.closest('[data-dropdown]') || 
+                                   event.target.closest('[data-profile-menu]') ||
+                                   event.target.closest('button[data-dropdown-trigger]') ||
+                                   event.target.closest('button[data-profile-trigger]')
+      
+      if (!isClickInsideDropdown) {
+        setActiveDropdown(null)
+        setIsProfileOpen(false)
+      }
     }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const handleLogout = async () => {
@@ -95,11 +106,7 @@ const Navbar = () => {
       href: '/contact',
       icon: Phone
     },
-    {
-      name: 'Pricing',
-      href: '/pricing',
-      icon: TrendingUp
-    }
+    
   ]
 
   const isActive = (path) => {
@@ -121,8 +128,9 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <nav className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-800/50 sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo Section */}
           <div className="flex items-center">
@@ -152,9 +160,10 @@ const Navbar = () => {
                   const isOpen = activeDropdown === item.dropdownId
                   
                   return (
-                    <div key={item.name} className="relative">
+                    <div key={item.name} className="relative" data-dropdown>
                       <button
                         onClick={(e) => toggleDropdown(item.dropdownId, e)}
+                        data-dropdown-trigger
                         className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${
                           isOpen ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
                         }`}
@@ -172,6 +181,7 @@ const Navbar = () => {
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
                             className="absolute top-full left-0 mt-3 w-80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200/60 dark:border-slate-700/60 py-4 z-50"
+                            data-dropdown
                             onClick={(e) => e.stopPropagation()}
                           >
                             {item.items.map((dropdownItem, index) => {
@@ -235,18 +245,29 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right Side - Theme Toggle + User Menu / Auth Buttons */}
+          {/* Right Side - Notifications + Theme Toggle + User Menu / Auth Buttons */}
           <div className="flex items-center space-x-3">
+            {/* Notifications */}
+            {isAuthenticated && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 relative"
+                >
+                  <Bell className="w-5 h-5" />
+                  {/* Notification badge */}
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Theme Toggle */}
             <ThemeToggle size="md" />
 
             {isAuthenticated ? (
               <>
-                {/* Notifications */}
-                <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <Bell className="w-5 h-5 group-hover:animate-wiggle" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-error-500 rounded-full animate-pulse"></span>
-                </button>
 
                 {/* Messages */}
                 <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
@@ -267,9 +288,10 @@ const Navbar = () => {
                 )}
 
                 {/* Profile Dropdown */}
-                <div className="relative">
+                <div className="relative" data-profile-menu>
                   <button
-                    onClick={toggleProfile}
+                    onClick={(e) => toggleProfile(e)}
+                    data-profile-trigger
                     className="flex items-center space-x-3 p-2 rounded-xl hover:bg-light-card/50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                   >
                     <div className="flex items-center space-x-3">
@@ -304,6 +326,7 @@ const Navbar = () => {
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
                         className="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-dark-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-light-border/50 dark:border-gray-700/50 py-3 z-50 animate-fade-in-down"
+                        data-profile-menu
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="px-4 py-3 border-b border-light-border/30 dark:border-gray-700/30">
@@ -400,9 +423,10 @@ const Navbar = () => {
                     const isOpen = activeDropdown === item.dropdownId
                     
                     return (
-                      <div key={item.name}>
+                      <div key={item.name} data-dropdown>
                         <button
                           onClick={(e) => toggleDropdown(item.dropdownId, e)}
+                          data-dropdown-trigger
                           className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium transition-all duration-200 rounded-xl ${
                             isOpen ? 'bg-light-primary text-white dark:bg-primary-500' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
                           }`}
@@ -422,6 +446,7 @@ const Navbar = () => {
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.2 }}
                               className="ml-4 mt-2 space-y-1"
+                              data-dropdown
                             >
                               {item.items.map((dropdownItem) => {
                                 const DropdownIcon = dropdownItem.icon
@@ -508,10 +533,20 @@ const Navbar = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </nav>
+        </div>
+      </nav>
+
+      {/* Notification Center */}
+      <AnimatePresence>
+        {isNotificationsOpen && (
+          <NotificationCenter
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
 export default Navbar
-

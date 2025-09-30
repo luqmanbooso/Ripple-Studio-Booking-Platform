@@ -7,24 +7,26 @@ import themeSlice from './themeSlice'
 
 // API slices
 import { userApi } from './userApi'
-import { artistApi } from './artistApi'
 import { studioApi } from './studioApi'
 import { bookingApi } from './bookingApi'
 import { reviewApi } from './reviewApi'
 import { paymentApi } from './paymentApi'
 import { adminApi } from './adminApi'
+import { mediaApi } from './mediaApi'
+import { equipmentApi } from './equipmentApi'
 
 export const store = configureStore({
   reducer: {
     auth: authSlice,
     theme: themeSlice,
     [userApi.reducerPath]: userApi.reducer,
-    [artistApi.reducerPath]: artistApi.reducer,
     [studioApi.reducerPath]: studioApi.reducer,
     [bookingApi.reducerPath]: bookingApi.reducer,
     [reviewApi.reducerPath]: reviewApi.reducer,
     [paymentApi.reducerPath]: paymentApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
+    [mediaApi.reducerPath]: mediaApi.reducer,
+    [equipmentApi.reducerPath]: equipmentApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -33,12 +35,13 @@ export const store = configureStore({
       },
     }).concat(
       userApi.middleware,
-      artistApi.middleware,
       studioApi.middleware,
       bookingApi.middleware,
       reviewApi.middleware,
       paymentApi.middleware,
-      adminApi.middleware
+      adminApi.middleware,
+      mediaApi.middleware,
+      equipmentApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // Layout components
 import Navbar from "./components/layout/Navbar";
 import AdminNavbar from "./components/layout/AdminNavbar";
+import StudioNavbar from "./components/layout/StudioNavbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import ParticleBackground from "./components/common/ParticleBackground";
@@ -13,7 +14,6 @@ import ParticleBackground from "./components/common/ParticleBackground";
 // Pages
 import Home from "./pages/Home";
 import Search from "./pages/Search";
-import ArtistProfile from "./pages/ArtistProfile";
 import StudioProfile from "./pages/StudioProfile";
 import NewBooking from "./pages/NewBooking";
 import Checkout from "./pages/Checkout";
@@ -28,14 +28,11 @@ import Feedback from "./pages/Feedback";
 // Auth pages
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import Verify from "./pages/Auth/Verify";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
 // Dashboard pages
 import ClientDashboard from "./pages/Dashboard/ClientDashboard";
-import ArtistDashboard from "./pages/Dashboard/ArtistDashboard";
-import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminBookings from "./pages/Admin/AdminBookings";
@@ -43,12 +40,37 @@ import AdminStudios from "./pages/Admin/AdminStudios";
 import AdminRevenue from "./pages/Admin/AdminRevenue";
 import AdminReviews from "./pages/Admin/AdminReviews";
 import AdminPayments from "./pages/Admin/AdminPayments";
+import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminFeedback from "./pages/Admin/AdminFeedback";
+import AdminNotifications from "./pages/Admin/AdminNotifications";
+import AdminStudioApprovals from "./pages/Admin/AdminStudioApprovals";
+import AdminMediaManager from "./pages/Admin/AdminMediaManager";
+import AdminEquipmentManager from "./pages/Admin/AdminEquipmentManager";
+import EnhancedStudioBookings from "./pages/Dashboard/EnhancedStudioBookings";
+import StudioServicesManager from "./pages/Dashboard/StudioServicesManager";
+import StudioAvailabilityManager from "./pages/Dashboard/StudioAvailabilityManager";
+import StudioMediaManager from "./pages/Dashboard/StudioMediaManager";
+import StudioEquipmentManager from "./pages/Dashboard/StudioEquipmentManager";
+import StudioAnalytics from "./pages/Dashboard/StudioAnalytics";
+import StudioRevenue from "./pages/Dashboard/StudioRevenue";
+import StudioAmenities from "./pages/Dashboard/StudioAmenities";
+import TestPage from "./pages/Dashboard/TestPage";
+import DiagnosticPage from "./pages/Dashboard/DiagnosticPage";
+import SimpleStudioLayout from "./components/layout/SimpleStudioLayout";
+import SimpleStudioDashboard from "./pages/Dashboard/SimpleStudioDashboard";
+import CompleteStudioServices from "./pages/Dashboard/CompleteStudioServices";
+import CompleteStudioBookings from "./pages/Dashboard/CompleteStudioBookings";
+import CompleteStudioAvailability from "./pages/Dashboard/CompleteStudioAvailability";
+import CompleteStudioMedia from "./pages/Dashboard/CompleteStudioMedia";
 
 // Settings pages
 import Profile from "./pages/Settings/Profile";
 import Security from "./pages/Settings/Security";
 import StudioSettings from "./pages/Dashboard/StudioSettings";
+import AvailabilityManager from "./pages/Dashboard/AvailabilityManager";
+import PaymentHistory from "./pages/Dashboard/PaymentHistory";
+import StudioProfileManager from "./pages/Dashboard/StudioProfileManager";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Store
 import { setCredentials, initializeAuth } from "./store/authSlice";
@@ -67,6 +89,9 @@ function App() {
   const isAdminRoute =
     location.pathname.startsWith("/admin") ||
     (location.pathname === "/dashboard" && user?.role === "admin");
+    
+  // Check if we're on studio routes or studio user logged in
+  const isStudioRoute = user?.role === "studio" && !isAdminRoute;
 
   useEffect(() => {
     // Initialize authentication from localStorage
@@ -162,11 +187,17 @@ function App() {
             : "bg-white text-gray-900"
       }`}
     >
-      {/* Particle Background - Only show on non-admin pages */}
-      {!isAdminRoute && <ParticleBackground />}
+      {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
+      {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
 
       {/* Conditional Navbar */}
-      {isAdminRoute ? <AdminNavbar /> : <Navbar />}
+      {isAdminRoute ? (
+        <AdminNavbar />
+      ) : isStudioRoute ? (
+        <StudioNavbar />
+      ) : (
+        <Navbar />
+      )}
 
       <main className="flex-1 relative">
         <AnimatePresence mode="wait">
@@ -174,7 +205,6 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/artists/:id" element={<ArtistProfile />} />
             <Route path="/studios/:id" element={<StudioProfile />} />
             <Route path="/community" element={<Community />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -185,19 +215,17 @@ function App() {
             <Route path="/genres" element={<Search />} />
             <Route path="/featured" element={<Search />} />
             <Route path="/tools" element={<Blog />} />
-            <Route path="/stories" element={<Blog />} />
             <Route path="/help" element={<Blog />} />
 
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify" element={<Verify />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes */}
             <Route
-              path="/booking/new"
               element={
                 <ProtectedRoute>
                   <NewBooking />
@@ -248,12 +276,67 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/dashboard/settings/studio"
+              path="/dashboard/bookings"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioSettings />
+                  <CompleteStudioBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/services"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <CompleteStudioServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <SimpleStudioDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/availability"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <CompleteStudioAvailability />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/media"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <CompleteStudioMedia />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/equipment"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioEquipmentManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/profile"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioProfileManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/analytics"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioAnalytics />
                 </ProtectedRoute>
               }
             />
@@ -274,8 +357,8 @@ function App() {
         </AnimatePresence>
       </main>
 
-      {/* Footer - Only show on non-admin pages */}
-      {!isAdminRoute && <Footer />}
+      {/* Footer - Only show on non-admin/non-studio dashboard pages */}
+      {!isAdminRoute && !isStudioRoute && <Footer />}
     </div>
   );
 }
@@ -289,8 +372,6 @@ function DashboardRouter() {
   switch (user.role) {
     case "client":
       return <ClientDashboard />;
-    case "artist":
-      return <ArtistDashboard />;
     case "studio":
       return <StudioDashboard />;
     case "admin":
@@ -308,10 +389,14 @@ function AdminRoutes() {
       <Route path="users" element={<AdminUsers />} />
       <Route path="bookings" element={<AdminBookings />} />
       <Route path="studios" element={<AdminStudios />} />
+      <Route path="studios/approvals" element={<AdminStudioApprovals />} />
       <Route path="revenue" element={<AdminRevenue />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />
+      <Route path="notifications" element={<AdminNotifications />} />
       <Route path="feedback" element={<AdminFeedback />} />
+      <Route path="media" element={<AdminMediaManager />} />
+      <Route path="equipment" element={<AdminEquipmentManager />} />
     </Routes>
   );
 }

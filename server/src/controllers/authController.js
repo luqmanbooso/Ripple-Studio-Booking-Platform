@@ -1,12 +1,16 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const { 
+  generateVerificationToken, 
+  sendClientVerificationEmail, 
+  sendAdminStudioNotification 
+} = require('../services/emailService');
+const NotificationService = require('../services/notificationService');
 
 // Generate JWT tokens
 const generateTokens = (userId) => {
@@ -52,31 +56,38 @@ const register = catchAsync(async (req, res) => {
     throw new ApiError('User already exists with this email', 400);
   }
 
+  // Determine allowed role (artist role removed); default to client unless 'studio'
+  const userRole = role === 'studio' ? 'studio' : 'client';
+
   // Create user - always set country to Sri Lanka
   const user = await User.create({
     name,
     email,
     password,
-    role,
+    role: userRole,
     country: 'Sri Lanka', // Always set to Sri Lanka
     city,
     phone
   });
 
-  // Create role-specific profile
-  if (role === 'artist') {
-    const artistData = {
-      user: user._id,
-      genres: artist?.genres || [],
-      instruments: artist?.instruments || [],
-      hourlyRate: artist?.hourlyRate || 50,
-      bio: artist?.bio || ''
-    };
-    
-    const artistProfile = await Artist.create(artistData);
-    user.artist = artistProfile._id;
+  // Generate verification token for clients
+  if (userRole === 'client') {
+    const verificationToken = generateVerificationToken();
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     await user.save();
-  } else if (role === 'studio') {
+
+    // Send verification email
+    try {
+      await sendClientVerificationEmail(user, verificationToken);
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      // Don't fail registration if email fails
+    }
+  }
+
+  // Create role-specific profile
+  if (userRole === 'studio') {
     const studioData = {
       user: user._id,
       name: studio?.name || `${name}'s Studio`,
@@ -85,12 +96,23 @@ const register = catchAsync(async (req, res) => {
         country: 'Sri Lanka', // Always set to Sri Lanka
         city: city
       },
-      services: []
+      services: [],
+      isApproved: false // Studios need admin approval
     };
     
     const studioProfile = await Studio.create(studioData);
     user.studio = studioProfile._id;
     await user.save();
+
+    // Notify admin about new studio registration
+    try {
+      await sendAdminStudioNotification(user, studioProfile);
+      // Create notification for admin
+      await NotificationService.notifyStudioRegistration(studioProfile, user);
+    } catch (error) {
+      console.error('Failed to send admin notification:', error);
+      // Don't fail registration if email fails
+    }
   }
 
   // Generate tokens
@@ -103,16 +125,26 @@ const register = catchAsync(async (req, res) => {
   // Set refresh token cookie
   res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
+  // Send user registration notification to admin (async, don't wait)
+  NotificationService.notifyUserRegistration(user).catch(error => {
+    console.error('Failed to send user registration notification:', error);
+  });
+
+  const responseMessage = userRole === 'client' 
+    ? 'Registration successful! Please check your email to verify your account.'
+    : 'Studio registration successful! Your studio is pending admin approval.';
+
   res.status(201).json({
     status: 'success',
-    message: 'Registration successful',
+    message: responseMessage,
     data: {
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        verified: user.verified
+        verified: user.verified,
+        ...(userRole === 'studio' && { studioApproved: false })
       },
       accessToken
     }
@@ -240,31 +272,10 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
-const verifyEmail = catchAsync(async (req, res) => {
-  const { token } = req.body;
-
-  // For now, just mark as verified (implement proper email verification later)
-  const user = await User.findOneAndUpdate(
-    { _id: token }, // In real implementation, this would be a verification token
-    { verified: true },
-    { new: true }
-  );
-
-  if (!user) {
-    throw new ApiError('Invalid verification token', 400);
-  }
-
-  res.json({
-    status: 'success',
-    message: 'Email verified successfully'
-  });
-});
-
 const forgotPassword = catchAsync(async (req, res) => {
   const { email } = req.body;
 
-  const user = await User.findOne({ email });
-
+  const user = await User.findOne({ email }).select('+passwordResetToken +passwordResetExpires');
   // Always return a generic success response to avoid user enumeration
   if (!user) {
     return res.json({
@@ -353,7 +364,6 @@ const resetPassword = catchAsync(async (req, res) => {
 
 const getMe = catchAsync(async (req, res) => {
   const user = await User.findById(req.user._id)
-    .populate('artist')
     .populate('studio');
 
   res.json({
@@ -364,12 +374,165 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
+// Google sign-in using ID token from client (Google Identity Services)
+const googleAuth = catchAsync(async (req, res) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    throw new ApiError('ID token is required', 400);
+  }
+
+  // Verify ID token by calling Google's tokeninfo endpoint
+  const https = require('https');
+  const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+
+  const verified = await new Promise((resolve, reject) => {
+    https
+      .get(tokenInfoUrl, (resp) => {
+        let data = '';
+        resp.on('data', (chunk) => (data += chunk));
+        resp.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            // tokeninfo returns an error_description if invalid
+            if (parsed.error_description || parsed.error) {
+              return reject(new Error(parsed.error_description || parsed.error));
+            }
+            return resolve(parsed);
+          } catch (err) {
+            return reject(err);
+          }
+        });
+      })
+      .on('error', (err) => reject(err));
+  });
+
+  // tokeninfo returns fields like email, email_verified, name, picture, sub (google id), aud (client id)
+  const { email, email_verified, name, picture, sub } = verified;
+  // Verify the token audience matches the configured Google client id (if provided)
+  const configuredAud = process.env.GOOGLE_CLIENT_ID;
+  if (configuredAud && verified.aud && verified.aud !== configuredAud) {
+    console.log('[DEBUG][auth.googleAuth] token audience mismatch:', verified.aud, 'expected:', configuredAud);
+    throw new ApiError('Google ID token audience mismatch', 400);
+  }
+
+  if (!email || email_verified !== 'true' && email_verified !== true) {
+    throw new ApiError('Google account email not verified', 400);
+  }
+
+  // Find or create user by email
+  let user = await User.findOne({ email });
+  if (!user) {
+    // Create a new user with role 'client' by default
+    user = await User.create({
+      name: name || 'Google User',
+      email,
+      password: crypto.randomBytes(16).toString('hex'), // random password (not used)
+      role: 'client',
+      verified: true,
+      avatar: picture || undefined
+    });
+  }
+
+  // Generate tokens
+  const { accessToken, refreshToken } = generateTokens(user._id);
+
+  // Save refresh token
+  user.refreshToken = refreshToken;
+  user.lastLogin = new Date();
+  await user.save();
+
+  // Set refresh token cookie
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
+
+  res.json({
+    status: 'success',
+    message: 'Google login successful',
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: user.verified,
+        avatar: user.avatar
+      },
+      accessToken
+    }
+  });
+});
+
+// Verify email
+const verifyEmail = catchAsync(async (req, res) => {
+  const { token, email } = req.query;
+
+  if (!token || !email) {
+    throw new ApiError('Invalid verification link', 400);
+  }
+
+  // Find user with verification token
+  const user = await User.findOne({
+    email,
+    emailVerificationToken: token,
+    emailVerificationExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    throw new ApiError('Invalid or expired verification token', 400);
+  }
+
+  // Verify the user
+  user.verified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save();
+
+  res.json({
+    status: 'success',
+    message: 'Email verified successfully! You can now start booking studios.'
+  });
+});
+
+// Resend verification email
+const resendVerification = catchAsync(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  if (user.verified) {
+    throw new ApiError('Email is already verified', 400);
+  }
+
+  // Generate new verification token
+  const verificationToken = generateVerificationToken();
+  user.emailVerificationToken = verificationToken;
+  user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  await user.save();
+
+  // Send verification email
+  try {
+    await sendClientVerificationEmail(user, verificationToken);
+    res.json({
+      status: 'success',
+      message: 'Verification email sent successfully'
+    });
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    throw new ApiError('Failed to send verification email', 500);
+  }
+});
+
 module.exports = {
   register,
   login,
   logout,
   refreshToken,
+  googleAuth,
   verifyEmail,
+  resendVerification,
   forgotPassword,
   resetPassword,
   getMe

@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['client', 'artist', 'studio', 'admin'],
+    enum: ['client', 'studio', 'admin'],
     default: 'client'
   },
   phone: {
@@ -46,10 +46,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  artist: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Artist'
-  },
   studio: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Studio'
@@ -65,7 +61,33 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false
+  },
+  blockedAt: Date,
+  blockedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  blockReason: String,
+  blockType: {
+    type: String,
+    enum: ['temporary', 'permanent', 'warning'],
+    default: 'temporary'
+  },
+  blockExpiresAt: Date,
+  warningCount: {
+    type: Number,
+    default: 0
+  },
+  lastWarningAt: Date,
+  lastLoginAt: Date,
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
 }, {
   timestamps: true
 });
@@ -86,6 +108,19 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Check if user is blocked
+userSchema.methods.isUserBlocked = function() {
+  return this.isBlocked || (this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Get user status
+userSchema.methods.getUserStatus = function() {
+  if (this.isBlocked) return 'blocked';
+  if (!this.isActive) return 'inactive';
+  if (!this.verified) return 'unverified';
+  return 'active';
 };
 
 // Remove password from JSON output

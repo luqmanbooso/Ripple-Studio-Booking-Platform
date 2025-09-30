@@ -91,6 +91,49 @@ export const bookingApi = createApi({
         'Bookings',
       ],
     }),
+    updateBooking: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Booking', id },
+        'Bookings',
+      ],
+    }),
+    confirmBooking: builder.mutation({
+      query: (id) => ({
+        url: `/${id}/confirm`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: 'Booking', id },
+        'Bookings',
+      ],
+    }),
+    rejectBooking: builder.mutation({
+      query: ({ id, reason }) => ({
+        url: `/${id}/reject`,
+        method: 'PATCH',
+        body: { reason },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Booking', id },
+        'Bookings',
+      ],
+    }),
+    updateBookingStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/${id}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Booking', id },
+        'Bookings',
+      ],
+    }),
   }),
 })
 
@@ -100,4 +143,8 @@ export const {
   useGetBookingQuery,
   useCancelBookingMutation,
   useCompleteBookingMutation,
+  useUpdateBookingMutation,
+  useConfirmBookingMutation,
+  useRejectBookingMutation,
+  useUpdateBookingStatusMutation,
 } = bookingApi

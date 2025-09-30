@@ -18,6 +18,7 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const webhookRoutes = require("./webhooks/payhereWebhook");
 
 // Import middleware
@@ -103,6 +104,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/webhooks", webhookRoutes);
 
 // Serve static files in production

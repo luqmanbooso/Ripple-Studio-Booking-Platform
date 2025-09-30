@@ -17,7 +17,15 @@ router.get('/revenue', adminController.getRevenueAnalytics);
 
 // User Management
 router.get('/users', adminController.getUsers);
+router.get('/users/stats', adminController.getUserStats);
 router.patch('/users/:id/role', adminController.updateUserRole);
+router.patch('/users/:id/verify', adminController.verifyUser);
+router.patch('/users/:id/unverify', adminController.unverifyUser);
+router.patch('/users/:id/block', adminController.blockUser);
+router.patch('/users/:id/unblock', adminController.unblockUser);
+router.patch('/users/:id/status', adminController.toggleUserStatus);
+router.delete('/users/:id', adminController.deleteUser);
+router.post('/users/bulk-actions', adminController.bulkUserActions);
 
 // Booking Management
 router.get('/bookings', adminController.getBookings);
@@ -75,9 +83,11 @@ const updateStudioSchema = {
 };
 
 router.get('/studios', adminController.getStudios);
+router.get('/studios/pending', adminController.getPendingStudios);
 router.post('/studios', validate(studioSchema), adminController.createStudio);
 router.patch('/studios/:id', validate(updateStudioSchema), adminController.updateStudio);
+router.patch('/studios/:id/approve', adminController.approveStudio);
+router.patch('/studios/:id/reject', adminController.rejectStudio);
 router.delete('/studios/:id', adminController.deleteStudio);
-router.patch('/studios/:id/status', adminController.toggleStudioStatus);
 
 module.exports = router;

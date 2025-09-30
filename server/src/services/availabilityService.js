@@ -1,5 +1,4 @@
 const Booking = require('../models/Booking');
-const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
@@ -10,7 +9,7 @@ dayjs.extend(timezone);
 
 /**
  * Check if a time slot is available for booking
- * @param {string} providerType - 'artist' or 'studio'
+ * @param {string} providerType - 'studio' (artist removed)
  * @param {string} providerId - Provider ID
  * @param {Date|string} start - Start time
  * @param {Date|string} end - End time
@@ -44,8 +43,8 @@ const checkAvailability = async (providerType, providerId, start, end) => {
  * @returns {Promise<boolean>} - True if provider is available
  */
 const checkProviderAvailability = async (providerType, providerId, start, end) => {
-  const Model = providerType === 'artist' ? Artist : Studio;
-  const provider = await Model.findById(providerId);
+  if (providerType !== 'studio') return false;
+  const provider = await Studio.findById(providerId);
 
   if (!provider || !provider.isActive) {
     return false;
@@ -126,7 +125,7 @@ const checkOneTimeAvailability = (slot, start, end) => {
  */
 const checkBookingConflicts = async (providerType, providerId, start, end, excludeBookingId = null) => {
   const query = {
-    [providerType]: providerId,
+    studio: providerId,
     status: { $in: ['confirmed', 'payment_pending'] },
     $or: [
       // Booking starts during the requested time
@@ -147,15 +146,15 @@ const checkBookingConflicts = async (providerType, providerId, start, end, exclu
 
 /**
  * Get available time slots for a provider on a specific date
- * @param {string} providerType - 'artist' or 'studio'
+ * @param {string} providerType - 'studio'
  * @param {string} providerId - Provider ID
  * @param {Date|string} date - Date to check
  * @param {number} durationMins - Duration in minutes
  * @returns {Promise<Array>} - Array of available time slots
  */
 const getAvailableSlots = async (providerType, providerId, date, durationMins = 60) => {
-  const Model = providerType === 'artist' ? Artist : Studio;
-  const provider = await Model.findById(providerId);
+  if (providerType !== 'studio') return [];
+  const provider = await Studio.findById(providerId);
 
   if (!provider || !provider.isActive) {
     return [];
@@ -227,8 +226,8 @@ const canReschedule = async (bookingId, newStart, newEnd) => {
     return false;
   }
 
-  const providerType = booking.artist ? 'artist' : 'studio';
-  const providerId = booking.artist || booking.studio;
+  const providerType = 'studio';
+  const providerId = booking.studio;
 
   return await checkAvailability(providerType, providerId, newStart, newEnd) &&
          !(await checkBookingConflicts(providerType, providerId, newStart, newEnd, bookingId));

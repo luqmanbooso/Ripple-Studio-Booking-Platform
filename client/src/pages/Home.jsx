@@ -31,7 +31,7 @@ const Home = () => {
 
   // Professional data with neon theme colors
   const stats = [
-    { icon: Users, label: 'Active Artists', value: '10,000+', color: 'text-primary-400', bg: 'bg-primary-500/10', glow: 'shadow-primary-500/20' },
+    { icon: Users, label: 'Active Users', value: '10,000+', color: 'text-primary-400', bg: 'bg-primary-500/10', glow: 'shadow-primary-500/20' },
     { icon: Music, label: 'Studios Listed', value: '500+', color: 'text-accent-400', bg: 'bg-accent-500/10', glow: 'shadow-accent-500/20' },
     { icon: Award, label: 'Sessions Booked', value: '50,000+', color: 'text-purple-400', bg: 'bg-purple-500/10', glow: 'shadow-purple-500/20' },
     { icon: Star, label: 'Average Rating', value: '4.9/5', color: 'text-yellow-400', bg: 'bg-yellow-500/10', glow: 'shadow-yellow-500/20' }
@@ -41,7 +41,7 @@ const Home = () => {
     {
       icon: Search,
       title: 'Smart Discovery',
-      description: 'Find the perfect studio or artist match with our AI-powered search and recommendation system.'
+      description: 'Find the perfect studio match with our AI-powered search and recommendation system.'
     },
     {
       icon: Calendar,
@@ -51,7 +51,7 @@ const Home = () => {
     {
       icon: Shield,
       title: 'Verified Professionals',
-      description: 'All studios and artists undergo thorough verification to ensure quality and authenticity.'
+      description: 'All studios undergo thorough verification to ensure quality and authenticity.'
     },
     {
       icon: Headphones,
@@ -68,7 +68,7 @@ const Home = () => {
       avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=150&h=150&fit=crop&crop=face"
     },
     {
-      text: "As a studio owner, Ripple has connected me with amazing artists and streamlined my entire booking process.",
+      text: "As a studio owner, Ripple has streamlined my entire booking process and connected me with great clients.",
       author: "Marcus Johnson",
       role: "Studio Owner, Nashville",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
@@ -76,7 +76,7 @@ const Home = () => {
     {
       text: "The professional network and quality assurance on Ripple is exactly what the industry needed.",
       author: "Elena Rodriguez",
-      role: "Independent Artist",
+      role: "Music Producer",
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
     }
   ]
@@ -246,7 +246,7 @@ const Home = () => {
                 transition={{ duration: 0.8, delay: 0.6 }}
                 className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto"
               >
-                Connect with world-class recording studios and talented artists. 
+                Connect with world-class recording studios. 
                 Book professional sessions, collaborate seamlessly, and create your masterpiece.
               </motion.p>
 
@@ -262,7 +262,7 @@ const Home = () => {
                     <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="User" />
                     <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face" alt="User" />
                   </div>
-                  <span className="text-sm text-gray-400">10,000+ Artists Trust Ripple</span>
+                  <span className="text-sm text-gray-400">10,000+ Users Trust Ripple</span>
                 </div>
               </motion.div>
             </motion.div>
@@ -596,7 +596,7 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              Join thousands of artists and studios creating exceptional music together on the world's most trusted platform
+              Join thousands of musicians and studios creating exceptional music together on the world's most trusted platform
             </motion.p>
             
             <motion.div 

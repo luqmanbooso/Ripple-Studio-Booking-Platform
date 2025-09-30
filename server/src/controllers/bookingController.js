@@ -1,39 +1,25 @@
 const Booking = require("../models/Booking");
-const Artist = require("../models/Artist");
 const Studio = require("../models/Studio");
 const ApiError = require("../utils/ApiError");
 const catchAsync = require("../utils/catchAsync");
 const availabilityService = require("../services/availabilityService");
 const bookingService = require("../services/bookingService");
 const paymentService = require("../services/paymentService");
+const NotificationService = require("../services/notificationService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
 
 const createBooking = catchAsync(async (req, res) => {
-  const { artistId, studioId, service, start, end, notes } = req.body;
+  const { studioId, service, start, end, notes } = req.body;
   const clientId = req.user._id;
 
-  // Validate that either artist or studio is provided
-  if (!artistId && !studioId) {
-    throw new ApiError("Either artist or studio ID is required", 400);
+  // Check if client is verified
+  if (!req.user.verified) {
+    throw new ApiError("Please verify your email address before making bookings", 403);
   }
 
-  if (artistId && studioId) {
-    throw new ApiError(
-      "Cannot book both artist and studio in one booking",
-      400
-    );
-  }
-
-  // Get the provider
-  let provider;
-  let providerType;
-  if (artistId) {
-    provider = await Artist.findById(artistId).populate("user");
-    providerType = "artist";
-  } else {
-    provider = await Studio.findById(studioId).populate("user");
-    providerType = "studio";
-  }
+  // Get the provider (studio only)
+  const provider = await Studio.findById(studioId).populate("user");
+  const providerType = "studio";
 
   if (!provider) {
     throw new ApiError("Provider not found", 404);
@@ -43,19 +29,18 @@ const createBooking = catchAsync(async (req, res) => {
     throw new ApiError("Provider is not currently accepting bookings", 400);
   }
 
-  // Validate service for studios
-  if (providerType === "studio") {
-    const studioService = provider.getService(service.name);
-    if (!studioService) {
-      throw new ApiError("Service not available at this studio", 400);
-    }
-    service.price = studioService.price;
-    service.durationMins = studioService.durationMins;
-  } else {
-    // For artists, calculate price based on hourly rate
-    const durationHours = (new Date(end) - new Date(start)) / (1000 * 60 * 60);
-    service.price = provider.hourlyRate * durationHours;
+  // Check if studio is approved
+  if (!provider.isApproved) {
+    throw new ApiError("This studio is not yet approved for bookings", 400);
   }
+
+  // Validate service for studio
+  const studioService = provider.getService(service.name);
+  if (!studioService) {
+    throw new ApiError("Service not available at this studio", 400);
+  }
+  service.price = studioService.price;
+  service.durationMins = studioService.durationMins;
 
   // Check availability
   const isAvailable = await availabilityService.checkAvailability(
@@ -99,6 +84,11 @@ const createBooking = catchAsync(async (req, res) => {
     end,
   });
 
+  // Send notification to admin about new booking (async)
+  NotificationService.notifyBookingCreated(booking, req.user, provider).catch(error => {
+    console.error('Failed to send booking notification:', error);
+  });
+
   res.status(201).json({
     status: "success",
     data: {
@@ -118,8 +108,6 @@ const getMyBookings = catchAsync(async (req, res) => {
   // Build query based on user role
   if (req.user.role === "client") {
     query.client = userId;
-  } else if (req.user.role === "artist" && req.user.artist) {
-    query.artist = req.user.artist._id;
   } else if (req.user.role === "studio" && req.user.studio) {
     query.studio = req.user.studio._id;
   } else {
@@ -141,7 +129,6 @@ const getMyBookings = catchAsync(async (req, res) => {
   const bookings = await Booking.find(query)
     .populate([
       { path: "client", select: "name email avatar" },
-      { path: "artist", populate: { path: "user", select: "name email" } },
       { path: "studio", populate: { path: "user", select: "name email" } },
     ])
     .sort({ start: -1 })
@@ -170,7 +157,6 @@ const getBooking = catchAsync(async (req, res) => {
 
   const booking = await Booking.findById(id).populate([
     { path: "client", select: "name email avatar phone" },
-    { path: "artist", populate: { path: "user", select: "name email phone" } },
     { path: "studio", populate: { path: "user", select: "name email phone" } },
   ]);
 
@@ -181,8 +167,6 @@ const getBooking = catchAsync(async (req, res) => {
   // Check if user has access to this booking
   const hasAccess =
     booking.client._id.toString() === userId.toString() ||
-    (booking.artist &&
-      booking.artist.user._id.toString() === userId.toString()) ||
     (booking.studio &&
       booking.studio.user._id.toString() === userId.toString()) ||
     req.user.role === "admin";
@@ -206,7 +190,6 @@ const cancelBooking = catchAsync(async (req, res) => {
 
   const booking = await Booking.findById(id).populate([
     { path: "client" },
-    { path: "artist", populate: { path: "user" } },
     { path: "studio", populate: { path: "user" } },
   ]);
 
@@ -217,8 +200,6 @@ const cancelBooking = catchAsync(async (req, res) => {
   // Check if user can cancel this booking
   const canCancel =
     booking.client._id.toString() === userId.toString() ||
-    (booking.artist &&
-      booking.artist.user._id.toString() === userId.toString()) ||
     (booking.studio &&
       booking.studio.user._id.toString() === userId.toString()) ||
     req.user.role === "admin";
@@ -235,11 +216,9 @@ const cancelBooking = catchAsync(async (req, res) => {
   const cancelledBooking = await bookingService.cancelBooking(booking, reason);
 
   // Emit socket events
-  const providerType = booking.artist ? "artist" : "studio";
-  const providerId = booking.artist ? booking.artist._id : booking.studio._id;
-  const providerUserId = booking.artist
-    ? booking.artist.user._id
-    : booking.studio.user._id;
+  const providerType = "studio";
+  const providerId = booking.studio._id;
+  const providerUserId = booking.studio.user._id;
 
   emitToUser(booking.client._id, "booking_cancelled", {
     bookingId: booking._id,
@@ -271,7 +250,6 @@ const completeBooking = catchAsync(async (req, res) => {
 
   const booking = await Booking.findById(id).populate([
     { path: "client" },
-    { path: "artist", populate: { path: "user" } },
     { path: "studio", populate: { path: "user" } },
   ]);
 
@@ -281,8 +259,6 @@ const completeBooking = catchAsync(async (req, res) => {
 
   // Only provider can mark booking as complete
   const isProvider =
-    (booking.artist &&
-      booking.artist.user._id.toString() === userId.toString()) ||
     (booking.studio &&
       booking.studio.user._id.toString() === userId.toString());
 
@@ -310,15 +286,11 @@ const completeBooking = catchAsync(async (req, res) => {
   });
 });
 
-// Get booked slots for a provider on a specific date
+// Get booked slots for a studio on a specific date
 const getBookedSlots = catchAsync(async (req, res) => {
-  const { providerType, providerId, date } = req.query;
-
-  if (!providerType || !["artist", "studio"].includes(providerType)) {
-    throw new ApiError('providerType must be "artist" or "studio"', 400);
-  }
-  if (!providerId) {
-    throw new ApiError("providerId is required", 400);
+  const { studioId, date } = req.query;
+  if (!studioId) {
+    throw new ApiError("studioId is required", 400);
   }
   if (!date) {
     throw new ApiError("date is required (YYYY-MM-DD)", 400);
@@ -329,7 +301,7 @@ const getBookedSlots = catchAsync(async (req, res) => {
   const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
   const query = {
-    [providerType]: providerId,
+    studio: studioId,
     start: { $gte: startOfDay, $lte: endOfDay },
   };
 
