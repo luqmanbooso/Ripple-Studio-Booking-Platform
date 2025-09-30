@@ -90,19 +90,23 @@ const AdminStudios = () => {
     try {
       let updateData = {}
       let successMessage = ''
+      let loadingMessage = ''
       
       switch (action) {
         case 'approve':
           updateData = { isApproved: true, verificationStatus: 'verified' }
           successMessage = 'Studio approved successfully'
+          loadingMessage = 'Approving studio...'
           break
         case 'reject':
           updateData = { isApproved: false, verificationStatus: 'rejected' }
           successMessage = 'Studio rejected successfully'
+          loadingMessage = 'Rejecting studio...'
           break
         case 'revoke':
           updateData = { isApproved: false, verificationStatus: 'pending' }
           successMessage = 'Studio approval revoked successfully'
+          loadingMessage = 'Revoking approval...'
           break
         default:
           throw new Error('Invalid action')
@@ -112,7 +116,13 @@ const AdminStudios = () => {
         updateData.reason = reason
       }
       
+      // Show loading toast
+      const loadingToast = toast.loading(loadingMessage)
+      
       await updateStudioStatus({ id: studioId, ...updateData }).unwrap()
+      
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast)
       toast.success(successMessage)
     } catch (error) {
       toast.error(`Failed to ${action} studio: ${error.message}`)
@@ -131,7 +141,13 @@ const AdminStudios = () => {
   const handleDeleteStudio = async (studioId) => {
     if (window.confirm('Are you sure you want to delete this studio? This action cannot be undone.')) {
       try {
+        // Show loading toast
+        const loadingToast = toast.loading('Deleting studio...')
+        
         await deleteStudioAction(studioId).unwrap()
+        
+        // Dismiss loading and show success
+        toast.dismiss(loadingToast)
         toast.success('Studio deleted successfully')
       } catch (error) {
         toast.error('Failed to delete studio')
@@ -178,8 +194,15 @@ const AdminStudios = () => {
 
   const handleCreateStudio = async (studioData) => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading('Creating studio...')
+      
       await createStudio(studioData).unwrap()
+      
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast)
       toast.success('Studio created successfully!')
+      
       setIsCreateModalOpen(false)
     } catch (error) {
       toast.error(error.data?.message || 'Failed to create studio')
@@ -188,8 +211,15 @@ const AdminStudios = () => {
 
   const handleUpdateStudio = async (studioData) => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading('Updating studio...')
+      
       await updateStudio({ id: selectedStudio._id, ...studioData }).unwrap()
+      
+      // Dismiss loading and show success
+      toast.dismiss(loadingToast)
       toast.success('Studio updated successfully!')
+      
       setIsEditModalOpen(false)
       setSelectedStudio(null)
     } catch (error) {
