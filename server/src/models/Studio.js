@@ -63,7 +63,33 @@ const studioSchema = new mongoose.Schema({
       required: true,
       min: 30
     },
-    description: String
+    description: String,
+    category: {
+      type: String,
+      enum: ['recording', 'mixing', 'mastering', 'production', 'video', 'consultation'],
+      default: 'recording'
+    },
+    isBookable: {
+      type: Boolean,
+      default: true
+    },
+    advanceBookingHours: {
+      type: Number,
+      min: 0,
+      default: null
+    },
+    maxBookingsPerDay: {
+      type: Number,
+      min: 1,
+      default: null
+    },
+    preparationTime: {
+      type: Number,
+      min: 0,
+      default: 15
+    },
+    requiredEquipment: [String],
+    cancellationPolicy: String
   }],
   gallery: [{
     url: {
@@ -149,15 +175,28 @@ const studioSchema = new mongoose.Schema({
     email: String,
     website: String
   },
-  verificationStatus: {
-    type: String,
-    enum: ['pending', 'verified', 'rejected'],
-    default: 'pending'
+  hourlyRate: {
+    type: Number,
+    min: 0
   },
-  amenities: [{
+  capacity: {
+    type: Number,
+    min: 1
+  },
+  genres: [{
     type: String,
     trim: true
-  }]
+  }],
+  socialMedia: {
+    instagram: String,
+    twitter: String,
+    facebook: String,
+    youtube: String
+  },
+  onboarded: {
+    type: Boolean,
+    default: false
+  },
 }, {
   timestamps: true
 });

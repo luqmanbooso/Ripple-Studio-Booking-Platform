@@ -1,105 +1,167 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Plus, Edit, Trash2, Save, X, DollarSign, Clock, 
-  Music, Mic, Settings, Star, Camera, Headphones
+  Plus, Edit, Trash2, Save, X, Clock, DollarSign, 
+  Music, Mic, Camera, Headphones, Settings, Star,
+  TrendingUp, Users, Calendar, BarChart3
 } from 'lucide-react'
-import { toast } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
-import { useGetStudioQuery, useUpdateStudioMutation } from '../../store/studioApi'
+import toast from 'react-hot-toast'
+import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
+import Modal from '../../components/ui/Modal'
+import { 
+  useGetStudioServicesQuery, 
+  useAddServiceMutation, 
+  useUpdateServiceMutation, 
+  useDeleteServiceMutation 
+} from '../../store/serviceApi'
 
 const CompleteStudioServices = () => {
   const { user } = useSelector(state => state.auth)
-  const [services, setServices] = useState([])
+  const studioId = user?.studio?._id || user?.studio
+  
+  // All hooks must be called before any early returns
+  const { data: servicesData, isLoading, error } = useGetStudioServicesQuery({ studioId }, { skip: !studioId })
+  const [addService, { isLoading: isAdding }] = useAddServiceMutation()
+  const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation()
+  const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation()
+  
   const [showModal, setShowModal] = useState(false)
   const [editingService, setEditingService] = useState(null)
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: 'recording',
-    price: '',
-    duration: 60,
-    features: []
-  })
+  const [viewMode, setViewMode] = useState('grid')
+  
+  // Debug logging
+  console.log('User:', user)
+  console.log('Studio ID:', studioId)
+  
+  // Show error if no studio access
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Authentication Required</h3>
+          <p className="text-gray-500">Please log in to access studio services.</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (!studioId) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Studio Access</h3>
+          <p className="text-gray-500">You need to be associated with a studio to manage services.</p>
+        </div>
+      </div>
+    )
+  }
 
-  const { data: studioData, isLoading } = useGetStudioQuery(user?.studio?._id || user?.studio)
-  const [updateStudio, { isLoading: isUpdating }] = useUpdateStudioMutation()
+  // Extract services from the API response structure
+  const services = servicesData?.data || []
+  
+  // Enhanced logging for debugging
+  console.log('Services Data:', servicesData)
+  console.log('Extracted Services:', services)
+  console.log('Loading:', isLoading)
+  console.log('Error:', error)
+  
+  // Log the actual API call being made
+  console.log('API Query params:', { studioId }, { skip: !studioId })
 
   const serviceCategories = [
-    { id: 'recording', name: 'Recording', icon: Mic, color: 'bg-red-500' },
-    { id: 'mixing', name: 'Mixing', icon: Settings, color: 'bg-blue-500' },
-    { id: 'mastering', name: 'Mastering', icon: Star, color: 'bg-purple-500' },
-    { id: 'production', name: 'Production', icon: Music, color: 'bg-green-500' },
-    { id: 'video', name: 'Video', icon: Camera, color: 'bg-orange-500' },
-    { id: 'other', name: 'Other', icon: Headphones, color: 'bg-gray-500' }
+    { id: 'recording', name: 'Recording Sessions', icon: Mic, color: 'bg-red-500', 
+      description: 'Studio time for recording vocals, instruments, or full bands',
+      examples: ['Vocal Recording', 'Band Recording', 'Overdub Session', 'Live Recording'] },
+    { id: 'mixing', name: 'Mixing Services', icon: Settings, color: 'bg-blue-500',
+      description: 'Professional mixing of recorded tracks',
+      examples: ['Song Mix', 'Album Mix', 'Stem Mix', 'Radio Edit'] },
+    { id: 'mastering', name: 'Mastering Services', icon: Star, color: 'bg-purple-500',
+      description: 'Final polish and preparation for distribution',
+      examples: ['Single Master', 'Album Master', 'Vinyl Master', 'Streaming Master'] },
+    { id: 'production', name: 'Music Production', icon: Music, color: 'bg-green-500',
+      description: 'Full production services from concept to completion',
+      examples: ['Beat Making', 'Song Production', 'Arrangement', 'Pre-Production'] },
+    { id: 'video', name: 'Video Production', icon: Camera, color: 'bg-orange-500',
+      description: 'Music video and visual content creation',
+      examples: ['Music Video', 'Live Session Video', 'Behind the Scenes', 'Lyric Video'] },
+    { id: 'consultation', name: 'Consultation', icon: Headphones, color: 'bg-gray-500',
+      description: 'Professional advice and guidance',
+      examples: ['Career Consultation', 'Technical Consultation', 'Project Review', 'Equipment Advice'] }
   ]
 
-  useEffect(() => {
-    if (studioData?.data?.studio?.services) {
-      setServices(studioData.data.studio.services)
-    }
-  }, [studioData])
-
-  const handleSave = async () => {
+  const handleSaveService = async (serviceData) => {
     try {
-      await updateStudio({
-        id: user?.studio?._id || user?.studio,
-        services: services
-      }).unwrap()
-      toast.success('Services updated successfully!')
+      if (editingService) {
+        await updateService({ 
+          studioId, 
+          serviceId: editingService._id, 
+          ...serviceData 
+        }).unwrap()
+        toast.success('Service updated')
+      } else {
+        await addService({ 
+          studioId, 
+          ...serviceData 
+        }).unwrap()
+        toast.success('Service added')
+      }
+      
+      setShowModal(false)
+      setEditingService(null)
     } catch (error) {
-      toast.error('Failed to update services')
+      console.error('Service save error:', error)
+      toast.error(error.data?.message || 'Failed to save service')
     }
   }
 
-  const handleAddService = () => {
-    setEditingService(null)
-    setFormData({
-      name: '',
-      description: '',
-      category: 'recording',
-      price: '',
-      duration: 60,
-      features: []
-    })
-    setShowModal(true)
-  }
-
-  const handleEditService = (service) => {
-    setEditingService(service)
-    setFormData(service)
-    setShowModal(true)
-  }
-
-  const handleDeleteService = (serviceId) => {
-    setServices(services.filter(s => s.id !== serviceId))
-  }
-
-  const handleSubmitService = () => {
-    const serviceData = {
-      ...formData,
-      id: editingService?.id || Date.now().toString(),
-      price: parseFloat(formData.price)
+  const handleDeleteService = async (serviceId) => {
+    if (window.confirm('Delete this service?')) {
+      try {
+        await deleteService({ studioId, serviceId }).unwrap()
+        toast.success('Service deleted')
+      } catch (error) {
+        toast.error('Failed to delete service')
+      }
     }
-
-    if (editingService) {
-      setServices(services.map(s => s.id === editingService.id ? serviceData : s))
-    } else {
-      setServices([...services, serviceData])
-    }
-    
-    setShowModal(false)
-    toast.success(editingService ? 'Service updated!' : 'Service added!')
   }
 
-  const getCategoryIcon = (category) => {
-    const cat = serviceCategories.find(c => c.id === category)
-    return cat ? cat.icon : Headphones
+  // Enhanced service analytics functions
+  const getServicesByCategory = (categoryId) => {
+    return services.filter(service => service.category === categoryId)
   }
 
-  const getCategoryColor = (category) => {
-    const cat = serviceCategories.find(c => c.id === category)
-    return cat ? cat.color : 'bg-gray-500'
+  const getTotalRevenue = () => {
+    return services.reduce((total, service) => total + (parseFloat(service.price) || 0), 0)
+  }
+
+  const getAveragePrice = () => {
+    if (services.length === 0) return 0
+    return getTotalRevenue() / services.length
+  }
+
+  const getBookableServices = () => {
+    return services.filter(service => service.isBookable !== false).length
+  }
+
+  const getAverageDuration = () => {
+    if (services.length === 0) return 0
+    return services.reduce((total, service) => total + (parseInt(service.durationMins) || 0), 0) / services.length
+  }
+
+  // Get category info for a service
+  const getCategoryInfo = (categoryId) => {
+    return serviceCategories.find(cat => cat.id === categoryId) || serviceCategories[0]
+  }
+
+  // Get services statistics by category
+  const getCategoryStats = () => {
+    return serviceCategories.map(category => ({
+      ...category,
+      count: getServicesByCategory(category.id).length,
+      totalRevenue: getServicesByCategory(category.id).reduce((sum, service) => sum + (parseFloat(service.price) || 0), 0)
+    }))
   }
 
   if (isLoading) {
@@ -111,245 +173,396 @@ const CompleteStudioServices = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Studio Services</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your bookable services and pricing
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={handleAddService}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Studio Services</h1>
+            <p className="text-blue-100">
+              Create and manage your bookable services with professional pricing
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-6 py-3 rounded-lg shadow-lg"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Service</span>
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isUpdating}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isUpdating ? 'Saving...' : 'Save Changes'}</span>
-          </button>
+            <Plus className="w-5 h-5 mr-2" />
+            Add New Service
+          </Button>
         </div>
       </div>
 
-      {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence>
-          {services.map((service) => {
-            const Icon = getCategoryIcon(service.category)
-            return (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 ${getCategoryColor(service.category)} rounded-lg flex items-center justify-center`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditService(service)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteService(service.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {service.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                  {service.description}
-                </p>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-1 text-green-600">
-                    <DollarSign className="w-4 h-4" />
-                    <span className="font-medium">${service.price}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 text-gray-500">
-                    <Clock className="w-4 h-4" />
-                    <span>{service.duration} min</span>
-                  </div>
-                </div>
-                
-                {service.features && service.features.length > 0 && (
-                  <div className="mt-4">
-                    <div className="flex flex-wrap gap-1">
-                      {service.features.slice(0, 3).map((feature, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                      {service.features.length > 3 && (
-                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs rounded">
-                          +{service.features.length - 3} more
-                        </span>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm">Active Services</p>
+              <p className="text-2xl font-bold">{getBookableServices()}</p>
+            </div>
+            <Calendar className="w-8 h-8 text-blue-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm">Avg Price</p>
+              <p className="text-2xl font-bold">${getAveragePrice().toFixed(0)}</p>
+            </div>
+            <DollarSign className="w-8 h-8 text-green-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm">Avg Duration</p>
+              <p className="text-2xl font-bold">{Math.round(getAverageDuration())}min</p>
+            </div>
+            <Clock className="w-8 h-8 text-purple-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100 text-sm">Revenue Potential</p>
+              <p className="text-2xl font-bold">${getTotalRevenue().toFixed(2)}</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-orange-200" />
+          </div>
+        </div>
+      </div>
+
+      {/* Services List */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Services</h2>
+          {services.length > 0 && (
+            <p className="text-sm text-gray-500">{services.length} service{services.length !== 1 ? 's' : ''} total</p>
+          )}
+        </div>
+
+        {services.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <Music className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No services yet</h3>
+            <p className="text-gray-500 mb-6">Create your first service to start accepting bookings</p>
+            <Button
+              onClick={() => setShowModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create First Service
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {services.map(service => {
+              const categoryInfo = getCategoryInfo(service.category)
+              const CategoryIcon = categoryInfo.icon
+              
+              return (
+                <motion.div
+                  key={service._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className={`w-10 h-10 ${categoryInfo.color} rounded-lg flex items-center justify-center`}>
+                          <CategoryIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            {service.name}
+                          </h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              service.isBookable !== false 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                            }`}>
+                              {service.isBookable !== false ? '✓ Bookable' : '✗ Unavailable'}
+                            </span>
+                            <span className={`px-2 py-1 ${categoryInfo.color.replace('bg-', 'bg-opacity-10 ')} text-xs font-medium rounded-full`}>
+                              {categoryInfo.name}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {service.description && (
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">{service.description}</p>
                       )}
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-4 h-4 text-green-500" />
+                        <div>
+                          <p className="text-sm text-gray-500">Price</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">${service.price}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        <div>
+                          <p className="text-sm text-gray-500">Duration</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{service.durationMins}min</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-purple-500" />
+                        <div>
+                          <p className="text-sm text-gray-500">Advance Booking</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {service.advanceBookingHours ? `${service.advanceBookingHours}h` : 'Same day'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-orange-500" />
+                        <div>
+                          <p className="text-sm text-gray-500">Max/Day</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {service.maxBookingsPerDay ? service.maxBookingsPerDay : 'No limit'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
+                  
+                  <div className="flex space-x-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => (setEditingService(service), setShowModal(true))}
+                      className="hover:bg-blue-50 hover:border-blue-300"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteService(service._id)}
+                      className="text-red-600 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </motion.div>
-            )
-          })}
-        </AnimatePresence>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Empty State */}
-      {services.length === 0 && (
-        <div className="text-center py-12">
-          <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No services yet
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Start by adding your first service to attract clients
-          </p>
-          <button
-            onClick={handleAddService}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
-          >
-            Add Your First Service
-          </button>
-        </div>
-      )}
-
       {/* Service Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingService ? 'Edit Service' : 'Add New Service'}
-                </h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Service Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="e.g., Recording Session"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    {serviceCategories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Price ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Duration (min)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="60"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Describe what's included in this service..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmitService}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  {editingService ? 'Update' : 'Add'} Service
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ServiceModal
+        isOpen={showModal}
+        onClose={() => (setShowModal(false), setEditingService(null))}
+        service={editingService}
+        onSubmit={handleSaveService}
+        categories={serviceCategories}
+      />
     </div>
+  )
+}
+
+const ServiceModal = ({ isOpen, onClose, service, onSubmit, categories }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    durationMins: 60,
+    category: 'recording',
+    isBookable: true,
+    advanceBookingHours: '',
+    maxBookingsPerDay: '',
+    requiredEquipment: [],
+    cancellationPolicy: '',
+    preparationTime: 15
+  })
+
+  useEffect(() => {
+    if (service) {
+      setFormData({
+        name: service.name ?? '',
+        description: service.description ?? '',
+        price: service.price?.toString() ?? '',
+        durationMins: service.durationMins ?? 60,
+        category: service.category ?? 'recording',
+        isBookable: service.isBookable ?? true,
+        advanceBookingHours: service.advanceBookingHours?.toString() ?? '',
+        maxBookingsPerDay: service.maxBookingsPerDay?.toString() ?? '',
+        requiredEquipment: service.requiredEquipment ?? [],
+        cancellationPolicy: service.cancellationPolicy ?? '',
+        preparationTime: service.preparationTime ?? 15
+      })
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        durationMins: 60,
+        category: 'recording',
+        isBookable: true,
+        advanceBookingHours: '',
+        maxBookingsPerDay: '',
+        requiredEquipment: [],
+        cancellationPolicy: '',
+        preparationTime: 15
+      })
+    }
+  }, [service, isOpen])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSubmit({
+      ...formData,
+      price: parseFloat(formData.price),
+      durationMins: parseInt(formData.durationMins),
+      advanceBookingHours: formData.advanceBookingHours ? parseInt(formData.advanceBookingHours) : null,
+      maxBookingsPerDay: formData.maxBookingsPerDay ? parseInt(formData.maxBookingsPerDay) : null,
+      preparationTime: parseInt(formData.preparationTime)
+    })
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={service ? 'Edit Bookable Service' : 'Add Bookable Service'}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Service Name *
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Category *
+          </label>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Price ($) *
+            </label>
+            <input
+              type="number"
+              value={formData.price}
+              onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+              required
+              min="0"
+              step="0.01"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Duration (minutes) *
+            </label>
+            <input
+              type="number"
+              value={formData.durationMins}
+              onChange={(e) => setFormData(prev => ({ ...prev, durationMins: e.target.value }))}
+              required
+              min="30"
+              step="15"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={2}
+            placeholder="Brief description of the service..."
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        {/* Booking Settings */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+            <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+            Booking Options
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Advance Notice (hours)
+              </label>
+              <input
+                type="number"
+                value={formData.advanceBookingHours}
+                onChange={(e) => setFormData(prev => ({ ...prev, advanceBookingHours: e.target.value }))}
+                min="0"
+                placeholder="24"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">How far in advance must clients book?</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Daily Limit
+              </label>
+              <input
+                type="number"
+                value={formData.maxBookingsPerDay}
+                onChange={(e) => setFormData(prev => ({ ...prev, maxBookingsPerDay: e.target.value }))}
+                min="1"
+                placeholder="5"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">Max bookings per day (optional)</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+            {service ? 'Update' : 'Add'} Bookable Service
+          </Button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 

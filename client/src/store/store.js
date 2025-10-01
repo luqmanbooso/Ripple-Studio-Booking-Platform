@@ -14,6 +14,8 @@ import { paymentApi } from './paymentApi'
 import { adminApi } from './adminApi'
 import { mediaApi } from './mediaApi'
 import { equipmentApi } from './equipmentApi'
+import { serviceApi } from './serviceApi'
+import { notificationApi } from './notificationApi'
 
 export const store = configureStore({
   reducer: {
@@ -27,6 +29,8 @@ export const store = configureStore({
     [adminApi.reducerPath]: adminApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [equipmentApi.reducerPath]: equipmentApi.reducer,
+    [serviceApi.reducerPath]: serviceApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -41,12 +45,13 @@ export const store = configureStore({
       paymentApi.middleware,
       adminApi.middleware,
       mediaApi.middleware,
-      equipmentApi.middleware
+      equipmentApi.middleware,
+      serviceApi.middleware,
+      notificationApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })
 
 setupListeners(store.dispatch)
-
 // Type aliases for RootState and AppDispatch are only valid in TypeScript files.
 // Remove or move these to a .ts or .d.ts file if you need type safety.

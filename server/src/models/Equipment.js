@@ -123,6 +123,35 @@ const equipmentSchema = new mongoose.Schema({
     expiryDate: Date,
     coverage: Number
   },
+  isRentable: {
+    type: Boolean,
+    default: false
+  },
+  rentalPricePerDay: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  rentalPricePerWeek: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  rentalPricePerMonth: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  image: {
+    type: String
+  },
+  manufacturer: {
+    type: String,
+    trim: true
+  },
+  lastMaintenance: {
+    type: Date
+  },
   addedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

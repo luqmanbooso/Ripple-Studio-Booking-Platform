@@ -78,6 +78,7 @@ const AdminNavbar = () => {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
     { name: "Revenue", href: "/admin/revenue", icon: DollarSign },
+    { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { name: "Reviews", href: "/admin/reviews", icon: Star },
     { name: "Feedback", href: "/admin/feedback", icon: BarChart3 },
   ];

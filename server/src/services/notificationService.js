@@ -301,12 +301,12 @@ class NotificationService {
         $group: {
           _id: null,
           total: { $sum: 1 },
-          unread: {
+          unreadCount: {
             $sum: {
               $cond: [{ $eq: ['$isRead', false] }, 1, 0]
             }
           },
-          high_priority: {
+          highPriorityCount: {
             $sum: {
               $cond: [{ $eq: ['$priority', 'high'] }, 1, 0]
             }
@@ -315,45 +315,194 @@ class NotificationService {
       }
     ]);
 
-    return stats[0] || { total: 0, unread: 0, high_priority: 0 };
+    return stats[0] || { total: 0, unreadCount: 0, highPriorityCount: 0 };
   }
 
-  // Notify user blocked/warned
-  static async notifyUserBlocked(user, adminUser, reason, blockType) {
+  // Notify studio service added
+  static async notifyServiceAdded(studio, service, user) {
     try {
-      const title = blockType === 'warning' 
-        ? 'User Warning Issued'
-        : blockType === 'permanent' 
-          ? 'User Permanently Blocked'
-          : 'User Temporarily Blocked';
-
-      const message = blockType === 'warning'
-        ? `Warning issued to ${user.name} (${user.email}). Reason: ${reason}`
-        : `${user.name} (${user.email}) has been ${blockType === 'permanent' ? 'permanently' : 'temporarily'} blocked. Reason: ${reason}`;
-
       return await this.createAdminNotification({
-        type: 'user_blocked',
-        title,
-        message,
-        priority: blockType === 'permanent' ? 'high' : 'medium',
+        type: 'studio_service_added',
+        title: 'New Studio Service Added',
+        message: `${studio.name} added "${service.name}" service (LKR ${service.price})`,
+        priority: 'low',
         data: {
-          userId: user._id,
-          userEmail: user.email,
-          userName: user.name,
-          blockType,
-          reason,
-          blockedBy: adminUser._id,
-          blockedByName: adminUser.name,
-          url: '/admin/users',
+          studioId: studio._id,
+          studioName: studio.name,
+          serviceName: service.name,
+          servicePrice: service.price,
+          addedBy: user._id,
+          addedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
           metadata: {
-            blockType,
-            reason,
-            blockedAt: new Date()
+            serviceDetails: service,
+            action: 'service_added',
+            timestamp: new Date()
           }
         }
       });
     } catch (error) {
-      console.error('Failed to create user blocked notification:', error);
+      console.error('Failed to create service added notification:', error);
+    }
+  }
+
+  // Notify studio service updated
+  static async notifyServiceUpdated(studio, service, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_service_updated',
+        title: 'Studio Service Updated',
+        message: `${studio.name} updated "${service.name}" service`,
+        priority: 'low',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          serviceName: service.name,
+          servicePrice: service.price,
+          updatedBy: user._id,
+          updatedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            serviceDetails: service,
+            action: 'service_updated',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create service updated notification:', error);
+    }
+  }
+
+  // Notify studio service deleted
+  static async notifyServiceDeleted(studio, serviceName, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_service_deleted',
+        title: 'Studio Service Removed',
+        message: `${studio.name} removed "${serviceName}" service`,
+        priority: 'medium',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          serviceName: serviceName,
+          removedBy: user._id,
+          removedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            action: 'service_deleted',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create service deleted notification:', error);
+    }
+  }
+
+  // Notify studio media added
+  static async notifyMediaAdded(studio, media, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_media_added',
+        title: 'New Studio Media Added',
+        message: `${studio.name} added new media content`,
+        priority: 'low',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          mediaId: media._id,
+          mediaUrl: media.url,
+          addedBy: user._id,
+          addedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            mediaDetails: media,
+            action: 'media_added',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create media added notification:', error);
+    }
+  }
+
+  // Notify studio media deleted
+  static async notifyMediaDeleted(studio, mediaCaption, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_media_deleted',
+        title: 'Studio Media Removed',
+        message: `${studio.name} removed media content${mediaCaption ? ` (${mediaCaption})` : ''}`,
+        priority: 'low',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          mediaCaption: mediaCaption,
+          removedBy: user._id,
+          removedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            action: 'media_deleted',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create media deleted notification:', error);
+    }
+  }
+
+  // Notify studio equipment added
+  static async notifyEquipmentAdded(studio, equipment, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_equipment_added',
+        title: 'New Studio Equipment Added',
+        message: `${studio.name} added "${equipment}" to equipment list`,
+        priority: 'low',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          equipment: equipment,
+          addedBy: user._id,
+          addedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            action: 'equipment_added',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create equipment added notification:', error);
+    }
+  }
+
+  // Notify studio equipment removed
+  static async notifyEquipmentRemoved(studio, equipment, user) {
+    try {
+      return await this.createAdminNotification({
+        type: 'studio_equipment_removed',
+        title: 'Studio Equipment Removed',
+        message: `${studio.name} removed "${equipment}" from equipment list`,
+        priority: 'low',
+        data: {
+          studioId: studio._id,
+          studioName: studio.name,
+          equipment: equipment,
+          removedBy: user._id,
+          removedByName: user.name,
+          url: `/admin/studios/${studio._id}`,
+          metadata: {
+            action: 'equipment_removed',
+            timestamp: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create equipment removed notification:', error);
     }
   }
 }

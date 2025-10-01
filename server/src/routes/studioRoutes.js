@@ -34,6 +34,15 @@ const createStudioSchema = {
       description: z.string().optional()
     })).optional(),
     amenities: z.array(z.string()).optional(),
+    hourlyRate: z.number().min(0).optional(),
+    capacity: z.number().min(1).optional(),
+    genres: z.array(z.string()).optional(),
+    socialMedia: z.object({
+      instagram: z.string().optional(),
+      twitter: z.string().optional(),
+      facebook: z.string().optional(),
+      youtube: z.string().optional()
+    }).optional(),
     contactInfo: z.object({
       phone: z.string().optional(),
       email: z.string().email().optional(),
@@ -46,6 +55,11 @@ const updateStudioSchema = {
   body: z.object({
     name: z.string().min(2).max(100).optional(),
     description: z.string().max(2000).optional(),
+    location: z.object({
+      country: z.string().min(1),
+      city: z.string().min(1),
+      address: z.string().optional()
+    }).optional(),
     equipment: z.array(z.string()).optional(),
     services: z.array(z.object({
       name: z.string(),
@@ -53,7 +67,17 @@ const updateStudioSchema = {
       durationMins: z.number().min(30),
       description: z.string().optional()
     })).optional(),
-    amenities: z.array(z.string()).optional()
+    amenities: z.array(z.string()).optional(),
+    hourlyRate: z.number().min(0).optional(),
+    capacity: z.number().min(1).optional(),
+    genres: z.array(z.string()).optional(),
+    socialMedia: z.object({
+      instagram: z.string().optional(),
+      twitter: z.string().optional(),
+      facebook: z.string().optional(),
+      youtube: z.string().optional()
+    }).optional(),
+    onboarded: z.boolean().optional()
   })
 };
 
@@ -74,6 +98,7 @@ router.get('/:id', optionalAuth, studioController.getStudio);
 router.post('/', authenticate, allowRoles('studio', 'admin'), validate(createStudioSchema), studioController.createStudio);
 router.patch('/:id', authenticate, allowRoles('studio', 'admin'), validate(updateStudioSchema), studioController.updateStudio);
 router.post('/:id/availability', authenticate, allowRoles('studio'), validate(availabilitySchema), studioController.addAvailability);
+router.get('/:id/availability', studioController.getAvailability); // Public endpoint to check availability
 
 // Admin only routes
 router.get('/admin/all', authenticate, allowRoles('admin'), studioController.getAllStudiosForAdmin);

@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { 
-  Home, Calendar, Settings, Clock, Building2, BarChart3, 
-  User, LogOut, Menu, X, Bell, Sun, Moon
+  Home, Calendar, Music, Clock, Building2, BarChart3, 
+  User, LogOut, Menu, X, Bell, Sun, Moon, Image, Headphones
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { logout } from '../../store/authSlice'
+import { useGetStudioQuery } from '../../store/studioApi'
 
 const SimpleStudioNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -17,12 +18,18 @@ const SimpleStudioNavbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // Get studio data
+  const { data: studioData } = useGetStudioQuery(user?.studio?._id || user?.studio)
+  const studio = studioData?.data?.studio
+
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Bookings', href: '/dashboard/bookings', icon: Calendar },
-    { name: 'Services', href: '/dashboard/services', icon: Settings },
+    { name: 'Services', href: '/dashboard/services', icon: Music },
     { name: 'Availability', href: '/dashboard/availability', icon: Clock },
-    { name: 'Studio Profile', href: '/dashboard/profile', icon: Building2 },
+    { name: 'Media', href: '/dashboard/media', icon: Image },
+    { name: 'Equipment', href: '/dashboard/equipment', icon: Headphones },
+    { name: 'Profile', href: '/dashboard/profile', icon: Building2 },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 }
   ]
 
@@ -48,14 +55,27 @@ const SimpleStudioNavbar = () => {
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
+          {/* Logo & Studio Name */}
+          <div className="flex items-center space-x-4">
             <Link to="/dashboard" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-sm">R</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">Ripple</span>
             </Link>
+            
+            {/* Studio Name Display */}
+            {studio && (
+              <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                  {studio.name}
+                </span>
+                {studio.isApproved && (
+                  <div className="w-2 h-2 bg-green-500 rounded-full" title="Verified Studio"></div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Desktop Navigation */}

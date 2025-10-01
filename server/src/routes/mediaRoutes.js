@@ -2,7 +2,8 @@ const express = require('express');
 const { body } = require('express-validator');
 const router = express.Router();
 const mediaController = require('../controllers/mediaController');
-const { protect } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { uploadSingle } = require('../middleware/upload');
 
 // Validation middleware
 const validateMedia = [
@@ -95,9 +96,9 @@ router.get('/search', mediaController.searchMedia);
 router.get('/:id', mediaController.getMedia);
 
 // Protected routes
-router.use(protect);
+router.use(authenticate);
 
-router.post('/', validateMedia, mediaController.createMedia);
+router.post('/', uploadSingle('file'), mediaController.createMedia);
 router.put('/:id', validateMediaUpdate, mediaController.updateMedia);
 router.delete('/:id', mediaController.deleteMedia);
 router.patch('/:id/featured', mediaController.toggleFeatured);

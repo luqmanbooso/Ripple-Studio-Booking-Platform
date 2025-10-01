@@ -1,12 +1,22 @@
 const Media = require('../models/Media');
 const Studio = require('../models/Studio');
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
+const NotificationService = require('../services/notificationService');
 
 // Get all media for a studio
 exports.getStudioMedia = async (req, res) => {
   try {
     const { studioId } = req.params;
     const { type, isPublic, isFeatured, page = 1, limit = 20 } = req.query;
+
+    // Validate studioId
+    if (!mongoose.Types.ObjectId.isValid(studioId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid studio ID'
+      });
+    }
 
     // Build filter
     const filter = { studio: studioId };
@@ -77,40 +87,62 @@ exports.getMedia = async (req, res) => {
 // Create new media
 exports.createMedia = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    // Handle file upload
+    if (!req.file && !req.body.url) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'File or URL is required'
       });
     }
 
-    const mediaData = {
-      ...req.body,
-      uploadedBy: req.user.id
-    };
+    const { title, type, studio, description, tags, isPublic, isFeatured } = req.body;
+
+    if (!title || !type || !studio) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, type, and studio are required'
+      });
+    }
 
     // Verify studio ownership
-    const studio = await Studio.findById(mediaData.studio);
-    if (!studio) {
+    const studioDoc = await Studio.findById(studio);
+    if (!studioDoc) {
       return res.status(404).json({
         success: false,
         message: 'Studio not found'
       });
     }
 
-    if (studio.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (studioDoc.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to add media to this studio'
       });
     }
 
+    // Generate URL from file or use provided URL
+    const url = req.file ? `/uploads/${req.file.filename}` : req.body.url;
+
+    const mediaData = {
+      title,
+      type,
+      url,
+      studio,
+      description: description || '',
+      tags: tags ? JSON.parse(tags) : [],
+      isPublic: isPublic === 'true' || isPublic === true,
+      isFeatured: isFeatured === 'true' || isFeatured === true,
+      fileSize: req.file ? req.file.size : 0,
+      uploadedBy: req.user.id
+    };
+
     const media = new Media(mediaData);
     await media.save();
 
     await media.populate('uploadedBy', 'name email');
+
+    // Create notification for admins
+    await NotificationService.notifyMediaAdded(studioDoc, media, req.user);
 
     res.status(201).json({
       success: true,
@@ -198,7 +230,11 @@ exports.deleteMedia = async (req, res) => {
       });
     }
 
+    const mediaCaption = media.title; // Store for notification
     await Media.findByIdAndDelete(id);
+
+    // Create notification for admins
+    await NotificationService.notifyMediaDeleted(media.studio, mediaCaption, req.user);
 
     res.json({
       success: true,

@@ -74,6 +74,20 @@ export const studioApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }],
     }),
+    deleteAvailability: builder.mutation({
+      query: ({ studioId, slotId }) => ({
+        url: `/${studioId}/availability/${slotId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { studioId }) => [{ type: 'Studio', id: studioId }],
+    }),
+    getAvailability: builder.query({
+      query: ({ id, startDate, endDate }) => ({
+        url: `/${id}/availability`,
+        params: { startDate, endDate },
+      }),
+      providesTags: (result, error, { id }) => [{ type: 'Studio', id }],
+    }),
 
     // Admin endpoints
     getAllStudiosForAdmin: builder.query({
@@ -134,6 +148,8 @@ export const {
   useCreateStudioMutation,
   useUpdateStudioMutation,
   useAddAvailabilityMutation,
+  useDeleteAvailabilityMutation,
+  useGetAvailabilityQuery,
   useGetAllStudiosForAdminQuery,
   useGetStudioStatsQuery,
   useGetStudioAnalyticsQuery,

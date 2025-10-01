@@ -30,31 +30,206 @@ const getAnalytics = catchAsync(async (req, res) => {
       startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   }
 
+  const dateFilter = { createdAt: { $gte: startDate } };
+  const bookingDateFilter = { createdAt: { $gte: startDate } };
+  const completedBookingFilter = { status: 'completed', completedAt: { $gte: startDate } };
+
   const [
     totalUsers,
     totalBookings,
     totalRevenue,
-    avgRating
+    avgRating,
+    userGrowth,
+    bookingTrends,
+    revenueTrends,
+    studioStats,
+    reviewStats,
+    userDemographics,
+    platformHealth
   ] = await Promise.all([
+    // Total users
     User.countDocuments(),
+    
+    // Total bookings
     Booking.countDocuments(),
+    
+    // Total revenue
     Booking.aggregate([
       { $match: { status: 'completed' } },
       { $group: { _id: null, total: { $sum: '$price' } } }
     ]),
+    
+    // Average rating
     Review.aggregate([
       { $match: { isApproved: true } },
       { $group: { _id: null, avg: { $avg: '$rating' } } }
-    ])
+    ]),
+    
+    // User growth over time
+    User.aggregate([
+      { $match: dateFilter },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+    ]),
+    
+    // Booking trends
+    Booking.aggregate([
+      { $match: bookingDateFilter },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' }
+          },
+          count: { $sum: 1 },
+          revenue: { $sum: '$price' }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+    ]),
+    
+    // Revenue trends (completed bookings)
+    Booking.aggregate([
+      { $match: completedBookingFilter },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$completedAt' },
+            month: { $month: '$completedAt' },
+            day: { $dayOfMonth: '$completedAt' }
+          },
+          revenue: { $sum: '$price' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+    ]),
+    
+    // Studio statistics
+    Studio.aggregate([
+      {
+        $group: {
+          _id: '$isApproved',
+          count: { $sum: 1 },
+          active: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          }
+        }
+      }
+    ]),
+    
+    // Review statistics
+    Review.aggregate([
+      { $match: { isApproved: true } },
+      {
+        $group: {
+          _id: null,
+          totalReviews: { $sum: 1 },
+          avgRating: { $avg: '$rating' },
+          ratingDistribution: {
+            $push: '$rating'
+          }
+        }
+      }
+    ]),
+    
+    // User demographics by role
+    User.aggregate([
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 },
+          active: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          }
+        }
+      }
+    ]),
+    
+    // Platform health metrics
+    Promise.resolve({
+      activeUsers: await User.countDocuments({ lastLogin: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) } }),
+      pendingBookings: await Booking.countDocuments({ status: 'pending' }),
+      completedBookings: await Booking.countDocuments({ status: 'completed' }),
+      totalStudios: await Studio.countDocuments(),
+      approvedStudios: await Studio.countDocuments({ isApproved: true })
+    })
   ]);
+
+  // Process user growth data
+  const processedUserGrowth = userGrowth.map(item => ({
+    date: `${item._id.year}-${item._id.month.toString().padStart(2, '0')}-${item._id.day.toString().padStart(2, '0')}`,
+    users: item.count
+  }));
+
+  // Process booking trends
+  const processedBookingTrends = bookingTrends.map(item => ({
+    date: `${item._id.year}-${item._id.month.toString().padStart(2, '0')}-${item._id.day.toString().padStart(2, '0')}`,
+    bookings: item.count,
+    revenue: item.revenue
+  }));
+
+  // Process revenue trends
+  const processedRevenueTrends = revenueTrends.map(item => ({
+    date: `${item._id.year}-${item._id.month.toString().padStart(2, '0')}-${item._id.day.toString().padStart(2, '0')}`,
+    revenue: item.revenue,
+    bookings: item.count
+  }));
+
+  // Process rating distribution
+  const ratingDistribution = [1, 2, 3, 4, 5].map(rating => ({
+    rating,
+    count: reviewStats[0]?.ratingDistribution.filter(r => r === rating).length || 0
+  }));
 
   res.json({
     status: 'success',
     data: {
+      // Overview metrics
       totalUsers,
       totalBookings,
       totalRevenue: totalRevenue[0]?.total || 0,
-      avgRating: avgRating[0]?.avg || 0
+      avgRating: avgRating[0]?.avg || 0,
+      
+      // Trends data
+      userGrowth: processedUserGrowth,
+      bookingTrends: processedBookingTrends,
+      revenueTrends: processedRevenueTrends,
+      
+      // Studio stats
+      studioStats: {
+        total: studioStats.reduce((sum, stat) => sum + stat.count, 0),
+        approved: studioStats.find(stat => stat._id === true)?.count || 0,
+        pending: studioStats.find(stat => stat._id === false)?.count || 0,
+        active: studioStats.reduce((sum, stat) => sum + stat.active, 0)
+      },
+      
+      // Review stats
+      reviewStats: {
+        totalReviews: reviewStats[0]?.totalReviews || 0,
+        avgRating: reviewStats[0]?.avgRating || 0,
+        ratingDistribution
+      },
+      
+      // User demographics
+      userDemographics: userDemographics.map(demo => ({
+        role: demo._id,
+        count: demo.count,
+        active: demo.active
+      })),
+      
+      // Platform health
+      platformHealth
     }
   });
 });
@@ -720,9 +895,10 @@ const getRevenueAnalytics = catchAsync(async (req, res) => {
   });
 });
 
-// Approve studio
+// Approve studio - allows studio to login and use the platform
 const approveStudio = catchAsync(async (req, res) => {
   const { id } = req.params;
+  const { message: approvalMessage } = req.body;
 
   const studio = await Studio.findById(id).populate('user');
   if (!studio) {
@@ -735,7 +911,7 @@ const approveStudio = catchAsync(async (req, res) => {
 
   // Approve the studio
   studio.isApproved = true;
-  studio.statusReason = 'Approved by admin';
+  studio.statusReason = approvalMessage || 'Approved by admin';
   await studio.save();
 
   // Send approval email
@@ -746,14 +922,29 @@ const approveStudio = catchAsync(async (req, res) => {
     // Don't fail the approval if email fails
   }
 
+  // Send notification
+  try {
+    await NotificationService.notifyStudioApproval(studio, studio.user);
+  } catch (error) {
+    console.error('Failed to send approval notification:', error);
+  }
+
   res.json({
     status: 'success',
-    message: 'Studio approved successfully',
-    data: { studio }
+    message: `Studio "${studio.name}" has been approved. User can now login.`,
+    data: { 
+      studio,
+      user: {
+        id: studio.user._id,
+        name: studio.user.name,
+        email: studio.user.email,
+        canLogin: true
+      }
+    }
   });
 });
 
-// Reject studio
+// Reject studio - deletes both studio and user account
 const rejectStudio = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { reason } = req.body;
@@ -767,23 +958,46 @@ const rejectStudio = catchAsync(async (req, res) => {
     throw new ApiError('Cannot reject an approved studio', 400);
   }
 
-  // Update studio status
-  studio.isApproved = false;
-  studio.statusReason = reason || 'Rejected by admin';
-  await studio.save();
+  const user = studio.user;
+  const userName = user.name;
+  const userEmail = user.email;
 
-  // Send rejection email
+  // Send rejection email before deletion
   try {
-    await sendStudioRejectionEmail(studio.user, studio, reason);
+    await sendStudioRejectionEmail(user, studio, reason);
   } catch (error) {
     console.error('Failed to send rejection email:', error);
-    // Don't fail the rejection if email fails
+    // Continue with deletion even if email fails
+  }
+
+  // Delete the studio
+  await Studio.findByIdAndDelete(id);
+
+  // Delete the associated user account
+  await User.findByIdAndDelete(user._id);
+
+  // Send notification to admin
+  try {
+    await NotificationService.notifyStudioRejection(studio, user, reason);
+  } catch (error) {
+    console.error('Failed to send admin notification:', error);
   }
 
   res.json({
     status: 'success',
-    message: 'Studio rejected successfully',
-    data: { studio }
+    message: `Studio "${studio.name}" and user account "${userName}" (${userEmail}) have been permanently deleted`,
+    data: { 
+      deletedStudio: {
+        id: studio._id,
+        name: studio.name
+      },
+      deletedUser: {
+        id: user._id,
+        name: userName,
+        email: userEmail
+      },
+      reason: reason || 'Rejected by admin'
+    }
   });
 });
 

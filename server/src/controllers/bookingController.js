@@ -109,7 +109,8 @@ const getMyBookings = catchAsync(async (req, res) => {
   if (req.user.role === "client") {
     query.client = userId;
   } else if (req.user.role === "studio" && req.user.studio) {
-    query.studio = req.user.studio._id;
+    // req.user.studio can be either an ID or a populated object
+    query.studio = req.user.studio._id || req.user.studio;
   } else {
     throw new ApiError("User has no associated provider profile", 400);
   }

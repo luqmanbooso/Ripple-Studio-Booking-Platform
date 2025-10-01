@@ -2,7 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const router = express.Router();
 const equipmentController = require('../controllers/equipmentController');
-const { protect } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 // Validation middleware
 const validateEquipment = [
@@ -169,7 +169,7 @@ router.get('/search', equipmentController.searchEquipment);
 router.get('/:id', equipmentController.getEquipment);
 
 // Protected routes
-router.use(protect);
+router.use(authenticate);
 
 router.post('/', validateEquipment, equipmentController.createEquipment);
 router.put('/:id', validateEquipmentUpdate, equipmentController.updateEquipment);

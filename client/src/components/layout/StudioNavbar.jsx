@@ -28,10 +28,11 @@ import {
   Clock
 } from 'lucide-react'
 import { logout } from '../../store/authSlice'
+import NotificationCenter from '../notifications/NotificationCenter'
+import { useGetNotificationStatsQuery } from '../../store/notificationApi'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../ui/ThemeToggle'
-import NotificationCenter from '../notifications/NotificationCenter'
 
 const StudioNavbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -42,17 +43,22 @@ const StudioNavbar = () => {
   const dispatch = useDispatch()
   const location = useLocation()
 
+  // Notification stats
+  const { data: notificationStats } = useGetNotificationStatsQuery()
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       const isClickInsideDropdown = event.target.closest('[data-studio-dropdown]') || 
                                    event.target.closest('[data-studio-profile-menu]') ||
                                    event.target.closest('button[data-studio-dropdown-trigger]') ||
-                                   event.target.closest('button[data-studio-profile-trigger]')
+                                   event.target.closest('button[data-studio-profile-trigger]') ||
+                                   event.target.closest('[data-notifications-panel]')
       
       if (!isClickInsideDropdown) {
         setActiveDropdown(null)
         setIsProfileOpen(false)
+        setIsNotificationsOpen(false)
       }
     }
     
@@ -88,16 +94,6 @@ const StudioNavbar = () => {
       icon: Calendar
     },
     {
-      name: 'Services',
-      href: '/dashboard/services',
-      icon: Settings
-    },
-    {
-      name: 'Availability',
-      href: '/dashboard/availability',
-      icon: Clock
-    },
-    {
       name: 'Studio Profile',
       href: '/dashboard/profile',
       icon: Building2
@@ -108,9 +104,9 @@ const StudioNavbar = () => {
       icon: BarChart3
     },
     {
-      name: 'Settings',
-      href: '/dashboard/settings',
-      icon: Settings
+      name: 'Revenue',
+      href: '/dashboard/revenue',
+      icon: DollarSign
     }
   ]
 
@@ -246,25 +242,26 @@ const StudioNavbar = () => {
 
             {/* Right Side - Notifications + Theme Toggle + User Menu */}
             <div className="flex items-center space-x-3">
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                  </span>
-                </button>
-              </div>
-
               {/* Theme Toggle */}
               <ThemeToggle size="md" />
 
               {/* Messages */}
               <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
                 <MessageCircle className="w-5 h-5 group-hover:animate-bounce" />
+              </button>
+
+              {/* Notifications */}
+              <button
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group"
+              >
+                <Bell className="w-5 h-5 group-hover:animate-bounce" />
+                {/* Notification badge - shows unread count */}
+                {notificationStats?.unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    {notificationStats.unreadCount > 99 ? '99+' : notificationStats.unreadCount}
+                  </span>
+                )}
               </button>
 
               {/* Profile Dropdown */}

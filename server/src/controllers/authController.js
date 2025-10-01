@@ -88,30 +88,47 @@ const register = catchAsync(async (req, res) => {
 
   // Create role-specific profile
   if (userRole === 'studio') {
-    const studioData = {
-      user: user._id,
-      name: studio?.name || `${name}'s Studio`,
-      description: studio?.description || '',
-      location: { 
-        country: 'Sri Lanka', // Always set to Sri Lanka
-        city: city
-      },
-      services: [],
-      isApproved: false // Studios need admin approval
-    };
-    
-    const studioProfile = await Studio.create(studioData);
-    user.studio = studioProfile._id;
-    await user.save();
-
-    // Notify admin about new studio registration
     try {
-      await sendAdminStudioNotification(user, studioProfile);
-      // Create notification for admin
-      await NotificationService.notifyStudioRegistration(studioProfile, user);
+      const studioData = {
+        user: user._id,
+        name: studio?.name || `${name}'s Studio`,
+        description: studio?.description || '',
+        studioType: studio?.studioType || 'Recording',
+        hourlyRate: studio?.hourlyRate || 0,
+        capacity: studio?.capacity || 0,
+        location: { 
+          country: 'Sri Lanka',
+          city: city,
+          address: studio?.location?.address || ''
+        },
+        services: [],
+        equipment: [],
+        amenities: [],
+        gallery: [],
+        availability: [],
+        isApproved: false
+      };
+      
+      console.log('Creating studio with data:', studioData);
+      const studioProfile = await Studio.create(studioData);
+      console.log('Studio created successfully:', studioProfile._id);
+      
+      user.studio = studioProfile._id;
+      await user.save();
+      console.log('User updated with studio reference');
+
+      // Notify admin about new studio registration
+      try {
+        await sendAdminStudioNotification(user, studioProfile);
+        await NotificationService.notifyStudioRegistration(studioProfile, user);
+      } catch (error) {
+        console.error('Failed to send admin notification:', error);
+      }
     } catch (error) {
-      console.error('Failed to send admin notification:', error);
-      // Don't fail registration if email fails
+      console.error('Failed to create studio profile:', error);
+      // Delete the user if studio creation fails to maintain consistency
+      await User.findByIdAndDelete(user._id);
+      throw new ApiError(`Failed to create studio profile: ${error.message}`, 500);
     }
   }
 
@@ -154,8 +171,8 @@ const register = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
-  // Find user and include password for comparison
-  const user = await User.findOne({ email }).select('+password');
+  // Find user and include password for comparison, populate studio if exists
+  const user = await User.findOne({ email }).select('+password').populate('studio');
   if (!user) {
     throw new ApiError('Invalid credentials', 401);
   }
@@ -163,6 +180,17 @@ const login = catchAsync(async (req, res) => {
   // Check if user is active
   if (!user.isActive) {
     throw new ApiError('Account has been deactivated', 401);
+  }
+
+  // Check if studio account is approved (for studio role)
+  if (user.role === 'studio') {
+    if (!user.studio) {
+      throw new ApiError('Studio profile not found. Please contact support.', 401);
+    }
+    
+    if (!user.studio.isApproved) {
+      throw new ApiError('Your studio is pending admin approval. You will be notified once approved.', 403);
+    }
   }
 
   // Verify password
@@ -192,7 +220,8 @@ const login = catchAsync(async (req, res) => {
         email: user.email,
         role: user.role,
         verified: user.verified,
-        avatar: user.avatar
+        avatar: user.avatar,
+        ...(user.role === 'studio' && user.studio && { studio: user.studio._id })
       },
       accessToken
     }
@@ -362,18 +391,6 @@ const resetPassword = catchAsync(async (req, res) => {
   });
 });
 
-const getMe = catchAsync(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .populate('studio');
-
-  res.json({
-    status: 'success',
-    data: {
-      user
-    }
-  });
-});
-
 // Google sign-in using ID token from client (Google Identity Services)
 const googleAuth = catchAsync(async (req, res) => {
   const { idToken } = req.body;
@@ -523,6 +540,24 @@ const resendVerification = catchAsync(async (req, res) => {
     console.error('Failed to send verification email:', error);
     throw new ApiError('Failed to send verification email', 500);
   }
+});
+
+// Get current user
+const getMe = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id)
+    .populate('studio', 'name _id isApproved verificationStatus')
+    .select('-password -refreshToken');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  res.json({
+    status: 'success',
+    data: {
+      user
+    }
+  });
 });
 
 module.exports = {

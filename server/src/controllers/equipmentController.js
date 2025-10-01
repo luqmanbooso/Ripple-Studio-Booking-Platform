@@ -1,12 +1,22 @@
 const Equipment = require('../models/Equipment');
 const Studio = require('../models/Studio');
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
+const NotificationService = require('../services/notificationService');
 
 // Get all equipment for a studio
 exports.getStudioEquipment = async (req, res) => {
   try {
     const { studioId } = req.params;
     const { category, condition, isAvailable, page = 1, limit = 20 } = req.query;
+
+    // Validate studioId
+    if (!mongoose.Types.ObjectId.isValid(studioId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid studio ID'
+      });
+    }
 
     // Build filter
     const filter = { studio: studioId };
@@ -130,6 +140,9 @@ exports.createEquipment = async (req, res) => {
 
     await equipment.populate('addedBy', 'name email');
 
+    // Create notification for admins
+    await NotificationService.notifyEquipmentAdded(studio, equipmentData.name, req.user);
+
     res.status(201).json({
       success: true,
       message: 'Equipment created successfully',
@@ -216,7 +229,11 @@ exports.deleteEquipment = async (req, res) => {
       });
     }
 
+    const equipmentName = equipment.name; // Store for notification
     await Equipment.findByIdAndDelete(id);
+
+    // Create notification for admins
+    await NotificationService.notifyEquipmentRemoved(equipment.studio, equipmentName, req.user);
 
     res.json({
       success: true,

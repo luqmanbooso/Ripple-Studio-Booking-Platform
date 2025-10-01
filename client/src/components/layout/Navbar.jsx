@@ -91,6 +91,11 @@ const Navbar = () => {
         { name: 'Featured Artists', href: '/featured', icon: Star, description: 'Top-rated and trending musicians' }
       ]
     },
+    ...(user?.role === 'studio' ? [{
+      name: 'Bookings',
+      href: '/dashboard/bookings',
+      icon: Calendar
+    }] : []),
     {
       name: 'Community',
       icon: Users,

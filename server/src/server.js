@@ -20,6 +20,9 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const webhookRoutes = require("./webhooks/payhereWebhook");
+const mediaRoutes = require("./routes/mediaRoutes");
+const equipmentRoutes = require("./routes/equipmentRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -49,12 +52,14 @@ app.set("io", io);
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:"],
+        imgSrc: ["'self'", "data:", "https:", "http://localhost:5000", "http://localhost:5173"],
+        connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000"],
       },
     },
   })
@@ -84,6 +89,15 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
+// Serve static files (uploads) with CORS headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:5173');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static('uploads'));
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -106,6 +120,9 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/media", mediaRoutes);
+app.use("/api/equipment", equipmentRoutes);
+app.use("/api/services", serviceRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {

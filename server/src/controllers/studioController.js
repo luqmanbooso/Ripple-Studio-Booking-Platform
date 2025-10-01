@@ -2,6 +2,7 @@ const Studio = require('../models/Studio');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const mongoose = require('mongoose');
 
 // Create a new studio (for studio owners and admin)
 const createStudio = catchAsync(async (req, res) => {
@@ -110,6 +111,11 @@ const getStudios = catchAsync(async (req, res) => {
 const getStudio = catchAsync(async (req, res) => {
   const { id } = req.params;
 
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError('Invalid studio ID', 400);
+  }
+
   const studio = await Studio.findById(id)
     .populate('user', 'name email avatar phone verified');
 
@@ -171,6 +177,36 @@ const addAvailability = catchAsync(async (req, res) => {
   res.json({
     status: 'success',
     data: { studio }
+  });
+});
+
+// Get studio availability
+const getAvailability = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { startDate, endDate } = req.query;
+
+  const studio = await Studio.findById(id);
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  let availability = studio.availability || [];
+
+  // Filter by date range if provided
+  if (startDate || endDate) {
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    availability = availability.filter(slot => {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+      return slotStart >= start && slotEnd <= end;
+    });
+  }
+
+  res.json({
+    status: 'success',
+    data: { availability }
   });
 });
 
@@ -460,6 +496,7 @@ module.exports = {
   getStudio,
   updateStudio,
   addAvailability,
+  getAvailability,
   getAllStudiosForAdmin,
   getStudioStats,
   getStudioAnalytics,

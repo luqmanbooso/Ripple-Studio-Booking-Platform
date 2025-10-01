@@ -28,29 +28,6 @@ import { setCredentials } from '../../store/authSlice'
 import api from '../../lib/axios'
 import { useEffect } from 'react'
 
-// Validation Item Component
-const ValidationItem = ({ label, isValid, message }) => {
-  return (
-    <div className={`flex items-center space-x-2 p-2 rounded ${
-      isValid ? 'bg-green-500/10' : 'bg-red-500/10'
-    }`}>
-      <div className={`w-2 h-2 rounded-full ${
-        isValid ? 'bg-green-500' : 'bg-red-500'
-      }`} />
-      <span className={`text-xs ${
-        isValid ? 'text-green-400' : 'text-red-400'
-      }`}>
-        {label}
-      </span>
-      {!isValid && message && (
-        <span className="text-xs text-gray-400 truncate">
-          - {message}
-        </span>
-      )}
-    </div>
-  )
-}
-
 // Password strength checker
 const checkPasswordStrength = (password) => {
   if (!password) return { strength: 0, feedback: [] }
@@ -90,6 +67,10 @@ const registerSchema = z.object({
   // Studio-specific fields
   studioName: z.string().optional().or(z.literal('')),
   studioDescription: z.string().optional().or(z.literal('')),
+  studioType: z.string().optional().or(z.literal('')),
+  studioAddress: z.string().optional().or(z.literal('')),
+  hourlyRate: z.string().optional().or(z.literal('')),
+  capacity: z.string().optional().or(z.literal('')),
   terms: z.boolean().refine(val => val === true, 'You must accept the terms and conditions'),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -102,6 +83,14 @@ const registerSchema = z.object({
 }, {
   message: "Studio name is required for studio accounts",
   path: ["studioName"],
+}).refine(data => {
+  if (data.role === 'studio') {
+    return data.studioDescription && data.studioDescription.trim().length >= 20;
+  }
+  return true;
+}, {
+  message: "Please provide a description of at least 20 characters",
+  path: ["studioDescription"],
 })
 
 const roleOptions = [
@@ -134,6 +123,13 @@ const Register = () => {
   // Define genres and instruments arrays
   const genres = ['Pop', 'Rock', 'Hip Hop', 'R&B', 'Jazz', 'Classical', 'Electronic', 'Country', 'Folk', 'Reggae']
   const instruments = ['Guitar', 'Piano', 'Drums', 'Bass', 'Vocals', 'Violin', 'Saxophone', 'Trumpet', 'Flute', 'Synthesizer']
+  
+  // Sri Lankan cities for dropdown
+  const sriLankanCities = [
+    'Colombo', 'Kandy', 'Galle', 'Negombo', 'Jaffna', 'Trincomalee', 
+    'Batticaloa', 'Anuradhapura', 'Matara', 'Kurunegala', 'Ratnapura',
+    'Badulla', 'Gampaha', 'Kalutara', 'Nuwara Eliya', 'Ampara'
+  ]
 
   // Handle genre selection
   const handleGenreToggle = (genre) => {
@@ -230,40 +226,67 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     console.log('Form data:', data)
-    console.log('Form errors:', errors)
     setIsLoading(true)
+    
     try {
+      // Validate studio-specific fields
+      if (data.role === 'studio') {
+        if (!data.studioName || data.studioName.trim().length === 0) {
+          toast.error('Studio name is required')
+          setIsLoading(false)
+          return
+        }
+        if (!data.studioDescription || data.studioDescription.trim().length < 20) {
+          toast.error('Please provide a studio description of at least 20 characters')
+          setIsLoading(false)
+          return
+        }
+      }
+
       // Prepare the registration data based on role
       const registrationData = {
         name: data.name,
         email: data.email,
         password: data.password,
         role: data.role,
-        phone: data.phone,
-        country: 'Sri Lanka', // Always set to Sri Lanka
+        phone: data.phone || '',
+        country: 'Sri Lanka',
         city: data.city,
       }
 
       // Add role-specific data
       if (data.role === 'studio') {
         registrationData.studio = {
-          name: data.studioName,
-          description: data.studioDescription || '',
+          name: data.studioName.trim(),
+          description: data.studioDescription.trim(),
+          studioType: data.studioType || 'Recording',
+          hourlyRate: data.hourlyRate ? parseFloat(data.hourlyRate) : undefined,
+          capacity: data.capacity ? parseInt(data.capacity) : undefined,
           location: {
-            country: 'Sri Lanka', // Always set to Sri Lanka
-            city: data.city
+            country: 'Sri Lanka',
+            city: data.city,
+            address: data.studioAddress?.trim() || ''
           }
         }
       }
 
+      console.log('Sending registration data:', registrationData)
       const response = await api.post('/auth/register', registrationData)
       const { user, accessToken } = response.data.data
       
       dispatch(setCredentials({ user, token: accessToken }))
-      toast.success('Account created successfully!')
+      
+      if (data.role === 'studio') {
+        toast.success('Studio registered! Pending admin approval.')
+      } else {
+        toast.success('Account created successfully!')
+      }
+      
       navigate('/dashboard')
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed')
+      console.error('Registration error:', error)
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.'
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -310,98 +333,6 @@ const Register = () => {
           className="card"
         >
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {/* Validation Status Summary */}
-            <div className="space-y-3">
-              {/* Progress Indicator */}
-              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-300">
-                    Registration Progress
-                  </h3>
-                  <span className="text-xs text-gray-400">
-                    {Object.keys(errors).length === 0 ? 'Ready to submit!' : `${Object.keys(errors).length} issues remaining`}
-                  </span>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      Object.keys(errors).length === 0 
-                        ? 'bg-green-500' 
-                        : Object.keys(errors).length <= 2 
-                          ? 'bg-yellow-500' 
-                          : 'bg-red-500'
-                    }`}
-                    style={{ 
-                      width: `${Math.max(20, 100 - (Object.keys(errors).length * 15))}%` 
-                    }}
-                  />
-                </div>
-
-                {/* Validation Checklist */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                  <ValidationItem 
-                    label="Full name" 
-                    isValid={!errors.name} 
-                    message={errors.name?.message}
-                  />
-                  <ValidationItem 
-                    label="Valid email" 
-                    isValid={!errors.email} 
-                    message={errors.email?.message}
-                  />
-                  <ValidationItem 
-                    label="Strong password" 
-                    isValid={!errors.password} 
-                    message={errors.password?.message}
-                  />
-                  <ValidationItem 
-                    label="Passwords match" 
-                    isValid={!errors.confirmPassword} 
-                    message={errors.confirmPassword?.message}
-                  />
-                  <ValidationItem 
-                    label="City selected" 
-                    isValid={!errors.city} 
-                    message={errors.city?.message}
-                  />
-                  {watchedRole === 'studio' && (
-                    <ValidationItem 
-                      label="Studio name" 
-                      isValid={!errors.studioName} 
-                      message={errors.studioName?.message}
-                    />
-                  )}
-                  <ValidationItem 
-                    label="Terms accepted" 
-                    isValid={!errors.terms} 
-                    message={errors.terms?.message}
-                  />
-                </div>
-              </div>
-
-              {/* Detailed Errors */}
-              {Object.keys(errors).length > 0 && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-red-400 mb-2 flex items-center">
-                    <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                    Issues to fix:
-                  </h3>
-                  <ul className="text-sm text-red-300 space-y-1">
-                    {Object.entries(errors).map(([field, error]) => (
-                      <li key={field} className="flex items-start">
-                        <span className="text-red-400 mr-2">•</span>
-                        <span>
-                          <strong className="capitalize">{field.replace(/([A-Z])/g, ' $1').toLowerCase()}:</strong>{' '}
-                          {error?.message || `${field} is invalid`}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
 
             {/* Role Selection */}
             <div>
@@ -486,13 +417,23 @@ const Register = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="City"
-                icon={<MapPin className="w-5 h-5" />}
-                placeholder="Enter your city"
-                error={errors.city?.message}
-                {...register('city')}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  City *
+                </label>
+                <select
+                  {...register('city')}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select your city</option>
+                  {sriLankanCities.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+                {errors.city && (
+                  <p className="text-sm text-red-400 mt-1">{errors.city.message}</p>
+                )}
+              </div>
 
               <div className="flex-1"></div>
             </div>
@@ -588,30 +529,146 @@ const Register = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-6 p-4 border border-gray-600 rounded-lg bg-gray-800/20"
+                className="space-y-6 p-6 border-2 border-blue-500/30 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
               >
-                <h3 className="text-lg font-medium text-gray-100 flex items-center">
-                  <Building className="w-5 h-5 mr-2" />
-                  Studio Profile
-                </h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Building className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-100">
+                      Studio Information
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Tell us about your recording studio
+                    </p>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
-                    label="Studio name"
-                    placeholder="Enter your studio name"
+                    label="Studio name *"
+                    placeholder="e.g., Harmony Sound Studios"
                     error={errors.studioName?.message}
                     {...register('studioName')}
                   />
                   
-                  <div className="flex-1"></div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Studio type
+                    </label>
+                    <select
+                      {...register('studioType')}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="">Select studio type</option>
+                      <option value="Recording">Recording Studio</option>
+                      <option value="Rehearsal">Rehearsal Space</option>
+                      <option value="Production">Production Studio</option>
+                      <option value="Mixing">Mixing & Mastering</option>
+                      <option value="Podcast">Podcast Studio</option>
+                    </select>
+                    {errors.studioType && (
+                      <p className="text-sm text-red-400 mt-1">{errors.studioType.message}</p>
+                    )}
+                  </div>
                 </div>
 
-                <Input
-                  label="Studio description (optional)"
-                  placeholder="Describe your studio and services"
-                  error={errors.studioDescription?.message}
-                  {...register('studioDescription')}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Hourly rate (LKR)
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 5000"
+                      error={errors.hourlyRate?.message}
+                      {...register('hourlyRate')}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      You can update this later
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Capacity (people)
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 10"
+                      error={errors.capacity?.message}
+                      {...register('capacity')}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Maximum number of people
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Studio address
+                  </label>
+                  <Input
+                    placeholder="e.g., 123 Music Street, Colombo"
+                    error={errors.studioAddress?.message}
+                    {...register('studioAddress')}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-300">
+                      Studio description *
+                    </label>
+                    <span className={`text-xs ${
+                      watch('studioDescription')?.length >= 20 
+                        ? 'text-green-400' 
+                        : 'text-gray-500'
+                    }`}>
+                      {watch('studioDescription')?.length || 0}/20 min
+                    </span>
+                  </div>
+                  <textarea
+                    {...register('studioDescription')}
+                    rows={4}
+                    placeholder="Describe your studio, equipment, services, and what makes it special..."
+                    className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${
+                      errors.studioDescription 
+                        ? 'border-red-500' 
+                        : watch('studioDescription')?.length >= 20
+                          ? 'border-green-500'
+                          : 'border-gray-600'
+                    }`}
+                  />
+                  {errors.studioDescription && (
+                    <p className="text-sm text-red-400 mt-1">{errors.studioDescription.message}</p>
+                  )}
+                  {!errors.studioDescription && watch('studioDescription')?.length > 0 && watch('studioDescription')?.length < 20 && (
+                    <p className="text-sm text-yellow-400 mt-1">
+                      {20 - watch('studioDescription').length} more characters needed
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Tip: Mention your equipment, acoustic treatment, and services offered
+                  </p>
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <Building className="w-5 h-5 text-blue-400 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-400 mb-1">
+                        After Registration
+                      </h4>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        Your studio will be reviewed by our admin team. Once approved, you'll receive an email 
+                        and can login to complete your profile with services, equipment, and availability.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -711,11 +768,7 @@ const Register = () => {
             </div>
 
             {/* Terms and Conditions */}
-            <div className={`p-4 border rounded-lg transition-colors ${
-              errors.terms 
-                ? 'border-red-500/50 bg-red-500/5' 
-                : 'border-gray-600 bg-gray-800/20'
-            }`}>
+            <div>
               <div className="flex items-start space-x-3">
                 <input
                   id="terms"
@@ -724,7 +777,7 @@ const Register = () => {
                   {...register('terms')}
                 />
                 <div className="flex-1">
-                  <label htmlFor="terms" className="block text-sm text-gray-300 leading-relaxed">
+                  <label htmlFor="terms" className="block text-sm text-gray-300 leading-relaxed cursor-pointer">
                     I agree to the{' '}
                     <Link to="/terms" className="text-primary-400 hover:text-primary-300 underline">
                       Terms of Service
@@ -735,61 +788,24 @@ const Register = () => {
                     </Link>
                   </label>
                   {errors.terms && (
-                    <p className="text-sm text-red-400 mt-1 flex items-center">
-                      <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                    <p className="text-sm text-red-400 mt-1">
                       {errors.terms.message}
-                    </p>
-                  )}
-                  {!errors.terms && watch('terms') && (
-                    <p className="text-sm text-green-400 mt-1 flex items-center">
-                      <span className="w-1 h-1 bg-green-500 rounded-full mr-2"></span>
-                      Terms accepted
                     </p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Submit Button with Enhanced Feedback */}
-            <div className="space-y-3">
-              {Object.keys(errors).length > 0 && (
-                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                  <div className="flex items-center text-yellow-400 text-sm">
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-                    Complete all required fields to enable registration
-                  </div>
-                </div>
-              )}
-              
-              <Button
-                type="submit"
-                className={`w-full transition-all duration-300 ${
-                  Object.keys(errors).length === 0 
-                    ? 'bg-green-600 hover:bg-green-700' 
-                    : 'opacity-50 cursor-not-allowed'
-                }`}
-                size="lg"
-                loading={isLoading}
-                disabled={isLoading || Object.keys(errors).length > 0}
-              >
-                {isLoading ? (
-                  'Creating account...'
-                ) : Object.keys(errors).length > 0 ? (
-                  `Fix ${Object.keys(errors).length} issue${Object.keys(errors).length > 1 ? 's' : ''} to continue`
-                ) : (
-                  '✓ Create account'
-                )}
-              </Button>
-              
-              {Object.keys(errors).length === 0 && !isLoading && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <div className="flex items-center text-green-400 text-sm">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    All fields are valid! Ready to create your account.
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              loading={isLoading}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating account...' : 'Create account'}
+            </Button>
 
             {/* Google Sign-In Button */}
             <div className="relative mt-6">

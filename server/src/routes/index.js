@@ -10,6 +10,7 @@ const uploadRoutes = require("./uploadRoutes");
 const feedbackRoutes = require("./feedbackRoutes");
 const mediaRoutes = require("./mediaRoutes");
 const equipmentRoutes = require("./equipmentRoutes");
+const serviceRoutes = require("./serviceRoutes");
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use("/upload", uploadRoutes);
 router.use("/feedback", feedbackRoutes);
 router.use("/media", mediaRoutes);
 router.use("/equipment", equipmentRoutes);
+router.use("/services", serviceRoutes);
 
 module.exports = router;

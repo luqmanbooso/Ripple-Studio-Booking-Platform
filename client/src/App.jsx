@@ -40,6 +40,7 @@ import AdminStudios from "./pages/Admin/AdminStudios";
 import AdminRevenue from "./pages/Admin/AdminRevenue";
 import AdminReviews from "./pages/Admin/AdminReviews";
 import AdminPayments from "./pages/Admin/AdminPayments";
+import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminFeedback from "./pages/Admin/AdminFeedback";
 import AdminNotifications from "./pages/Admin/AdminNotifications";
@@ -61,7 +62,12 @@ import SimpleStudioDashboard from "./pages/Dashboard/SimpleStudioDashboard";
 import CompleteStudioServices from "./pages/Dashboard/CompleteStudioServices";
 import CompleteStudioBookings from "./pages/Dashboard/CompleteStudioBookings";
 import CompleteStudioAvailability from "./pages/Dashboard/CompleteStudioAvailability";
+import CompleteAvailabilityManager from "./pages/Dashboard/CompleteAvailabilityManager";
 import CompleteStudioMedia from "./pages/Dashboard/CompleteStudioMedia";
+import CompleteStudioProfile from "./pages/Dashboard/CompleteStudioProfile";
+import UnifiedBookingsHub from "./pages/Dashboard/UnifiedBookingsHub";
+import UnifiedStudioProfile from "./pages/Dashboard/UnifiedStudioProfile";
+import UnifiedBookingsPage from "./pages/Dashboard/UnifiedBookingsPage";
 
 // Settings pages
 import Profile from "./pages/Settings/Profile";
@@ -280,7 +286,7 @@ function App() {
               path="/dashboard/bookings"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <CompleteStudioBookings />
+                  <UnifiedBookingsPage />
                 </ProtectedRoute>
               }
             />
@@ -304,7 +310,7 @@ function App() {
               path="/dashboard/availability"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <CompleteStudioAvailability />
+                  <CompleteAvailabilityManager />
                 </ProtectedRoute>
               }
             />
@@ -328,7 +334,7 @@ function App() {
               path="/dashboard/profile"
               element={
                 <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioProfileManager />
+                  <UnifiedStudioProfile />
                 </ProtectedRoute>
               }
             />
@@ -391,6 +397,7 @@ function AdminRoutes() {
       <Route path="studios" element={<AdminStudios />} />
       <Route path="studios/approvals" element={<AdminStudioApprovals />} />
       <Route path="revenue" element={<AdminRevenue />} />
+      <Route path="analytics" element={<AdminAnalytics />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />
       <Route path="notifications" element={<AdminNotifications />} />
