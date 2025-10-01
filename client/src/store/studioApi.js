@@ -64,7 +64,7 @@ export const studioApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }],
+      invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }, 'Studios'],
     }),
     addAvailability: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -122,7 +122,7 @@ export const studioApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }],
+      invalidatesTags: (result, error, { id }) => [{ type: 'Studio', id }, 'Studios'],
     }),
     deleteStudio: builder.mutation({
       query: (id) => ({
