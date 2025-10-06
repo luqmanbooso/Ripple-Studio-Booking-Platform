@@ -30,14 +30,13 @@ import { logout } from '../../store/authSlice'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../ui/ThemeToggle'
-import NotificationCenter from '../notifications/NotificationCenter'
+import UniversalNotificationBell from '../common/UniversalNotificationBell'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -253,20 +252,7 @@ const Navbar = () => {
           {/* Right Side - Notifications + Theme Toggle + User Menu / Auth Buttons */}
           <div className="flex items-center space-x-3">
             {/* Notifications */}
-            {isAuthenticated && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  {/* Notification badge */}
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                  </span>
-                </button>
-              </div>
-            )}
+            {isAuthenticated && <UniversalNotificationBell />}
 
             {/* Theme Toggle */}
             <ThemeToggle size="md" />
@@ -541,15 +527,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Notification Center */}
-      <AnimatePresence>
-        {isNotificationsOpen && (
-          <NotificationCenter
-            isOpen={isNotificationsOpen}
-            onClose={() => setIsNotificationsOpen(false)}
-          />
-        )}
-      </AnimatePresence>
     </>
   )
 }

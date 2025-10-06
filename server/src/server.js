@@ -31,6 +31,9 @@ const { rateLimiter } = require("./middleware/rateLimit");
 // Import socket handlers
 const { setupSocket } = require("./sockets/socketHandler");
 
+// Import services
+const { startReservationCleanup } = require("./services/reservationService");
+
 const app = express();
 const server = createServer(app);
 
@@ -172,6 +175,9 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Start reservation cleanup job
+    startReservationCleanup();
 
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

@@ -12,7 +12,7 @@ const useBookingNotifications = () => {
     if (!user) return
 
     // Connect to socket
-    const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
       auth: {
         token: localStorage.getItem('token')
       }
@@ -238,7 +238,7 @@ const useBookingNotifications = () => {
 
   // Helper function to emit booking events
   const emitBookingEvent = (event, data) => {
-    const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
       auth: {
         token: localStorage.getItem('token')
       }

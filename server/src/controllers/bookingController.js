@@ -54,7 +54,7 @@ const createBooking = catchAsync(async (req, res) => {
     throw new ApiError("Selected time slot is not available", 400);
   }
 
-  // Create booking
+  // Create booking reservation (will be confirmed after payment)
   const booking = await Booking.create({
     client: clientId,
     [providerType]: provider._id,
@@ -63,7 +63,7 @@ const createBooking = catchAsync(async (req, res) => {
     end: new Date(end),
     price: service.price,
     notes,
-    status: "payment_pending",
+    status: "reservation_pending", // New status for reservations
   });
 
   // Populate booking for response
@@ -289,9 +289,13 @@ const completeBooking = catchAsync(async (req, res) => {
 
 // Get booked slots for a studio on a specific date
 const getBookedSlots = catchAsync(async (req, res) => {
-  const { studioId, date } = req.query;
-  if (!studioId) {
-    throw new ApiError("studioId is required", 400);
+  const { studioId, providerId, date } = req.query;
+  
+  // Handle both studioId and providerId for backward compatibility
+  const actualStudioId = studioId || providerId;
+  
+  if (!actualStudioId) {
+    throw new ApiError("studioId or providerId is required", 400);
   }
   if (!date) {
     throw new ApiError("date is required (YYYY-MM-DD)", 400);
@@ -302,8 +306,9 @@ const getBookedSlots = catchAsync(async (req, res) => {
   const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
   const query = {
-    studio: studioId,
+    studio: actualStudioId,
     start: { $gte: startOfDay, $lte: endOfDay },
+    status: { $in: ['confirmed', 'payment_pending'] }, // Exclude reservation_pending
   };
 
   const bookings = await Booking.find(query).select("start end status");

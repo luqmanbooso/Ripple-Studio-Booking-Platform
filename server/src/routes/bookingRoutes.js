@@ -43,15 +43,19 @@ const getBookingsSchema = {
   query: z.object({
     page: z.coerce.number().min(1).default(1),
     limit: z.coerce.number().min(1).max(1000).default(10),
-    status: z.enum(['pending', 'payment_pending', 'confirmed', 'completed', 'cancelled', 'refunded']).optional(),
+    status: z.enum(['reservation_pending', 'pending', 'payment_pending', 'confirmed', 'completed', 'cancelled', 'refunded']).optional(),
     upcoming: z.enum(['true', 'false']).optional()
   })
 };
 
 const getBookedSlotsSchema = {
   query: z.object({
-    studioId: objectId,
+    studioId: objectId.optional(),
+    providerId: objectId.optional(), // Backward compatibility
+    providerType: z.string().optional(), // Backward compatibility
     date: z.string().min(10).max(10) // YYYY-MM-DD
+  }).refine(data => data.studioId || data.providerId, {
+    message: "Either studioId or providerId is required"
   })
 };
 

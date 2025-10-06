@@ -40,6 +40,7 @@ const bookingSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
+        "reservation_pending", // New: temporary reservation before payment
         "pending",
         "payment_pending",
         "confirmed",
@@ -47,7 +48,7 @@ const bookingSchema = new mongoose.Schema(
         "cancelled",
         "refunded",
       ],
-      default: "payment_pending",
+      default: "reservation_pending",
     },
     price: {
       type: Number,

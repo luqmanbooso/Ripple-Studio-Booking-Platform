@@ -5,7 +5,11 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import { store } from './store/store.js'
+import { setupConsoleFiltering } from './utils/consoleUtils.js'
 import './index.css'
+
+// Setup console filtering for browser extension errors
+setupConsoleFiltering()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

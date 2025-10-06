@@ -126,7 +126,7 @@ const checkOneTimeAvailability = (slot, start, end) => {
 const checkBookingConflicts = async (providerType, providerId, start, end, excludeBookingId = null) => {
   const query = {
     studio: providerId,
-    status: { $in: ['confirmed', 'payment_pending'] },
+    status: { $in: ['confirmed', 'payment_pending'] }, // Exclude reservation_pending
     $or: [
       // Booking starts during the requested time
       {

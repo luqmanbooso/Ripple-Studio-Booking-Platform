@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Calendar, Clock, Plus, Save, Trash2, Edit2, ChevronLeft, ChevronRight, 
-  DollarSign, Users, AlertCircle, X, Info, MapPin, Mail, Phone
+  DollarSign, Users, AlertCircle, X, Info, MapPin, Mail, Phone, User
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
@@ -21,12 +21,16 @@ const CompleteAvailabilityManager = () => {
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [selectedAvailability, setSelectedAvailability] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [selectedSlotsForDeletion, setSelectedSlotsForDeletion] = useState([])
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
   
   const [slotForm, setSlotForm] = useState({
     startTime: '09:00',
     endTime: '17:00',
     isRecurring: true,
     daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    specificDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
     price: 5000,
     description: ''
   })
@@ -51,24 +55,7 @@ const CompleteAvailabilityManager = () => {
   const bookings = bookingsData?.data?.bookings || []
   const confirmedBookings = bookings.filter(b => ['confirmed', 'completed'].includes(b.status))
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🔍 Studio data updated:', { 
-      fullStudioData: studioData,
-      studio,
-      availabilityRaw: studio?.availability,
-      availabilityParsed: availability,
-      availabilityCount: availability.length,
-      allSlots: availability.map(slot => ({
-        start: slot.start,
-        end: slot.end,
-        startUTC: new Date(slot.start).toISOString(),
-        startLocal: new Date(slot.start).toLocaleTimeString(),
-        daysOfWeek: slot.daysOfWeek,
-        isRecurring: slot.isRecurring
-      }))
-    })
-  }, [studioData])
+  // Removed debug logging to prevent console spam
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const timeSlots = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)
@@ -113,17 +100,7 @@ const CompleteAvailabilityManager = () => {
         
         const isAvailable = timeInMinutes >= slotStartMinutes && timeInMinutes < slotEndMinutes
         
-        // Debug first slot check
-        if (time === '09:00' && dayOfWeek === 1) {
-          console.log('🔍 Checking Monday 9AM:', {
-            dayOfWeek,
-            slotDays: slot.daysOfWeek,
-            timeInMinutes,
-            slotStartMinutes,
-            slotEndMinutes,
-            isAvailable
-          })
-        }
+        // Removed debug logging to prevent console spam
         
         return isAvailable
       } else {
@@ -208,6 +185,7 @@ const CompleteAvailabilityManager = () => {
     const booking = getSlotBooking(date, time)
     if (booking) {
       setSelectedBooking(booking)
+      setShowBookingModal(true)
       return
     }
 
@@ -315,23 +293,37 @@ const CompleteAvailabilityManager = () => {
         return
       }
 
-      // Create UTC times to avoid timezone issues
-      const startDate = new Date(`2000-01-01T${slotForm.startTime}:00Z`) // Z forces UTC
-      const endDate = new Date(`2000-01-01T${slotForm.endTime}:00Z`)
+      let slotData;
       
-      const slotData = {
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
-        isRecurring: slotForm.isRecurring,
-        daysOfWeek: slotForm.daysOfWeek.map(day => dayNameToNumber[day]),
-        price: parseFloat(slotForm.price) || 0,
-        description: slotForm.description
+      if (slotForm.isRecurring) {
+        // Recurring slot - use start/end times with days of week
+        const startDate = new Date(`2000-01-01T${slotForm.startTime}:00Z`)
+        const endDate = new Date(`2000-01-01T${slotForm.endTime}:00Z`)
+        
+        slotData = {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          isRecurring: true,
+          daysOfWeek: slotForm.daysOfWeek.map(day => dayNameToNumber[day]),
+          price: parseFloat(slotForm.price) || 0,
+          description: slotForm.description
+        }
+      } else {
+        // Non-recurring slot - use specific date with start/end times in minutes
+        const startTimeMinutes = parseInt(slotForm.startTime.split(':')[0]) * 60 + parseInt(slotForm.startTime.split(':')[1])
+        const endTimeMinutes = parseInt(slotForm.endTime.split(':')[0]) * 60 + parseInt(slotForm.endTime.split(':')[1])
+        
+        slotData = {
+          date: slotForm.specificDate || new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+          startTime: startTimeMinutes,
+          endTime: endTimeMinutes,
+          isRecurring: false,
+          price: parseFloat(slotForm.price) || 0,
+          description: slotForm.description
+        }
       }
 
-      console.log('Adding availability slot:', slotData)
-      
       const result = await addAvailability({ id: studioId, ...slotData }).unwrap()
-      console.log('Availability added successfully:', result)
       
       // Force refetch to update the calendar
       await refetch()
@@ -348,12 +340,14 @@ const CompleteAvailabilityManager = () => {
         endTime: '17:00',
         isRecurring: true,
         daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        specificDate: new Date().toISOString().split('T')[0],
         price: 5000,
         description: ''
       })
     } catch (error) {
       console.error('Failed to add time slot:', error)
-      toast.error(error?.data?.message || 'Failed to add time slot')
+      const errorMessage = error?.data?.message || error?.data?.error || 'Failed to add time slot'
+      toast.error(errorMessage)
     }
   }
 
@@ -510,13 +504,30 @@ const CompleteAvailabilityManager = () => {
                     onMouseEnter={() => handleSlotHover(date, time)}
                   >
                     {booking && (
-                      <div className="space-y-1">
-                        <div className="text-xs font-semibold truncate">
-                          {booking.client?.name || 'Client'}
+                      <div className="bg-red-500 text-white rounded p-1 space-y-1 shadow-sm">
+                        <div className="text-xs font-semibold truncate flex items-center">
+                          <div className="w-2 h-2 bg-white rounded-full mr-1 flex-shrink-0"></div>
+                          {booking.client?.name || booking.user?.name || 'Client'}
+                        </div>
+                        <div className="text-xs opacity-90 truncate">
+                          {booking.service?.name || 'Session'}
                         </div>
                         <div className="text-xs opacity-75 truncate">
-                          {booking.service || 'Booking'}
+                          {new Date(booking.start).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false 
+                          })} - {new Date(booking.end).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false 
+                          })}
                         </div>
+                        {booking.notes && (
+                          <div className="text-xs opacity-75 truncate italic">
+                            "{booking.notes.substring(0, 20)}{booking.notes.length > 20 ? '...' : ''}"
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -587,6 +598,19 @@ const CompleteAvailabilityManager = () => {
                     <span className="font-medium text-gray-700 dark:text-gray-300">Recurring weekly</span>
                   </label>
                 </div>
+
+                {/* Specific Date for Non-Recurring */}
+                {!slotForm.isRecurring && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Specific Date</label>
+                    <input
+                      type="date"
+                      value={slotForm.specificDate}
+                      onChange={(e) => setSlotForm({ ...slotForm, specificDate: e.target.value })}
+                      className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
 
                 {/* Days of Week */}
                 {slotForm.isRecurring && (
@@ -851,6 +875,123 @@ const CompleteAvailabilityManager = () => {
                     setSelectedAvailability(null)
                   }}
                   className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Booking Details Modal */}
+      <AnimatePresence>
+        {showBookingModal && selectedBooking && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                    <Calendar className="w-6 h-6 mr-2 text-blue-600" />
+                    Booking Details
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowBookingModal(false)
+                      setSelectedBooking(null)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Client Info */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center">
+                    <User className="w-4 h-4 mr-2" />
+                    Client Information
+                  </h3>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Name:</span> {selectedBooking.client?.name || selectedBooking.user?.name || 'N/A'}</p>
+                    <p><span className="font-medium">Email:</span> {selectedBooking.client?.email || selectedBooking.user?.email || 'N/A'}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedBooking.client?.phone || selectedBooking.user?.phone || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Session Details */}
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2 flex items-center">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Session Details
+                  </h3>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Service:</span> {selectedBooking.service?.name || 'Recording Session'}</p>
+                    <p><span className="font-medium">Date:</span> {new Date(selectedBooking.start).toLocaleDateString()}</p>
+                    <p><span className="font-medium">Time:</span> {new Date(selectedBooking.start).toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })} - {new Date(selectedBooking.end).toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true 
+                    })}</p>
+                    <p><span className="font-medium">Duration:</span> {Math.round((new Date(selectedBooking.end) - new Date(selectedBooking.start)) / (1000 * 60))} minutes</p>
+                    <p><span className="font-medium">Status:</span> 
+                      <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedBooking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        selectedBooking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        selectedBooking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {selectedBooking.status?.charAt(0).toUpperCase() + selectedBooking.status?.slice(1)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedBooking.notes && (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Notes</h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedBooking.notes}</p>
+                  </div>
+                )}
+
+                {/* Payment Info */}
+                {selectedBooking.totalAmount && (
+                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                    <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2 flex items-center">
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Payment Information
+                    </h3>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="font-medium">Amount:</span> LKR {selectedBooking.totalAmount?.toLocaleString()}</p>
+                      <p><span className="font-medium">Payment Status:</span> 
+                        <span className="ml-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Paid
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowBookingModal(false)
+                    setSelectedBooking(null)
+                  }}
+                  className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
                 >
                   Close
                 </button>

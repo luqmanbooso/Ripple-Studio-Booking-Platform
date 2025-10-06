@@ -83,10 +83,33 @@ const updateStudioSchema = {
 
 const availabilitySchema = {
   body: z.object({
-    start: z.string().datetime(),
-    end: z.string().datetime(),
+    // For recurring slots
+    start: z.string().datetime().optional(),
+    end: z.string().datetime().optional(),
     isRecurring: z.boolean().optional(),
-    daysOfWeek: z.array(z.number().min(0).max(6)).optional()
+    daysOfWeek: z.array(z.number().min(0).max(6)).optional(),
+    
+    // For non-recurring slots
+    date: z.string().optional(), // YYYY-MM-DD format
+    startTime: z.number().min(0).max(1440).optional(), // minutes from midnight
+    endTime: z.number().min(0).max(1440).optional(), // minutes from midnight
+    
+    // Common fields
+    price: z.number().min(0).optional(),
+    description: z.string().optional()
+  }).refine(data => {
+    // Validate recurring slots
+    if (data.isRecurring) {
+      return data.start && data.end && data.daysOfWeek && data.daysOfWeek.length > 0;
+    }
+    // Validate non-recurring slots
+    if (data.isRecurring === false) {
+      return data.date && typeof data.startTime === 'number' && typeof data.endTime === 'number';
+    }
+    // Default case (backward compatibility)
+    return data.start && data.end;
+  }, {
+    message: "Invalid availability data: recurring slots need start, end, and daysOfWeek; non-recurring slots need date, startTime, and endTime"
   })
 };
 
@@ -98,6 +121,7 @@ router.get('/:id', optionalAuth, studioController.getStudio);
 router.post('/', authenticate, allowRoles('studio', 'admin'), validate(createStudioSchema), studioController.createStudio);
 router.patch('/:id', authenticate, allowRoles('studio', 'admin'), validate(updateStudioSchema), studioController.updateStudio);
 router.post('/:id/availability', authenticate, allowRoles('studio'), validate(availabilitySchema), studioController.addAvailability);
+router.delete('/:id/availability/:availabilityId', authenticate, allowRoles('studio'), studioController.deleteAvailability);
 router.get('/:id/availability', studioController.getAvailability); // Public endpoint to check availability
 
 // Admin only routes

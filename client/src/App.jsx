@@ -68,6 +68,7 @@ import CompleteStudioProfile from "./pages/Dashboard/CompleteStudioProfile";
 import UnifiedBookingsHub from "./pages/Dashboard/UnifiedBookingsHub";
 import UnifiedStudioProfile from "./pages/Dashboard/UnifiedStudioProfile";
 import UnifiedBookingsPage from "./pages/Dashboard/UnifiedBookingsPage";
+import NotificationsPage from "./pages/Dashboard/NotificationsPage";
 
 // Settings pages
 import Profile from "./pages/Settings/Profile";
@@ -84,6 +85,11 @@ import { setTheme, setReducedMotion } from "./store/themeSlice";
 import { initializeSocket } from "./lib/socket";
 import api from "./lib/axios";
 import { store } from "./store/store";
+
+// Providers
+import NotificationProvider from "./providers/NotificationProvider";
+import AuthenticationStatus from "./components/common/AuthenticationStatus";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 function App() {
   const dispatch = useDispatch();
@@ -177,24 +183,24 @@ function App() {
     };
 
     init();
-
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, mode]);
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isAdminRoute
-          ? "bg-slate-900 text-white"
-          : mode === "dark"
-            ? "bg-dark-950 text-white"
-            : "bg-white text-gray-900"
-      }`}
-    >
+    <ErrorBoundary>
+      <NotificationProvider>
+      <div
+        className={`App min-h-screen bg-dark-950 text-gray-100 relative overflow-x-hidden ${
+          mode === "dark" ? "bg-dark-950 text-white" : "bg-white text-gray-900"
+        }`}
+      >
       {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
       {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
+      
+      {/* Authentication Status */}
+      <AuthenticationStatus />
 
       {/* Conditional Navbar */}
       {isAdminRoute ? (
@@ -232,6 +238,7 @@ function App() {
 
             {/* Protected routes */}
             <Route
+              path="/booking/new"
               element={
                 <ProtectedRoute>
                   <NewBooking />
@@ -346,6 +353,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard/notifications"
+              element={
+                <ProtectedRoute allowedRoles={["studio", "client"]}>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin routes */}
             <Route
@@ -365,7 +380,9 @@ function App() {
 
       {/* Footer - Only show on non-admin/non-studio dashboard pages */}
       {!isAdminRoute && !isStudioRoute && <Footer />}
-    </div>
+      </div>
+      </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 

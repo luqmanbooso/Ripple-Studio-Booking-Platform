@@ -29,6 +29,13 @@ export const initializeSocket = (token) => {
 
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error)
+    
+    // Handle authentication errors gracefully
+    if (error.message && error.message.includes('Authentication')) {
+      console.log('Socket authentication failed - user may need to login')
+      return
+    }
+    
     if (import.meta.env.DEV) {
       console.debug('Socket handshake auth:', socket && socket.auth)
       console.debug('Socket opts:', socket && socket.io && socket.io.opts)

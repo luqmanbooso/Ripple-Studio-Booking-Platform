@@ -44,5 +44,8 @@
   "bugs": {
     "url": "https://github.com/your-username/music-booking-platform/issues"
   },
-  "homepage": "https://musicbooking.io"
+  "homepage": "https://musicbooking.io",
+  "dependencies": {
+    "node-cron": "^4.2.1"
+  }
 }

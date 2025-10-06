@@ -32,19 +32,18 @@ const PayHereGateway = ({
   const providerType = booking?.artist ? "artist" : "studio";
   const providerName = provider?.user?.name || provider?.name;
 
-  // Log checkout data when available
+  // Initialize PayHere checkout when data is available
   useEffect(() => {
     if (checkoutData) {
-      console.log("PayHere checkout data received:", checkoutData);
+      // PayHere checkout data ready
     }
   }, [checkoutData]);
 
   const handlePayNow = async () => {
-    console.log("handlePayNow called");
-    console.log("checkoutData:", checkoutData);
+    // Processing PayHere payment
 
     if (!checkoutData) {
-      console.error("Checkout data not available");
+      // Checkout data not available
       toast.error("Payment data not available. Please try again.");
       return;
     }
@@ -58,7 +57,7 @@ const PayHereGateway = ({
         duration: 5000,
       });
 
-      console.log("Creating direct form submission to PayHere");
+      // Creating PayHere form submission
 
       // Create a new form for each submission to avoid conflicts
       const form = document.createElement("form");
@@ -73,12 +72,12 @@ const PayHereGateway = ({
         input.name = key;
         input.value = value;
         form.appendChild(input);
-        console.log(`Adding field: ${key} = ${value}`);
+        // Adding PayHere field
       });
 
       // Add form to document and submit immediately
       document.body.appendChild(form);
-      console.log("Submitting form to PayHere...");
+      // Submitting to PayHere gateway
       form.submit();
 
       // Clean up

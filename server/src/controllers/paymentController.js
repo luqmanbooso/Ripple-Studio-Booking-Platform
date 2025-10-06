@@ -21,8 +21,8 @@ const createCheckoutSession = catchAsync(async (req, res) => {
     throw new ApiError("Access denied", 403);
   }
 
-  if (booking.status !== "payment_pending") {
-    throw new ApiError("Booking is not pending payment", 400);
+  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+    throw new ApiError("Booking is not available for payment", 400);
   }
 
   const checkoutSession = await paymentService.createCheckoutSession(booking);
@@ -118,20 +118,29 @@ const verifyPayherePayment = catchAsync(async (req, res) => {
 
   // Check if payment was successful
   if (parseInt(status_code) === 2) {
-    // Payment successful
+    // Payment successful - update booking status
+    booking.status = 'confirmed';
+    booking.payhereOrderId = order_id;
+    booking.payherePaymentId = payment_id;
+    await booking.save();
+    
     res.json({
       success: true,
       message: "Payment verified successfully",
       booking: {
         _id: booking._id,
-        scheduledDate: booking.scheduledDate,
-        duration: booking.duration,
-        totalAmount: booking.totalAmount,
+        start: booking.start,
+        end: booking.end,
+        price: booking.price,
         status: booking.status,
       },
     });
   } else {
-    // Payment failed or cancelled
+    // Payment failed or cancelled - delete reservation
+    if (booking.status === 'reservation_pending') {
+      await Booking.findByIdAndDelete(bookingId);
+    }
+    
     res.json({
       success: false,
       message: "Payment verification failed",

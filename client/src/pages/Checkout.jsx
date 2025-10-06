@@ -16,6 +16,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
 import PayHereGateway from "../components/common/PayHereGateway";
+import ReservationTimer from "../components/common/ReservationTimer";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -36,8 +37,7 @@ const Checkout = () => {
     const existingCheckoutUrl = location.state?.checkoutUrl;
     const existingCheckoutData = location.state?.checkoutData;
 
-    console.log("Checkout component - location.state:", location.state);
-    console.log("Checkout component - bookingData:", bookingData);
+    // Checkout component initialized
 
     if (!bookingData) {
       setHasError(true);
@@ -62,7 +62,7 @@ const Checkout = () => {
 
     // If we already have checkout data from NewBooking, use it
     if (existingCheckoutData) {
-      console.log("Using existing checkout data:", existingCheckoutData);
+      // Using existing checkout data from booking creation
       setPaymentData({
         checkoutUrl: existingCheckoutUrl,
         checkoutData: existingCheckoutData,
@@ -81,12 +81,12 @@ const Checkout = () => {
 
   const initiatePayment = async () => {
     try {
-      console.log("Initiating payment for booking:", booking._id);
+      // Initiating payment for booking
       const response = await createCheckoutSession({
         bookingId: booking._id,
       }).unwrap();
 
-      console.log("Payment initiation response:", response);
+      // Payment initiation successful
 
       setPaymentData({
         checkoutUrl: response.data?.checkoutUrl || response.url,
@@ -107,6 +107,11 @@ const Checkout = () => {
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handleReservationExpired = () => {
+    toast.error("Your reservation has expired. Please make a new booking.");
+    navigate("/search");
   };
 
   if (isInitializing || !booking) {
@@ -180,13 +185,19 @@ const Checkout = () => {
   }
 
   return (
-    <PayHereGateway
-      booking={booking}
-      checkoutData={paymentData?.checkoutData}
-      onBack={handleBack}
-      onRetry={handleRetry}
-      isLoading={isLoading}
-    />
+    <>
+      <ReservationTimer 
+        booking={booking} 
+        onExpired={handleReservationExpired}
+      />
+      <PayHereGateway
+        booking={booking}
+        checkoutData={paymentData?.checkoutData}
+        onBack={handleBack}
+        onRetry={handleRetry}
+        isLoading={isLoading}
+      />
+    </>
   );
 };
 

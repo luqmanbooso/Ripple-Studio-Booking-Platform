@@ -100,13 +100,14 @@ const studioSchema = new mongoose.Schema({
     caption: String
   }],
   availability: [{
+    // For recurring slots
     start: {
       type: Date,
-      required: true
+      required: function() { return this.isRecurring !== false; }
     },
     end: {
       type: Date,
-      required: true
+      required: function() { return this.isRecurring !== false; }
     },
     isRecurring: {
       type: Boolean,
@@ -117,6 +118,35 @@ const studioSchema = new mongoose.Schema({
       min: 0,
       max: 6
     }],
+    
+    // For non-recurring slots
+    date: {
+      type: String, // YYYY-MM-DD format
+      required: function() { return this.isRecurring === false; }
+    },
+    startTime: {
+      type: Number, // minutes from midnight
+      min: 0,
+      max: 1440,
+      required: function() { return this.isRecurring === false; }
+    },
+    endTime: {
+      type: Number, // minutes from midnight
+      min: 0,
+      max: 1440,
+      required: function() { return this.isRecurring === false; }
+    },
+    
+    // Common fields
+    price: {
+      type: Number,
+      min: 0,
+      default: 0
+    },
+    description: {
+      type: String,
+      maxlength: 500
+    },
     timezone: {
       type: String,
       default: 'UTC'

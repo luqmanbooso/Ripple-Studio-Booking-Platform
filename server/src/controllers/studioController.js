@@ -180,6 +180,41 @@ const addAvailability = catchAsync(async (req, res) => {
   });
 });
 
+// Delete availability slot
+const deleteAvailability = catchAsync(async (req, res) => {
+  const { id, availabilityId } = req.params;
+  const userId = req.user._id;
+
+  const studio = await Studio.findById(id).populate('user');
+
+  if (!studio) {
+    throw new ApiError('Studio not found', 404);
+  }
+
+  // Check ownership
+  if (studio.user._id.toString() !== userId.toString()) {
+    throw new ApiError('Access denied', 403);
+  }
+
+  // Find and remove the availability slot
+  const availabilityIndex = studio.availability.findIndex(
+    slot => slot._id.toString() === availabilityId
+  );
+
+  if (availabilityIndex === -1) {
+    throw new ApiError('Availability slot not found', 404);
+  }
+
+  studio.availability.splice(availabilityIndex, 1);
+  await studio.save();
+
+  res.json({
+    status: 'success',
+    message: 'Availability slot deleted successfully',
+    data: { studio }
+  });
+});
+
 // Get studio availability
 const getAvailability = catchAsync(async (req, res) => {
   const { id } = req.params;
@@ -496,6 +531,7 @@ module.exports = {
   getStudio,
   updateStudio,
   addAvailability,
+  deleteAvailability,
   getAvailability,
   getAllStudiosForAdmin,
   getStudioStats,

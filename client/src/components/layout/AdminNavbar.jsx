@@ -24,7 +24,7 @@ import {
 import toast from "react-hot-toast"
 
 import Button from '../ui/Button'
-import NotificationBell from '../common/NotificationBell'
+import UniversalNotificationBell from '../common/UniversalNotificationBell'
 import { logout } from '../../store/authSlice'
 
 const AdminNavbar = () => {
@@ -187,7 +187,7 @@ const AdminNavbar = () => {
             </div>
 
             {/* Notifications */}
-            <NotificationBell />
+            <UniversalNotificationBell />
 
             {/* Admin Profile Dropdown */}
             <div className="relative">

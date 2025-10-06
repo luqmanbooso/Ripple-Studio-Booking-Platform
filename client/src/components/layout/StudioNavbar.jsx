@@ -28,8 +28,7 @@ import {
   Clock
 } from 'lucide-react'
 import { logout } from '../../store/authSlice'
-import NotificationCenter from '../notifications/NotificationCenter'
-import { useGetNotificationStatsQuery } from '../../store/notificationApi'
+import UniversalNotificationBell from '../common/UniversalNotificationBell'
 import { disconnectSocket } from '../../lib/socket'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../ui/ThemeToggle'
@@ -38,13 +37,9 @@ const StudioNavbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const location = useLocation()
-
-  // Notification stats
-  const { data: notificationStats } = useGetNotificationStatsQuery()
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -58,7 +53,6 @@ const StudioNavbar = () => {
       if (!isClickInsideDropdown) {
         setActiveDropdown(null)
         setIsProfileOpen(false)
-        setIsNotificationsOpen(false)
       }
     }
     
@@ -251,18 +245,7 @@ const StudioNavbar = () => {
               </button>
 
               {/* Notifications */}
-              <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group"
-              >
-                <Bell className="w-5 h-5 group-hover:animate-bounce" />
-                {/* Notification badge - shows unread count */}
-                {notificationStats?.unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                    {notificationStats.unreadCount > 99 ? '99+' : notificationStats.unreadCount}
-                  </span>
-                )}
-              </button>
+              <UniversalNotificationBell />
 
               {/* Profile Dropdown */}
               <div className="relative" data-studio-profile-menu>
@@ -449,15 +432,6 @@ const StudioNavbar = () => {
         </div>
       </nav>
 
-      {/* Notification Center */}
-      <AnimatePresence>
-        {isNotificationsOpen && (
-          <NotificationCenter
-            isOpen={isNotificationsOpen}
-            onClose={() => setIsNotificationsOpen(false)}
-          />
-        )}
-      </AnimatePresence>
     </>
   )
 }
