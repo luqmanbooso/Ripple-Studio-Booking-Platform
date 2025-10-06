@@ -23,6 +23,7 @@ const webhookRoutes = require("./webhooks/payhereWebhook");
 const mediaRoutes = require("./routes/mediaRoutes");
 const equipmentRoutes = require("./routes/equipmentRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -126,6 +127,7 @@ app.use("/api/webhooks", webhookRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/equipment", equipmentRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {

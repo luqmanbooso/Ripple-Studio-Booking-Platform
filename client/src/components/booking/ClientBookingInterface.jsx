@@ -11,9 +11,10 @@ const ClientBookingInterface = ({ studio, onBookingComplete }) => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedSlots, setSelectedSlots] = useState([])
   const [selectedService, setSelectedService] = useState(null)
+  const [selectedEquipment, setSelectedEquipment] = useState([])
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStart, setSelectionStart] = useState(null)
-  const [bookingStep, setBookingStep] = useState(1) // 1: Service, 2: Time, 3: Details, 4: Payment
+  const [bookingStep, setBookingStep] = useState(1) // 1: Service, 2: Equipment, 3: Time, 4: Details, 5: Payment
   const [clientInfo, setClientInfo] = useState({
     name: '',
     email: '',
@@ -111,7 +112,24 @@ const ClientBookingInterface = ({ studio, onBookingComplete }) => {
     const hours = selectedSlots.length
     const discount = hours > 4 ? 0.15 : hours > 2 ? 0.1 : 0
     
-    return Math.round(basePrice * hours * (1 - discount))
+    // Calculate equipment rental costs
+    const equipmentCost = selectedEquipment.reduce((total, equipment) => {
+      return total + (equipment.hourlyRate || 0) * hours
+    }, 0)
+    
+    const serviceTotal = Math.round(basePrice * hours * (1 - discount))
+    return serviceTotal + equipmentCost
+  }
+
+  const toggleEquipment = (equipment) => {
+    setSelectedEquipment(prev => {
+      const isSelected = prev.some(item => item._id === equipment._id)
+      if (isSelected) {
+        return prev.filter(item => item._id !== equipment._id)
+      } else {
+        return [...prev, equipment]
+      }
+    })
   }
 
   const getSlotStatus = (date, time) => {
@@ -187,22 +205,24 @@ const ClientBookingInterface = ({ studio, onBookingComplete }) => {
 
       {/* Progress Steps */}
       <div className="flex items-center justify-center mb-8">
-        {[
-          { step: 1, label: 'Service', icon: Star },
-          { step: 2, label: 'Time', icon: Clock },
-          { step: 3, label: 'Details', icon: User },
-          { step: 4, label: 'Payment', icon: CreditCard }
-        ].map(({ step, label, icon: Icon }, index) => (
-          <div key={step} className="flex items-center">
-            <div className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
-              bookingStep >= step 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 text-gray-500'
-            }`}>
+        {
+          [
+            { step: 1, label: 'Service', icon: Star },
+            { step: 2, label: 'Equipment', icon: Plus },
+            { step: 3, label: 'Time', icon: Clock },
+            { step: 4, label: 'Details', icon: User },
+            { step: 5, label: 'Payment', icon: CreditCard }
+          ].map(({ step, label, icon: Icon }, index) => (
+            <div key={step} className="flex items-center">
+              <div className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                bookingStep >= step 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
               <Icon className="w-4 h-4" />
               <span className="font-medium">{label}</span>
             </div>
-            {index < 3 && (
+            {index < 4 && (
               <div className={`w-8 h-0.5 mx-2 ${
                 bookingStep > step ? 'bg-blue-500' : 'bg-gray-200'
               }`} />
@@ -257,15 +277,100 @@ const ClientBookingInterface = ({ studio, onBookingComplete }) => {
                   onClick={() => setBookingStep(2)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition-colors"
                 >
-                  Continue to Time Selection
+                  Continue to Equipment
                 </button>
               </div>
             )}
           </motion.div>
         )}
 
-        {/* Step 2: Time Selection */}
+        {/* Step 2: Equipment Selection */}
         {bookingStep === 2 && (
+          <motion.div
+            key="equipment"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Equipment (Optional)</h2>
+            
+            {studio.equipment && studio.equipment.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {studio.equipment.map((equipment) => (
+                  <div
+                    key={equipment._id}
+                    onClick={() => toggleEquipment(equipment)}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedEquipment.some(item => item._id === equipment._id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{equipment.name}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{equipment.description}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm text-gray-500">{equipment.category}</span>
+                          <span className="font-medium text-blue-600">
+                            LKR {equipment.hourlyRate || 0}/hr
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedEquipment.some(item => item._id === equipment._id)
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedEquipment.some(item => item._id === equipment._id) && (
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No equipment available for rental</p>
+              </div>
+            )}
+            
+            {/* Equipment Summary */}
+            {selectedEquipment.length > 0 && (
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Selected Equipment</h3>
+                <div className="space-y-2">
+                  {selectedEquipment.map((equipment) => (
+                    <div key={equipment._id} className="flex justify-between text-sm">
+                      <span>{equipment.name}</span>
+                      <span>LKR {equipment.hourlyRate || 0}/hr</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between">
+              <button
+                onClick={() => setBookingStep(1)}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Back to Services
+              </button>
+              <button
+                onClick={() => setBookingStep(3)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition-colors"
+              >
+                Continue to Time Selection
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 3: Time Selection */}
+        {bookingStep === 3 && (
           <motion.div
             key="time"
             initial={{ opacity: 0, x: 50 }}

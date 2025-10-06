@@ -6,7 +6,7 @@ import {
   RefreshCw, ToggleLeft, ToggleRight, Moon, Sun
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
-import { toast } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -442,8 +442,11 @@ const AvailabilityModal = ({ isOpen, onClose, slot, onSubmit }) => {
     startTime: '09:00',
     endTime: '17:00',
     daysOfWeek: [],
+    date: '',
     start: '',
     end: '',
+    price: 5000,
+    description: '',
     timezone: 'UTC'
   })
 
@@ -454,18 +457,28 @@ const AvailabilityModal = ({ isOpen, onClose, slot, onSubmit }) => {
         startTime: slot.startTime || '09:00',
         endTime: slot.endTime || '17:00',
         daysOfWeek: slot.daysOfWeek || [],
+        date: slot.date || '',
         start: slot.start ? new Date(slot.start).toISOString().slice(0, 16) : '',
         end: slot.end ? new Date(slot.end).toISOString().slice(0, 16) : '',
+        price: slot.price || 5000,
+        description: slot.description || '',
         timezone: slot.timezone || 'UTC'
       })
     } else {
+      // Set default date to today
+      const today = new Date()
+      const todayStr = today.toISOString().split('T')[0]
+      
       setFormData({
         isRecurring: false,
         startTime: '09:00',
         endTime: '17:00',
         daysOfWeek: [],
+        date: todayStr,
         start: '',
         end: '',
+        price: 5000,
+        description: '',
         timezone: 'UTC'
       })
     }
@@ -474,14 +487,57 @@ const AvailabilityModal = ({ isOpen, onClose, slot, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     
+    // Validate form data
+    if (formData.isRecurring) {
+      if (formData.daysOfWeek.length === 0) {
+        toast.error('Please select at least one day of the week')
+        return
+      }
+      if (!formData.startTime || !formData.endTime) {
+        toast.error('Please provide start and end times')
+        return
+      }
+    } else {
+      if (!formData.date || !formData.startTime || !formData.endTime) {
+        toast.error('Please provide date, start time, and end time')
+        return
+      }
+    }
+    
     const submitData = { ...formData }
     
-    if (!formData.isRecurring) {
-      submitData.start = new Date(formData.start).toISOString()
-      submitData.end = new Date(formData.end).toISOString()
+    if (formData.isRecurring) {
+      // For recurring slots: use start/end datetime format
+      const baseDate = '2000-01-01' // Use a base date for recurring slots
+      submitData.start = `${baseDate}T${formData.startTime}:00.000Z`
+      submitData.end = `${baseDate}T${formData.endTime}:00.000Z`
+      submitData.isRecurring = true
+      // Remove non-recurring fields
+      delete submitData.date
+      delete submitData.startTime
+      delete submitData.endTime
+    } else {
+      // For non-recurring slots: use date + time format
+      const startTimeMinutes = timeToMinutes(formData.startTime)
+      const endTimeMinutes = timeToMinutes(formData.endTime)
+      
+      submitData.date = formData.date
+      submitData.startTime = startTimeMinutes
+      submitData.endTime = endTimeMinutes
+      submitData.isRecurring = false
+      // Remove recurring fields
+      delete submitData.start
+      delete submitData.end
+      delete submitData.daysOfWeek
     }
     
     onSubmit(submitData)
+  }
+  
+  // Helper function to convert time string to minutes
+  const timeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    return hours * 60 + minutes
   }
 
   const toggleDay = (dayIndex) => {
@@ -565,34 +621,79 @@ const AvailabilityModal = ({ isOpen, onClose, slot, onSubmit }) => {
             </div>
           </>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Start Date & Time
+                Date
               </label>
               <input
-                type="datetime-local"
-                value={formData.start}
-                onChange={(e) => setFormData(prev => ({ ...prev, start: e.target.value }))}
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                End Date & Time
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.end}
-                onChange={(e) => setFormData(prev => ({ ...prev, end: e.target.value }))}
-                required
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
             </div>
-          </div>
+          </>
         )}
+        
+        {/* Price and Description */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Price (LKR)
+            </label>
+            <input
+              type="number"
+              value={formData.price}
+              onChange={(e) => setFormData(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+              min="0"
+              step="100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Description (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="e.g., Regular hours, Special session"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+        </div>
 
         <div className="flex justify-end space-x-3 pt-4">
           <Button type="button" variant="outline" onClick={onClose}>

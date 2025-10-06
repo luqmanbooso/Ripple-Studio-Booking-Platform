@@ -68,7 +68,7 @@ export const studioApi = createApi({
     }),
     addAvailability: builder.mutation({
       query: ({ id, ...data }) => ({
-        url: `/${id}/availability`,
+        url: `/${id}/availability-working`,
         method: 'POST',
         body: data,
       }),

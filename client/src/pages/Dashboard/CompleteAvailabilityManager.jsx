@@ -292,6 +292,13 @@ const CompleteAvailabilityManager = () => {
         toast.error('Please select at least one day')
         return
       }
+      
+      if (!slotForm.isRecurring && (!slotForm.specificDate || slotForm.specificDate.trim() === '')) {
+        toast.error('Please select a specific date for non-recurring slots')
+        return
+      }
+      
+      console.log('Form validation passed. Complete slot form data:', slotForm)
 
       let slotData;
       
@@ -313,8 +320,22 @@ const CompleteAvailabilityManager = () => {
         const startTimeMinutes = parseInt(slotForm.startTime.split(':')[0]) * 60 + parseInt(slotForm.startTime.split(':')[1])
         const endTimeMinutes = parseInt(slotForm.endTime.split(':')[0]) * 60 + parseInt(slotForm.endTime.split(':')[1])
         
+        // Ensure date is in YYYY-MM-DD format
+        let dateValue = slotForm.specificDate
+        if (!dateValue) {
+          dateValue = new Date().toISOString().split('T')[0]
+        }
+        
+        console.log('Non-recurring slot data being sent:', {
+          date: dateValue,
+          startTime: startTimeMinutes,
+          endTime: endTimeMinutes,
+          isRecurring: false,
+          originalSpecificDate: slotForm.specificDate
+        })
+        
         slotData = {
-          date: slotForm.specificDate || new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+          date: dateValue, // YYYY-MM-DD format
           startTime: startTimeMinutes,
           endTime: endTimeMinutes,
           isRecurring: false,
@@ -325,8 +346,10 @@ const CompleteAvailabilityManager = () => {
 
       const result = await addAvailability({ id: studioId, ...slotData }).unwrap()
       
-      // Force refetch to update the calendar
-      await refetch()
+      // Force refetch to update the calendar with a small delay
+      setTimeout(async () => {
+        await refetch()
+      }, 100)
       
       toast.success('Time slot added successfully! Calendar updated.')
       setShowAddModal(false)
@@ -346,6 +369,8 @@ const CompleteAvailabilityManager = () => {
       })
     } catch (error) {
       console.error('Failed to add time slot:', error)
+      console.error('Error details:', error.data)
+      console.error('Error status:', error.status)
       const errorMessage = error?.data?.message || error?.data?.error || 'Failed to add time slot'
       toast.error(errorMessage)
     }
@@ -387,7 +412,8 @@ const CompleteAvailabilityManager = () => {
       await refetch()
     } catch (error) {
       console.error('Failed to delete availability:', error)
-      toast.error(error?.data?.message || 'Failed to delete availability slot')
+      console.error('Error details:', error.data)
+      toast.error(error.data?.message || 'Failed to delete availability slot')
     }
   }
 
@@ -592,7 +618,11 @@ const CompleteAvailabilityManager = () => {
                     <input
                       type="checkbox"
                       checked={slotForm.isRecurring}
-                      onChange={(e) => setSlotForm({ ...slotForm, isRecurring: e.target.checked })}
+                      onChange={(e) => {
+                        console.log('Recurring checkbox changed:', e.target.checked)
+                        console.log('Current form state before change:', slotForm)
+                        setSlotForm({ ...slotForm, isRecurring: e.target.checked })
+                      }}
                       className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
                     />
                     <span className="font-medium text-gray-700 dark:text-gray-300">Recurring weekly</span>
@@ -605,8 +635,11 @@ const CompleteAvailabilityManager = () => {
                     <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Specific Date</label>
                     <input
                       type="date"
-                      value={slotForm.specificDate}
-                      onChange={(e) => setSlotForm({ ...slotForm, specificDate: e.target.value })}
+                      value={slotForm.specificDate || ''}
+                      onChange={(e) => {
+                        console.log('Date input changed:', e.target.value)
+                        setSlotForm({ ...slotForm, specificDate: e.target.value })
+                      }}
                       className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

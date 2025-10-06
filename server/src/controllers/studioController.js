@@ -160,6 +160,10 @@ const addAvailability = catchAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
 
+  console.log('=== AVAILABILITY REQUEST ===');
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('User ID:', userId);
+
   const studio = await Studio.findById(id).populate('user');
 
   if (!studio) {
@@ -171,13 +175,18 @@ const addAvailability = catchAsync(async (req, res) => {
     throw new ApiError('Access denied', 403);
   }
 
-  studio.availability.push(req.body);
-  await studio.save();
+  try {
+    studio.availability.push(req.body);
+    await studio.save();
 
-  res.json({
-    status: 'success',
-    data: { studio }
-  });
+    res.json({
+      status: 'success',
+      data: { studio }
+    });
+  } catch (error) {
+    console.error('Error saving availability:', error.message);
+    throw new ApiError(error.message, 400);
+  }
 });
 
 // Delete availability slot

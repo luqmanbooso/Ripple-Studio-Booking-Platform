@@ -17,6 +17,7 @@ import { mediaApi } from './mediaApi'
 import { equipmentApi } from './equipmentApi'
 import { serviceApi } from './serviceApi'
 import { notificationApi } from './notificationApi'
+import { ticketApi } from './ticketApi'
 
 export const store = configureStore({
   reducer: {
@@ -33,6 +34,7 @@ export const store = configureStore({
     [equipmentApi.reducerPath]: equipmentApi.reducer,
     [serviceApi.reducerPath]: serviceApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
+    [ticketApi.reducerPath]: ticketApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -50,6 +52,7 @@ export const store = configureStore({
       equipmentApi.middleware,
       serviceApi.middleware,
       notificationApi.middleware,
+      ticketApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })

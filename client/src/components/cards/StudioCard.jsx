@@ -58,16 +58,26 @@ const StudioCard = ({ studio }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: isHovered ? 1 : 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center"
                 onClick={(e) => e.preventDefault()}
               >
-                <QuickBookingButton
-                  studio={studio}
-                  size="sm"
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.2, delay: 0.1 }}
                   className="pointer-events-auto"
                 >
-                  Quick Book
-                </QuickBookingButton>
+                  <button
+                    onClick={() => {
+                      const params = new URLSearchParams({ studioId: studio._id });
+                      window.location.href = `/booking/new?${params.toString()}`;
+                    }}
+                    className="bg-white/95 hover:bg-white text-gray-900 px-6 py-2.5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2 backdrop-blur-sm border border-white/20"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Quick Book</span>
+                  </button>
+                </motion.div>
               </motion.div>
             </div>
 
@@ -153,21 +163,55 @@ const StudioCard = ({ studio }) => {
                 height: isHovered ? "auto" : 0,
                 opacity: isHovered ? 1 : 0,
               }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden border-t border-light-border dark:border-gray-700"
               onClick={(e) => e.preventDefault()}
             >
-              <div className="pt-3 pointer-events-auto">
-                <QuickBookingButton
-                  studio={studio}
-                  className="w-full"
-                  size="sm"
+              <div className="pt-4 pb-1 pointer-events-auto">
+                <motion.button
+                  whileHover={{ 
+                    scale: 1.02,
+                    boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.5), 0 10px 10px -5px rgba(59, 130, 246, 0.04)"
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const params = new URLSearchParams({ studioId: studio._id });
+                    window.location.href = `/booking/new?${params.toString()}`;
+                  }}
+                  className="relative w-full bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white py-3.5 px-5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-between group overflow-hidden"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <span>Book Now</span>
-                    <span className="text-xs opacity-75">→ PayHere</span>
+                  {/* Animated background shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
+                  
+                  <div className="relative flex items-center space-x-3">
+                    <div className="p-1.5 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors duration-200">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-bold leading-tight">Book Now</span>
+                      <span className="text-xs text-blue-100 group-hover:text-white transition-colors duration-200 opacity-90">Instant booking</span>
+                    </div>
                   </div>
-                </QuickBookingButton>
+                  
+                  <div className="relative flex items-center space-x-2">
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-xs font-semibold text-blue-100 group-hover:text-white transition-colors duration-200">PayHere</span>
+                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                      </div>
+                      <span className="text-xs text-blue-200 group-hover:text-blue-50 transition-colors duration-200 opacity-75">Secure payment</span>
+                    </div>
+                    <div className="flex items-center space-x-0.5 ml-2">
+                      <motion.div 
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="text-blue-200 group-hover:text-white transition-colors duration-200"
+                      >
+                        →
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.button>
               </div>
             </motion.div>
           </div>

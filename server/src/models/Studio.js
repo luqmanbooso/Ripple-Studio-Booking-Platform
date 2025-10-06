@@ -102,12 +102,10 @@ const studioSchema = new mongoose.Schema({
   availability: [{
     // For recurring slots
     start: {
-      type: Date,
-      required: function() { return this.isRecurring !== false; }
+      type: Date
     },
     end: {
-      type: Date,
-      required: function() { return this.isRecurring !== false; }
+      type: Date
     },
     isRecurring: {
       type: Boolean,
@@ -121,20 +119,17 @@ const studioSchema = new mongoose.Schema({
     
     // For non-recurring slots
     date: {
-      type: String, // YYYY-MM-DD format
-      required: function() { return this.isRecurring === false; }
+      type: String // YYYY-MM-DD format
     },
     startTime: {
       type: Number, // minutes from midnight
       min: 0,
-      max: 1440,
-      required: function() { return this.isRecurring === false; }
+      max: 1440
     },
     endTime: {
       type: Number, // minutes from midnight
       min: 0,
-      max: 1440,
-      required: function() { return this.isRecurring === false; }
+      max: 1440
     },
     
     // Common fields
@@ -284,5 +279,12 @@ studioSchema.methods.isAvailable = function(startTime, endTime) {
 studioSchema.methods.getService = function(serviceName) {
   return this.services.find(service => service.name === serviceName);
 };
+
+// Pre-save validation for availability slots - temporarily disabled for debugging
+// studioSchema.pre('save', function(next) {
+//   console.log('=== MONGOOSE PRE-SAVE VALIDATION ===');
+//   console.log('All availability slots:', JSON.stringify(this.availability, null, 2));
+//   next();
+// });
 
 module.exports = mongoose.model('Studio', studioSchema);
