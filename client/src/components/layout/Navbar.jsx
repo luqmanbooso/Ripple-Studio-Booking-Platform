@@ -17,11 +17,8 @@ import {
   MessageCircle,
   BookOpen,
   HelpCircle,
-  Users,
   Building,
-  Mic,
   Home,
-  Star,
   TrendingUp,
   Globe,
   Phone
@@ -84,10 +81,8 @@ const Navbar = () => {
       isDropdown: true,
       dropdownId: 'services',
       items: [
-        { name: 'Find Artists', href: '/search?type=artists', icon: Mic, description: 'Discover talented musicians and performers' },
         { name: 'Book Studios', href: '/search?type=studios', icon: Building, description: 'Reserve professional recording spaces' },
-        { name: 'Browse by Genre', href: '/genres', icon: TrendingUp, description: 'Explore music by style and genre' },
-        { name: 'Featured Artists', href: '/featured', icon: Star, description: 'Top-rated and trending musicians' }
+        { name: 'Browse by Genre', href: '/genres', icon: TrendingUp, description: 'Explore music by style and genre' }
       ]
     },
     ...(user?.role === 'studio' ? [{
@@ -95,11 +90,6 @@ const Navbar = () => {
       href: '/dashboard/bookings',
       icon: Calendar
     }] : []),
-    {
-      name: 'Community',
-      icon: Users,
-      href: '/community'
-    },
     {
       name: 'About',
       href: '/about',
