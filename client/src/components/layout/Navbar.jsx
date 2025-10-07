@@ -236,13 +236,6 @@ const Navbar = () => {
                   >
                     <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
                     <span>{item.name}</span>
-                    {isActive(item.href) && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute inset-0 bg-light-primary dark:bg-primary-500 rounded-xl -z-10 shadow-neon"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
                   </Link>
                 )
               })}
