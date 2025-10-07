@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Calendar, 
   Clock, 
@@ -8,7 +8,15 @@ import {
   Search, 
   Plus,
   Filter,
-  ChevronRight
+  ChevronRight,
+  Building,
+  Music,
+  TrendingUp,
+  Award,
+  Sparkles,
+  Eye,
+  CreditCard,
+  BarChart3
 } from 'lucide-react'
 
 import Button from '../../components/ui/Button'
@@ -58,82 +66,177 @@ const ClientDashboard = () => {
 
   const filterOptions = [
     { value: 'all', label: 'All Bookings' },
+    { value: 'reservation_pending', label: 'Payment Pending' },
     { value: 'confirmed', label: 'Confirmed' },
     { value: 'completed', label: 'Completed' },
     { value: 'cancelled', label: 'Cancelled' }
   ]
 
   return (
-    <div className="min-h-screen bg-dark-950">
-      <div className="container py-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-950 to-black relative overflow-hidden">
+      {/* Enhanced Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 60, 0],
+            scale: [1, 0.8, 1],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl"
+        />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      </div>
+
+      <div className="container py-8 relative z-10">
+        {/* Enhanced Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 text-center"
         >
-          <h1 className="text-3xl font-bold text-gray-100 mb-2">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-purple-500/25"
+          >
+            <Sparkles className="w-10 h-10 text-white" />
+          </motion.div>
+          
+          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-gray-400">
-            Manage your bookings and discover new talent
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Manage your studio bookings and discover amazing recording spaces for your next project
           </p>
         </motion.div>
 
         {/* Verification Banner */}
         <VerificationBanner />
 
-        {/* Quick Actions */}
+        {/* Enhanced Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
         >
-          <Link to="/search?type=artists">
-            <Card hover className="p-6 bg-gradient-to-r from-primary-900/20 to-primary-700/20 border-primary-500/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-100 mb-1">Find Artists</h3>
-                  <p className="text-gray-400">Discover talented musicians</p>
+          <Link to="/search?type=studios">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -5 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative p-8 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-2xl cursor-pointer overflow-hidden backdrop-blur-sm"
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/25">
+                  <Building className="w-8 h-8 text-white" />
                 </div>
-                <Search className="w-8 h-8 text-primary-400" />
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">Book Studios</h3>
+                <p className="text-gray-400 leading-relaxed">Discover and reserve professional recording spaces for your next project</p>
               </div>
-            </Card>
+            </motion.div>
           </Link>
 
-          <Link to="/search?type=studios">
-            <Card hover className="p-6 bg-gradient-to-r from-accent-900/20 to-accent-700/20 border-accent-500/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-100 mb-1">Book Studios</h3>
-                  <p className="text-gray-400">Reserve recording spaces</p>
+          <Link to="/search">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -5 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative p-8 bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-2xl cursor-pointer overflow-hidden backdrop-blur-sm"
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/25">
+                  <Search className="w-8 h-8 text-white" />
                 </div>
-                <Plus className="w-8 h-8 text-accent-400" />
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">Explore Studios</h3>
+                <p className="text-gray-400 leading-relaxed">Browse all available studios and find the perfect match for your needs</p>
               </div>
-            </Card>
+            </motion.div>
+          </Link>
+
+          <Link to="/genres">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -5 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative p-8 bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-2xl cursor-pointer overflow-hidden backdrop-blur-sm"
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-500/25">
+                  <Music className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Browse Genres</h3>
+                <p className="text-gray-400 leading-relaxed">Explore studios by music genre and find specialized recording environments</p>
+              </div>
+            </motion.div>
           </Link>
         </motion.div>
 
-        {/* Stats */}
+        {/* Enhanced Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
         >
           {stats.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <Card key={stat.label}>
-                <div className="flex items-center justify-between">
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 * index }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="group relative p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl backdrop-blur-sm overflow-hidden"
+              >
+                {/* Background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-700/20 to-gray-800/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-100">{stat.value}</p>
+                    <p className="text-gray-400 text-sm font-medium mb-2">{stat.label}</p>
+                    <p className="text-3xl font-bold text-white group-hover:text-gray-100 transition-colors">{stat.value}</p>
                   </div>
-                  <Icon className={`w-8 h-8 ${stat.color}`} />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
+                    stat.label === 'Total Bookings' ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20' :
+                    stat.label === 'Upcoming' ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20' :
+                    'bg-gradient-to-br from-green-500/20 to-emerald-500/20'
+                  }`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
                 </div>
-              </Card>
+              </motion.div>
             )
           })}
         </motion.div>
@@ -144,16 +247,19 @@ const ClientDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-100">Your Bookings</h2>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Your Bookings</h2>
+              <p className="text-gray-400">Track and manage your studio reservations</p>
+            </div>
             <div className="flex items-center space-x-4">
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="input-field"
+                className="bg-gray-800/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300 hover:bg-gray-700/50 min-w-[160px]"
               >
                 {filterOptions.map(option => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="bg-gray-800 text-white">
                     {option.label}
                   </option>
                 ))}
@@ -188,46 +294,107 @@ const ClientDashboard = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-100 mb-2">No bookings yet</h3>
-              <p className="text-gray-400 mb-6">Start by finding studios or artists to book</p>
-              <Link to="/search">
-                <Button>
-                  <Search className="w-4 h-4 mr-2" />
-                  Browse Studios
-                </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 bg-gradient-to-br from-gray-800/30 to-gray-900/30 border border-gray-700/50 rounded-2xl backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+              >
+                <Calendar className="w-10 h-10 text-purple-400" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-white mb-3">No bookings yet</h3>
+              <p className="text-gray-400 mb-8 max-w-md mx-auto">Start your musical journey by discovering and booking professional recording studios</p>
+              <Link to="/search?type=studios">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-purple-500/25">
+                    <Search className="w-5 h-5 mr-2" />
+                    Browse Studios
+                  </Button>
+                </motion.div>
               </Link>
-            </div>
+            </motion.div>
           )}
 
-          {/* Quick Actions */}
-          <Card className="p-6 mt-8">
-            <h2 className="text-xl font-semibold text-light-text dark:text-gray-100 mb-4">
-              Quick Actions
-            </h2>
-            <div className="space-y-3">
-              <Link to="/search">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Search className="w-4 h-4 mr-2" />
-                  Find Studios
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start"
-                onClick={() => navigate('/dashboard/payments')}
-              >
-                <Star className="w-4 h-4 mr-2" />
-                Payment History
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter Bookings
-              </Button>
+          {/* Enhanced Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-12"
+          >
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl p-8 backdrop-blur-sm">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Quick Actions</h2>
+                  <p className="text-gray-400">Manage your studio experience</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Link to="/search">
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group p-4 bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-xl cursor-pointer transition-all duration-300 hover:border-blue-400/50"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Search className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-white group-hover:text-blue-300 transition-colors">Find Studios</h3>
+                        <p className="text-sm text-gray-400">Discover new spaces</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+                
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate('/dashboard/payments')}
+                  className="group p-4 bg-gradient-to-br from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl cursor-pointer transition-all duration-300 hover:border-green-400/50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <CreditCard className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white group-hover:text-green-300 transition-colors">Payment History</h3>
+                      <p className="text-sm text-gray-400">View transactions</p>
+                    </div>
+                  </div>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group p-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl cursor-pointer transition-all duration-300 hover:border-purple-400/50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white group-hover:text-purple-300 transition-colors">Analytics</h3>
+                      <p className="text-sm text-gray-400">Booking insights</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
             </div>
-          </Card>
+          </motion.div>
         </motion.div>
       </div>
     </div>

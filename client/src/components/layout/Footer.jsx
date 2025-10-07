@@ -17,11 +17,11 @@ const Footer = () => {
       { name: "Terms of Service", href: "/terms" },
       { name: "Privacy Policy", href: "/privacy" },
     ],
-    community: [
-      { name: "Artists", href: "/search?type=artists" },
-      { name: "Studios", href: "/search?type=studios" },
-      { name: "Reviews", href: "/reviews" },
-      { name: "Forum", href: "/forum" },
+    services: [
+      { name: "Book Studios", href: "/search?type=studios" },
+      { name: "Browse Genres", href: "/genres" },
+      { name: "Studio Reviews", href: "/reviews" },
+      { name: "Pricing", href: "/pricing" },
     ],
   };
 
@@ -51,8 +51,8 @@ const Footer = () => {
               <Music className="w-10 h-10 text-primary-500 hidden" />
             </Link>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Connecting artists, studios, and music lovers worldwide. Your next
-              breakthrough is just a ripple away.
+              Connecting musicians with professional recording studios worldwide. 
+              Find the perfect space for your next recording session.
             </p>
             <div className="flex space-x-4 mt-4">
               {socialLinks.map((social) => (
@@ -107,10 +107,10 @@ const Footer = () => {
 
           <div>
             <h3 className="text-sm font-semibold text-gray-100 uppercase tracking-wider mb-4">
-              Community
+              Services
             </h3>
             <ul className="space-y-3">
-              {links.community.map((link) => (
+              {links.services.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}

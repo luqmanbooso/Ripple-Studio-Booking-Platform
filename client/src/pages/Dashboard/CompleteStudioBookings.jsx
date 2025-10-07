@@ -32,7 +32,9 @@ const CompleteStudioBookings = () => {
   const bookings = bookingsData?.data?.bookings || []
 
   const statusColors = {
+    reservation_pending: 'bg-orange-100 text-orange-800 border-orange-200',
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    payment_pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     confirmed: 'bg-green-100 text-green-800 border-green-200',
     cancelled: 'bg-red-100 text-red-800 border-red-200',
     completed: 'bg-blue-100 text-blue-800 border-blue-200'
@@ -220,7 +222,8 @@ const CompleteStudioBookings = () => {
           className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
           <option value="all">All Status</option>
-          <option value="pending">Pending</option>
+          <option value="reservation_pending">Reservation Pending</option>
+          <option value="payment_pending">Payment Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
@@ -243,12 +246,16 @@ const CompleteStudioBookings = () => {
                 <div className="flex items-center space-x-3">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                     booking.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900' :
+                    booking.status === 'reservation_pending' ? 'bg-orange-100 dark:bg-orange-900' :
+                    booking.status === 'payment_pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
                     booking.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
                     booking.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900' :
                     'bg-red-100 dark:bg-red-900'
                   }`}>
                     <User className={`w-6 h-6 ${
                       booking.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
+                      booking.status === 'reservation_pending' ? 'text-orange-600 dark:text-orange-400' :
+                      booking.status === 'payment_pending' ? 'text-yellow-600 dark:text-yellow-400' :
                       booking.status === 'pending' ? 'text-yellow-600 dark:text-yellow-400' :
                       booking.status === 'completed' ? 'text-blue-600 dark:text-blue-400' :
                       'text-red-600 dark:text-red-400'
@@ -259,7 +266,9 @@ const CompleteStudioBookings = () => {
                       {booking.client?.name || 'Unknown Client'}
                     </h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${statusColors[booking.status]}`}>
-                      {booking.status}
+                      {booking.status === 'reservation_pending' ? 'PAYMENT PENDING' : 
+                       booking.status === 'payment_pending' ? 'PAYMENT PENDING' :
+                       booking.status.replace('_', ' ')}
                     </span>
                   </div>
                 </div>

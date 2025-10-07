@@ -20,9 +20,27 @@ const createBookingSchema = {
       price: z.number().min(0).optional(),
       durationMins: z.number().min(30).optional(),
       description: z.string().optional()
-    }),
+    }).optional(),
+    // PRD: Multiple services support
+    services: z.array(z.object({
+      name: z.string(),
+      price: z.number().min(0),
+      description: z.string().optional(),
+      category: z.string().optional()
+    })).optional(),
+    // PRD: Equipment rental support
+    equipment: z.array(z.object({
+      equipmentId: objectId.optional(),
+      name: z.string(),
+      rentalPrice: z.number().min(0),
+      rentalDuration: z.string().optional()
+    })).optional(),
     start: z.string().datetime(),
     end: z.string().datetime(),
+    date: z.string().optional(), // Frontend sends this
+    price: z.number().min(0).optional(), // Frontend calculates total
+    selectedSlots: z.array(z.string()).optional(), // Frontend sends selected time slots
+    totalDuration: z.number().min(30).optional(), // Frontend calculates duration
     notes: z.string().max(1000).optional()
   })
 };

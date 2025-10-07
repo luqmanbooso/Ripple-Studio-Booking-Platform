@@ -64,15 +64,18 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
         return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
       case 'payment_pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
+      case 'reservation_pending':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'
     }
   }
 
   const canConfirm = userRole === 'studio' && booking.status === 'payment_pending'
-  const canCancel = ['payment_pending', 'confirmed'].includes(booking.status)
+  const canCancel = ['payment_pending', 'confirmed', 'reservation_pending'].includes(booking.status)
   const canReview = booking.status === 'completed' && !booking.hasReview
   const isUpcoming = new Date(booking.start) > new Date()
+  const isReservationPending = booking.status === 'reservation_pending'
 
   return (
     <>
@@ -202,6 +205,26 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
               </p>
             )}
           </div>
+
+          {/* Reservation Pending Notice */}
+          {isReservationPending && (
+            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div>
+                  <h4 className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                    {userRole === 'studio' ? 'Payment Pending' : 'Complete Payment Required'}
+                  </h4>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                    {userRole === 'studio' 
+                      ? 'Client needs to complete payment within 15 minutes to confirm this booking.'
+                      : 'Please complete your payment to confirm this booking. You have 15 minutes from reservation time.'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2">

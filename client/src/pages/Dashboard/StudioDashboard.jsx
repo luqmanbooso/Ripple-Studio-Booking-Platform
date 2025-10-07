@@ -46,6 +46,10 @@ const StudioDashboard = () => {
     new Date(b.start) > new Date() && b.status === 'confirmed'
   )
 
+  const pendingReservations = bookings.filter(b => 
+    b.status === 'reservation_pending'
+  )
+
   const thisMonthBookings = bookings.filter(b => {
     const bookingMonth = new Date(b.createdAt).getMonth()
     const currentMonth = new Date().getMonth()
@@ -61,18 +65,18 @@ const StudioDashboard = () => {
       bg: 'bg-green-500/10'
     },
     {
+      label: 'Pending Reservations',
+      value: pendingReservations.length,
+      icon: Clock,
+      color: 'text-orange-400',
+      bg: 'bg-orange-500/10'
+    },
+    {
       label: 'Upcoming Bookings',
       value: upcomingBookings.length,
       icon: Calendar,
       color: 'text-blue-400',
       bg: 'bg-blue-500/10'
-    },
-    {
-      label: 'This Month',
-      value: thisMonthBookings.length,
-      icon: TrendingUp,
-      color: 'text-purple-400',
-      bg: 'bg-purple-500/10'
     },
     {
       label: 'Average Rating',
