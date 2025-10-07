@@ -437,13 +437,14 @@ const NewBooking = () => {
           {/* Studio Showcase */}
           <StudioShowcase studio={provider} />
 
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
             {/* Booking Form */}
             <div className="xl:col-span-3">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Date Selection */}
+                <br />
                 <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-                  <h3 className="text-xl font-bold text-gray-100 mb-6 flex items-center">
+                  <h3 className="text-xl font-bold text-gray-100 mb-4 flex items-center">
                     <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
                       <Calendar className="w-4 h-4 text-white" />
                     </div>
@@ -464,7 +465,7 @@ const NewBooking = () => {
 
                 {/* Time Selection */}
                 <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-                  <h3 className="text-xl font-bold text-gray-100 mb-6 flex items-center">
+                  <h3 className="text-xl font-bold text-gray-100 mb-4 flex items-center">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
                       <Clock className="w-4 h-4 text-white" />
                     </div>
@@ -479,7 +480,7 @@ const NewBooking = () => {
                   
                   {selectedDate && (
                     <>
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
                           <div className="flex items-center justify-between mb-3">
                             <div className="text-sm font-medium text-gray-200">
@@ -618,7 +619,7 @@ const NewBooking = () => {
 
                 {/* Notes */}
                 <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-                  <h3 className="text-xl font-bold text-gray-100 mb-6 flex items-center">
+                  <h3 className="text-xl font-bold text-gray-100 mb-4 flex items-center">
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-3">
                       <User className="w-4 h-4 text-white" />
                     </div>
@@ -660,9 +661,9 @@ const NewBooking = () => {
             </div>
 
             {/* Booking Summary */}
-            <div className="xl:col-span-1">
+            <div className="xl:col-span-1 mt-11">
               <Card className="sticky top-8 bg-gradient-to-br from-gray-800/60 to-gray-900/60 border-gray-700/50 backdrop-blur-sm shadow-2xl">
-                <h3 className="text-xl font-bold text-gray-100 mb-6 flex items-center">
+                <h3 className="text-xl font-bold text-gray-100 mb-4 flex items-center">
                   <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
                     <Building className="w-4 h-4 text-white" />
                   </div>
@@ -670,7 +671,7 @@ const NewBooking = () => {
                 </h3>
 
                 {/* Provider Info */}
-                <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center space-x-3 mb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center">
                     <Building className="w-6 h-6 text-white" />
                   </div>
@@ -685,7 +686,7 @@ const NewBooking = () => {
                 </div>
 
                 {/* Booking Details */}
-                <div className="space-y-4 mb-6">
+                <div className="space-y-4 mb-4">
                   {selectedDate && (
                     <div className="bg-dark-800/50 rounded-lg p-3">
                       <div className="flex justify-between items-center mb-2">
@@ -780,18 +781,6 @@ const NewBooking = () => {
                     </div>
                   )}
 
-                  {/* Authentication Warning */}
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                    <div className="text-red-300 text-sm">
-                      <div className="font-medium mb-2 flex items-center">
-                        <span className="text-red-400 mr-2">⚠️</span>
-                        Authentication Required
-                      </div>
-                      <p className="text-xs">
-                        You need to be logged in to make bookings. Please sign in to continue.
-                      </p>
-                    </div>
-                  </div>
 
                   {/* Booking Requirements */}
                   {(!selectedDate || selectedTimes.length === 0 || (!selectedService && selectedServices.length === 0)) && (
