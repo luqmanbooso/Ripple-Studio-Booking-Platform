@@ -9,7 +9,7 @@ const NotificationService = require("../services/notificationService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
 
 const createBooking = catchAsync(async (req, res) => {
-  const { studioId, service, start, end, notes } = req.body;
+  const { studioId, service, services = [], equipment = [], start, end, notes } = req.body;
   const clientId = req.user._id;
 
   // Check if client is verified
@@ -34,13 +34,42 @@ const createBooking = catchAsync(async (req, res) => {
     throw new ApiError("This studio is not yet approved for bookings", 400);
   }
 
-  // Validate service for studio
-  const studioService = provider.getService(service.name);
-  if (!studioService) {
-    throw new ApiError("Service not available at this studio", 400);
+  // PRD: Validate services (legacy single + new multiple)
+  let validatedServices = [];
+  let totalServicePrice = 0;
+  
+  // Handle legacy single service
+  if (service && service.name) {
+    const studioService = provider.getService(service.name);
+    if (!studioService) {
+      throw new ApiError("Service not available at this studio", 400);
+    }
+    service.price = studioService.price;
+    service.durationMins = studioService.durationMins;
+    totalServicePrice += service.price;
   }
-  service.price = studioService.price;
-  service.durationMins = studioService.durationMins;
+  
+  // Handle multiple services
+  if (services && services.length > 0) {
+    for (const svc of services) {
+      const studioService = provider.getService(svc.name);
+      if (!studioService) {
+        throw new ApiError(`Service "${svc.name}" not available at this studio`, 400);
+      }
+      validatedServices.push({
+        name: svc.name,
+        price: studioService.price,
+        description: studioService.description,
+        category: studioService.category
+      });
+      totalServicePrice += studioService.price;
+    }
+  }
+  
+  // Ensure at least one service is selected
+  if (!service?.name && validatedServices.length === 0) {
+    throw new ApiError("At least one service must be selected", 400);
+  }
 
   // Check availability
   const isAvailable = await availabilityService.checkAvailability(
@@ -54,14 +83,51 @@ const createBooking = catchAsync(async (req, res) => {
     throw new ApiError("Selected time slot is not available", 400);
   }
 
+  // PRD: Validate equipment rentals
+  let validatedEquipment = [];
+  let totalEquipmentPrice = 0;
+  
+  if (equipment && equipment.length > 0) {
+    const Equipment = require('../models/Equipment');
+    
+    for (const eqp of equipment) {
+      const equipmentItem = await Equipment.findById(eqp.equipmentId);
+      if (!equipmentItem) {
+        throw new ApiError(`Equipment "${eqp.name}" not found`, 400);
+      }
+      
+      if (equipmentItem.studio.toString() !== studioId) {
+        throw new ApiError(`Equipment "${eqp.name}" does not belong to this studio`, 400);
+      }
+      
+      if (equipmentItem.status !== 'Available') {
+        throw new ApiError(`Equipment "${eqp.name}" is not available (${equipmentItem.status})`, 400);
+      }
+      
+      validatedEquipment.push({
+        equipmentId: equipmentItem._id,
+        name: equipmentItem.name,
+        rentalPrice: eqp.rentalPrice || 0,
+        rentalDuration: eqp.rentalDuration || 'session',
+        status: 'Reserved'
+      });
+      totalEquipmentPrice += (eqp.rentalPrice || 0);
+    }
+  }
+
+  // Calculate total price
+  const totalPrice = totalServicePrice + totalEquipmentPrice;
+
   // Create booking reservation (will be confirmed after payment)
   const booking = await Booking.create({
     client: clientId,
     [providerType]: provider._id,
-    service,
+    service: service || (validatedServices.length > 0 ? validatedServices[0] : null),
+    services: validatedServices,
+    equipment: validatedEquipment,
     start: new Date(start),
     end: new Date(end),
-    price: service.price,
+    price: totalPrice,
     notes,
     status: "reservation_pending", // New status for reservations
   });

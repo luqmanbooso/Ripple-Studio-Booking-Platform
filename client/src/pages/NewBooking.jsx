@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, DollarSign, User, Building } from "lucide-react";
+import { Calendar, Clock, DollarSign, User, Building, Wrench } from "lucide-react";
 import toast from "react-hot-toast";
 
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
+import ServiceSelector from "../components/booking/ServiceSelector";
+import EquipmentSelector from "../components/booking/EquipmentSelector";
+import StudioShowcase from "../components/booking/StudioShowcase";
 import { useGetStudioQuery } from "../store/studioApi";
 import { useCreateBookingMutation } from "../store/bookingApi";
 import api from "../lib/axios";
@@ -17,7 +20,9 @@ const NewBooking = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTimes, setSelectedTimes] = useState([]); // Multiple time slots
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedService, setSelectedService] = useState(null); // Legacy single service
+  const [selectedServices, setSelectedServices] = useState([]); // PRD: Multiple services
+  const [selectedEquipment, setSelectedEquipment] = useState([]); // PRD: Equipment rental
   const [slotDuration, setSlotDuration] = useState(60); // 1 hour per slot
   const maxBookingHours = 5; // Maximum 5 hours per booking
   const [notes, setNotes] = useState("");
@@ -64,7 +69,10 @@ const NewBooking = () => {
           params: { studioId: providerId, date: selectedDate },
         });
         const slots = res.data.data.bookedSlots || [];
-        setBookedSlots(slots);
+        
+        // PRD: Hide cancel_pending slots from client view
+        const visibleSlots = slots.filter(slot => slot.status !== 'cancel_pending');
+        setBookedSlots(visibleSlots);
         // If currently selected times are now overlapping confirmed bookings, clear them
         if (selectedTimes.length > 0) {
           const conflictingTimes = selectedTimes.filter(time => {
@@ -101,10 +109,29 @@ const NewBooking = () => {
   // Debug logs removed to prevent console spam
 
   const calculatePrice = () => {
-    if (selectedService) {
-      return selectedService.price;
+    let total = 0;
+    
+    // Legacy single service support
+    if (selectedService && selectedServices.length === 0) {
+      total += selectedService.price;
     }
-    return 0;
+    
+    // PRD: Multiple services support
+    if (selectedServices.length > 0) {
+      total += selectedServices.reduce((sum, service) => sum + service.price, 0);
+    }
+    
+    return total;
+  };
+
+  const calculateEquipmentCost = () => {
+    return selectedEquipment.reduce((sum, item) => sum + item.rentalPrice, 0);
+  };
+
+  const calculateTotalCost = () => {
+    const serviceCost = calculatePrice() * selectedTimes.length;
+    const equipmentCost = calculateEquipmentCost();
+    return serviceCost + equipmentCost;
   };
 
   const handleSubmit = async (e) => {
@@ -114,8 +141,9 @@ const NewBooking = () => {
       toast.error("Please select a date and at least one time slot");
       return;
     }
-    if (!selectedService) {
-      toast.error("Please select a service");
+    // PRD: Validate services (either legacy single or new multiple)
+    if (!selectedService && selectedServices.length === 0) {
+      toast.error("Please select at least one service");
       return;
     }
 
@@ -139,19 +167,30 @@ const NewBooking = () => {
     const endDateTime = new Date(selectedDate);
     endDateTime.setHours(endHour + 1, endMin || 0, 0, 0); // Add 1 hour to last slot
 
+    // PRD: Enhanced booking data with multiple services and equipment
     const bookingData = {
       studioId: studioId,
       date: selectedDate,
       start: startDateTime.toISOString(),
       end: endDateTime.toISOString(),
-      service: {
+      // Legacy single service support
+      service: selectedService ? {
         name: selectedService.name,
         price: selectedService.price,
-        durationMins: totalDuration, // Use total duration of all selected slots
+        durationMins: totalDuration,
         description: selectedService.description || ""
-      },
+      } : (selectedServices.length > 0 ? {
+        name: selectedServices[0].name, // Primary service for legacy compatibility
+        price: selectedServices[0].price,
+        durationMins: totalDuration,
+        description: selectedServices[0].description || ""
+      } : null),
+      // PRD: Multiple services
+      services: selectedServices.length > 0 ? selectedServices : [],
+      // PRD: Equipment rentals
+      equipment: selectedEquipment,
       notes,
-      price: calculatePrice() * selectedTimes.length,
+      price: calculateTotalCost(),
       selectedSlots: selectedTimes,
       totalDuration: totalDuration
     };
@@ -278,11 +317,12 @@ const NewBooking = () => {
       return { available: false, reason: 'Past time', type: 'past' };
     }
 
-    // Check if slot overlaps with confirmed/completed bookings only
+    // Check if slot overlaps with confirmed/completed bookings
     const overlappingBooking = bookedSlots.find((s) => {
-      // Only consider confirmed, completed, or active bookings as conflicts
+      // PRD: Only consider confirmed (Booked), completed, and active bookings as conflicts
       // Exclude payment_pending and reservation_pending as they may expire
-      if (!['confirmed', 'completed', 'active'].includes(s.status)) {
+      // Include cancel_pending as they still block availability until resolved
+      if (!['confirmed', 'completed', 'active', 'cancel_pending'].includes(s.status)) {
         return false;
       }
       
@@ -393,6 +433,9 @@ const NewBooking = () => {
               Schedule your session with {providerName}
             </p>
           </div>
+
+          {/* Studio Showcase */}
+          <StudioShowcase studio={provider} />
 
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
             {/* Booking Form */}
@@ -552,54 +595,24 @@ const NewBooking = () => {
                   )}
                 </Card>
 
-                {/* Service Selection (Studios only) */}
+                {/* PRD: Multiple Services Selection */}
                 {providerType === "studio" && provider.services && (
-                  <Card className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-gray-100 mb-6 flex items-center">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
-                        <DollarSign className="w-4 h-4 text-white" />
-                      </div>
-                      Select Service
-                    </h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {provider.services.map((service) => (
-                        <div
-                          key={service.name}
-                          onClick={() => {
-                            setSelectedService(service);
-                            // Keep slot duration as 60 minutes (1 hour per slot)
-                            // setSlotDuration(service.durationMins || 60);
-                          }}
-                          className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 backdrop-blur-sm ${
-                            selectedService?.name === service.name
-                              ? "border-purple-400/70 bg-gradient-to-br from-purple-500/25 to-pink-600/15 shadow-xl shadow-purple-500/30 scale-105"
-                              : "border-gray-600/50 bg-gradient-to-br from-gray-700/20 to-gray-800/10 hover:border-gray-500/70 hover:shadow-lg hover:scale-102 transform"
-                          }`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium text-gray-100">
-                                {service.name}
-                              </h4>
-                              {service.description && (
-                                <p className="text-sm text-gray-400 mt-1">
-                                  {service.description}
-                                </p>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <div className="font-semibold text-accent-400">
-                                ${service.price}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {service.durationMins} mins
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
+                  <ServiceSelector
+                    services={provider.services}
+                    selectedServices={selectedServices}
+                    onServicesChange={setSelectedServices}
+                    allowMultiple={true}
+                  />
+                )}
+
+                {/* PRD: Equipment Rental Selection */}
+                {providerType === "studio" && studioId && (
+                  <EquipmentSelector
+                    studioId={studioId}
+                    selectedEquipment={selectedEquipment}
+                    onEquipmentChange={setSelectedEquipment}
+                    bookingDuration={Math.floor(getTotalSelectedDuration() / 60)}
+                  />
                 )}
 
 
@@ -708,20 +721,49 @@ const NewBooking = () => {
                     </div>
                   )}
 
-                  {selectedService && (
+                  {/* PRD: Services Summary */}
+                  {(selectedService || selectedServices.length > 0) && (
                     <div className="bg-dark-800/50 rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-gray-400 text-sm">Service</span>
-                        <div className="text-right">
-                          <div className="text-gray-100 font-medium">
-                            {selectedService.name}
-                          </div>
-                          {selectedService.description && (
-                            <div className="text-xs text-gray-400 mt-1 max-w-32">
-                              {selectedService.description}
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-400 text-sm">Services</span>
+                        <span className="text-gray-100 font-medium">
+                          {selectedServices.length > 0 ? selectedServices.length : 1} selected
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {selectedServices.length > 0 ? (
+                          selectedServices.map((service, index) => (
+                            <div key={index} className="flex justify-between text-xs">
+                              <span className="text-gray-300">{service.name}</span>
+                              <span className="text-green-400">${service.price}</span>
                             </div>
-                          )}
-                        </div>
+                          ))
+                        ) : selectedService ? (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-300">{selectedService.name}</span>
+                            <span className="text-green-400">${selectedService.price}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PRD: Equipment Summary */}
+                  {selectedEquipment.length > 0 && (
+                    <div className="bg-dark-800/50 rounded-lg p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-400 text-sm">Equipment</span>
+                        <span className="text-gray-100 font-medium">
+                          {selectedEquipment.length} items
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {selectedEquipment.map((item, index) => (
+                          <div key={index} className="flex justify-between text-xs">
+                            <span className="text-gray-300">{item.name}</span>
+                            <span className="text-orange-400">${item.rentalPrice}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -752,14 +794,14 @@ const NewBooking = () => {
                   </div>
 
                   {/* Booking Requirements */}
-                  {(!selectedDate || selectedTimes.length === 0 || !selectedService) && (
+                  {(!selectedDate || selectedTimes.length === 0 || (!selectedService && selectedServices.length === 0)) && (
                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                       <div className="text-yellow-300 text-sm">
                         <div className="font-medium mb-2">Required to continue:</div>
                         <ul className="space-y-1 text-xs">
                           {!selectedDate && <li>• Select a date</li>}
                           {selectedTimes.length === 0 && <li>• Choose time slots</li>}
-                          {!selectedService && <li>• Pick a service</li>}
+                          {!selectedService && selectedServices.length === 0 && <li>• Pick at least one service</li>}
                         </ul>
                       </div>
                     </div>
@@ -774,13 +816,16 @@ const NewBooking = () => {
                     </span>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary-400">
-                        ${calculatePrice() * selectedTimes.length}
+                        ${calculateTotalCost()}
                       </div>
-                      {selectedTimes.length > 1 && (
-                        <div className="text-xs text-gray-400">
-                          ${calculatePrice()} × {selectedTimes.length} slots
-                        </div>
-                      )}
+                      <div className="text-xs text-gray-400 space-y-1">
+                        {selectedTimes.length > 0 && (
+                          <div>Services: ${calculatePrice() * selectedTimes.length}</div>
+                        )}
+                        {selectedEquipment.length > 0 && (
+                          <div>Equipment: ${calculateEquipmentCost()}</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -77,6 +77,11 @@ const equipmentSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  status: {
+    type: String,
+    enum: ['Available', 'In-Use', 'Maintenance', 'Reserved'],
+    default: 'Available'
+  },
   maintenanceHistory: [{
     date: {
       type: Date,

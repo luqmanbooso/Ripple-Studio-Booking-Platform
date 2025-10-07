@@ -29,6 +29,28 @@ const bookingSchema = new mongoose.Schema(
       },
       description: String,
     },
+    // PRD: Multiple services support
+    services: [{
+      name: String,
+      price: Number,
+      description: String,
+      category: String
+    }],
+    // PRD: Equipment rental support
+    equipment: [{
+      equipmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Equipment'
+      },
+      name: String,
+      rentalPrice: Number,
+      rentalDuration: String, // 'session', 'day', 'week', 'month'
+      status: {
+        type: String,
+        enum: ['Reserved', 'In-Use', 'Returned'],
+        default: 'Reserved'
+      }
+    }],
     start: {
       type: Date,
       required: [true, "Start time is required"],
@@ -44,6 +66,7 @@ const bookingSchema = new mongoose.Schema(
         "pending",
         "payment_pending",
         "confirmed",
+        "cancel_pending", // PRD: For disputed cancellations (hidden from clients)
         "completed",
         "cancelled",
         "refunded",

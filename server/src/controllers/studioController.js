@@ -174,12 +174,37 @@ const addAvailability = catchAsync(async (req, res) => {
   }
 
   try {
-    studio.availability.push(req.body);
+    const newSlot = req.body;
+    
+    // PRD: Prevent duplicate availability slots
+    const isDuplicate = studio.availability.some(existingSlot => {
+      // Check for exact match in new format (date + startTime/endTime)
+      if (newSlot.date && newSlot.startTime && newSlot.endTime) {
+        return existingSlot.date === newSlot.date &&
+               existingSlot.startTime === newSlot.startTime &&
+               existingSlot.endTime === newSlot.endTime;
+      }
+      
+      // Check for exact match in old format (start/end datetime)
+      if (newSlot.start && newSlot.end) {
+        return existingSlot.start?.getTime() === new Date(newSlot.start).getTime() &&
+               existingSlot.end?.getTime() === new Date(newSlot.end).getTime();
+      }
+      
+      return false;
+    });
+    
+    if (isDuplicate) {
+      throw new ApiError('This time slot already exists', 400);
+    }
+    
+    studio.availability.push(newSlot);
     await studio.save();
 
     res.json({
       status: 'success',
-      data: { studio }
+      data: { studio },
+      message: 'Availability slot added successfully'
     });
   } catch (error) {
     console.error('Error saving availability:', error.message);

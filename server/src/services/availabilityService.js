@@ -51,42 +51,23 @@ const checkProviderAvailability = async (providerType, providerId, start, end) =
   const provider = await Studio.findById(providerId);
 
   if (!provider || !provider.isActive) {
-    console.log('Provider not found or inactive');
     return false;
   }
 
   // If no availability slots defined, assume always available (9 AM - 10 PM, all days)
   if (!provider.availability || provider.availability.length === 0) {
-    console.log('No availability slots, using default hours');
     const startHour = dayjs(start).hour();
     const endHour = dayjs(end).hour();
     // Allow bookings between 9 AM and 10 PM
     return startHour >= 9 && endHour <= 22;
   }
   
-  console.log('Checking availability slots:', {
-    requestStart: dayjs(start).format(),
-    requestEnd: dayjs(end).format(),
-    availabilitySlots: provider.availability.length
-  });
-  
   const result = provider.availability.some(slot => {
-    const slotResult = slot.isRecurring 
+    return slot.isRecurring 
       ? checkRecurringAvailability(slot, start, end)
       : checkOneTimeAvailability(slot, start, end);
-    
-    console.log('Slot check:', {
-      slotType: slot.isRecurring ? 'recurring' : 'one-time',
-      slotStart: dayjs(slot.start).format(),
-      slotEnd: dayjs(slot.end).format(),
-      daysOfWeek: slot.daysOfWeek,
-      result: slotResult
-    });
-    
-    return slotResult;
   });
   
-  console.log('Final availability result:', result);
   return result;
 };
 
@@ -105,12 +86,6 @@ const checkRecurringAvailability = (slot, start, end) => {
   const startDayOfWeek = startDay.day();
   const endDayOfWeek = endDay.day();
   
-  console.log('Recurring availability check:', {
-    requestDays: [startDayOfWeek, endDayOfWeek],
-    allowedDays: slot.daysOfWeek,
-    dayMatch: slot.daysOfWeek.includes(startDayOfWeek) && slot.daysOfWeek.includes(endDayOfWeek)
-  });
-  
   if (!slot.daysOfWeek.includes(startDayOfWeek) || !slot.daysOfWeek.includes(endDayOfWeek)) {
     return false;
   }
@@ -120,12 +95,6 @@ const checkRecurringAvailability = (slot, start, end) => {
   const slotEndTime = dayjs(slot.end).format('HH:mm');
   const requestStartTime = startDay.format('HH:mm');
   const requestEndTime = endDay.format('HH:mm');
-  
-  console.log('Time range check:', {
-    slotTime: `${slotStartTime} - ${slotEndTime}`,
-    requestTime: `${requestStartTime} - ${requestEndTime}`,
-    timeMatch: requestStartTime >= slotStartTime && requestEndTime <= slotEndTime
-  });
   
   return requestStartTime >= slotStartTime && requestEndTime <= slotEndTime;
 };
@@ -145,12 +114,6 @@ const checkOneTimeAvailability = (slot, start, end) => {
   if (slot.date && typeof slot.startTime === 'number' && typeof slot.endTime === 'number') {
     const requestDate = requestStart.format('YYYY-MM-DD');
     
-    console.log('One-time availability check (new format):', {
-      slotDate: slot.date,
-      requestDate: requestDate,
-      dateMatch: slot.date === requestDate
-    });
-    
     // Check if dates match
     if (slot.date !== requestDate) {
       return false;
@@ -160,12 +123,6 @@ const checkOneTimeAvailability = (slot, start, end) => {
     const requestStartMinutes = requestStart.hour() * 60 + requestStart.minute();
     const requestEndMinutes = requestEnd.hour() * 60 + requestEnd.minute();
     
-    console.log('Time check (new format):', {
-      slotTime: `${slot.startTime} - ${slot.endTime} minutes`,
-      requestTime: `${requestStartMinutes} - ${requestEndMinutes} minutes`,
-      timeMatch: requestStartMinutes >= slot.startTime && requestEndMinutes <= slot.endTime
-    });
-    
     return requestStartMinutes >= slot.startTime && requestEndMinutes <= slot.endTime;
   }
   
@@ -174,17 +131,9 @@ const checkOneTimeAvailability = (slot, start, end) => {
     const slotStart = dayjs(slot.start);
     const slotEnd = dayjs(slot.end);
     
-    console.log('One-time availability check (old format):', {
-      slotStart: slotStart.format(),
-      slotEnd: slotEnd.format(),
-      requestStart: requestStart.format(),
-      requestEnd: requestEnd.format()
-    });
-    
     return requestStart.isSameOrAfter(slotStart) && requestEnd.isSameOrBefore(slotEnd);
   }
   
-  console.log('Invalid slot format:', slot);
   return false;
 };
 
@@ -200,7 +149,10 @@ const checkOneTimeAvailability = (slot, start, end) => {
 const checkBookingConflicts = async (providerType, providerId, start, end, excludeBookingId = null) => {
   const query = {
     studio: providerId,
-    status: { $in: ['confirmed', 'completed', 'active'] }, // Only confirmed bookings block availability
+    // According to PRD: Only 'confirmed' (Booked) and 'completed' bookings block availability
+    // 'reservation_pending' should not block (temporary reservations)
+    // 'cancel_pending' should still block until resolved
+    status: { $in: ['confirmed', 'completed', 'active', 'cancel_pending'] },
     $or: [
       // Booking starts during the requested time
       {
