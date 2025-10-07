@@ -512,7 +512,6 @@
   .glow-effect {
     filter: drop-shadow(0 0 20px rgba(233, 30, 99, 0.3)) drop-shadow(0 0 40px rgba(0, 201, 255, 0.2));
   }
-
   .edge-fade {
     position: relative;
   }
@@ -523,5 +522,101 @@
     inset: 0;
     background: radial-gradient(ellipse at center, transparent 40%, rgba(15, 23, 42, 0.4) 80%);
     pointer-events: none;
+  }
+
+  /* Custom Scrollbar Styles */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hover\:scrollbar-show:hover {
+    scrollbar-width: thin;
+  }
+  
+  .hover\:scrollbar-show:hover::-webkit-scrollbar {
+    display: block;
+    width: 8px;
+  }
+  
+  .hover\:scrollbar-show:hover::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+  
+  .hover\:scrollbar-show:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+  
+  .hover\:scrollbar-show:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Alternative: Always show but styled */
+  .scrollbar-styled {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  }
+  
+  .scrollbar-styled::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-styled::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-styled::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+  
+  .scrollbar-styled::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Dark mode scrollbar */
+  .dark .scrollbar-styled {
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+  
+  .dark .scrollbar-styled::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .scrollbar-styled::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Custom Date Input Styling */
+  .date-input-custom::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 40px;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  /* Ensure the custom icon is visible */
+  .date-input-custom + .absolute {
+    pointer-events: none;
+  }
+  
+  /* Firefox date picker */
+  .dark input[type="date"] {
+    color-scheme: dark;
+  }
+  
+  /* Light theme date picker icon */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
   }
 }

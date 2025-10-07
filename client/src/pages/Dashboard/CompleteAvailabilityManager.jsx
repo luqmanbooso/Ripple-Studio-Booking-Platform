@@ -54,77 +54,92 @@ const CompleteAvailabilityManager = () => {
   
   const bookings = bookingsData?.data?.bookings || []
   const confirmedBookings = bookings.filter(b => ['confirmed', 'completed'].includes(b.status))
-
   // Removed debug logging to prevent console spam
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const timeSlots = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)
+  
+  // Generate week dates starting from Sunday
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(currentDate)
+    const startOfWeek = date.getDate() - date.getDay()
+    date.setDate(startOfWeek + i)
+    return date
+  })
 
-  // Get week dates
-  const getWeekDates = (date) => {
-    const week = []
-    const startOfWeek = new Date(date)
-    const day = startOfWeek.getDay()
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
-    startOfWeek.setDate(diff)
-
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(startOfWeek)
-      day.setDate(startOfWeek.getDate() + i)
-      week.push(day)
+  // Get slot status and booking info
+  const getSlotInfo = (day, hour) => {
+    const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
+    const timeInMinutes = hour * 60
+    
+    // Check for bookings first
+    const booking = bookings.find(booking => {
+      if (booking.status === 'cancelled') return false
+      
+      const bookingDate = new Date(booking.date)
+      const currentWeekDate = new Date(currentDate)
+      currentWeekDate.setDate(currentWeekDate.getDate() - currentWeekDate.getDay() + day)
+      
+      const isSameDate = bookingDate.toDateString() === currentWeekDate.toDateString()
+      if (!isSameDate) return false
+      
+      const bookingStartMinutes = new Date(booking.start).getHours() * 60 + new Date(booking.start).getMinutes()
+      const bookingEndMinutes = new Date(booking.end).getHours() * 60 + new Date(booking.end).getMinutes()
+      
+      return timeInMinutes >= bookingStartMinutes && timeInMinutes < bookingEndMinutes
+    })
+    
+    if (booking) {
+      return {
+        type: 'booked',
+        booking,
+        clickable: true,
+        clientName: booking.client?.name || booking.clientName || 'Client',
+        service: booking.service || 'Session',
+        duration: Math.round((booking.endTime - booking.startTime) / 60),
+        status: booking.status,
+        notes: booking.notes
+      }
     }
-    return week
-  }
-
-  const weekDates = getWeekDates(currentDate)
-
-  // Check if slot is available
-  const isSlotAvailable = (date, time) => {
-    if (!availability || availability.length === 0) return false
     
-    const dayOfWeek = date.getDay() // 0 = Sunday, 1 = Monday, etc.
-    const dateString = date.toISOString().split('T')[0]
-    const [hours, minutes] = time.split(':').map(Number)
-    const timeInMinutes = hours * 60 + minutes
-    
-    const result = availability.some(slot => {
+    // Check for availability slots
+    const availableSlot = availability.find(slot => {
       if (slot.isRecurring) {
-        // Check if this day is in the recurring schedule
-        if (!slot.daysOfWeek?.includes(dayOfWeek)) return false
+        // Recurring slot
+        if (!slot.daysOfWeek || !slot.daysOfWeek.includes(day)) return false
         
-        // Parse slot times
         const slotStart = new Date(slot.start)
         const slotEnd = new Date(slot.end)
-        const slotStartMinutes = slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes()
-        const slotEndMinutes = slotEnd.getUTCHours() * 60 + slotEnd.getUTCMinutes()
+        const slotStartMinutes = slotStart.getHours() * 60 + slotStart.getMinutes()
+        const slotEndMinutes = slotEnd.getHours() * 60 + slotEnd.getMinutes()
         
-        const isAvailable = timeInMinutes >= slotStartMinutes && timeInMinutes < slotEndMinutes
-        
-        // Removed debug logging to prevent console spam
-        
-        return isAvailable
+        return timeInMinutes >= slotStartMinutes && timeInMinutes < slotEndMinutes
       } else {
-        // One-time slot - check specific date
-        return slot.date === dateString &&
-               timeInMinutes >= slot.startTime && timeInMinutes < slot.endTime
+        // Non-recurring slot
+        const currentWeekDate = new Date(currentDate)
+        currentWeekDate.setDate(currentWeekDate.getDate() - currentWeekDate.getDay() + day)
+        const slotDate = slot.date
+        
+        if (currentWeekDate.toISOString().split('T')[0] !== slotDate) return false
+        
+        return timeInMinutes >= slot.startTime && timeInMinutes < slot.endTime
       }
     })
     
-    return result
-  }
-
-  // Check if slot is booked
-  const isSlotBooked = (date, time) => {
-    const slotDateTime = new Date(date)
-    const [hours] = time.split(':')
-    slotDateTime.setHours(parseInt(hours), 0, 0, 0)
+    if (availableSlot) {
+      return {
+        type: 'available',
+        slot: availableSlot,
+        clickable: true,
+        price: availableSlot.price || 0,
+        description: availableSlot.description
+      }
+    }
     
-    return confirmedBookings.some(booking => {
-      if (!booking.start || !booking.end) return false
-      const bookingStart = new Date(booking.start)
-      const bookingEnd = new Date(booking.end)
-      return slotDateTime >= bookingStart && slotDateTime < bookingEnd
-    })
+    return {
+      type: 'unavailable',
+      clickable: true
+    }
   }
 
   // Get booking for slot
@@ -141,23 +156,61 @@ const CompleteAvailabilityManager = () => {
     })
   }
 
-  // Get slot color
-  const getSlotColor = (date, time) => {
-    const slotKey = `${date.toISOString().split('T')[0]}-${time}`
+  // Get enhanced slot styling and info
+  const getSlotStyle = (day, hour) => {
+    const slotInfo = getSlotInfo(day, hour)
     
-    if (selectedSlots.includes(slotKey)) {
-      return 'bg-blue-500 border-blue-600 shadow-lg text-white cursor-pointer'
+    const baseClasses = 'relative border transition-all duration-200 cursor-pointer min-h-[60px] p-1 text-xs overflow-hidden'
+    
+    switch (slotInfo.type) {
+      case 'booked':
+        return {
+          className: `${baseClasses} bg-gradient-to-br from-red-500 to-red-600 border-red-400 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]`,
+          content: (
+            <div className="h-full flex flex-col justify-between">
+              <div className="font-semibold text-white truncate">
+                {slotInfo.clientName}
+              </div>
+              <div className="text-red-100 text-[10px] truncate">
+                {slotInfo.service}
+              </div>
+              <div className="text-red-200 text-[10px]">
+                {slotInfo.duration}min • {slotInfo.status}
+              </div>
+            </div>
+          )
+        }
+      case 'available':
+        return {
+          className: `${baseClasses} bg-gradient-to-br from-green-400 to-green-500 border-green-300 text-white shadow-md hover:shadow-lg hover:scale-[1.02]`,
+          content: (
+            <div className="h-full flex flex-col justify-between">
+              <div className="font-medium text-white text-[10px]">
+                Available
+              </div>
+              {slotInfo.price > 0 && (
+                <div className="text-green-100 text-[10px]">
+                  Rs. {slotInfo.price}
+                </div>
+              )}
+              {slotInfo.description && (
+                <div className="text-green-200 text-[9px] truncate">
+                  {slotInfo.description}
+                </div>
+              )}
+            </div>
+          )
+        }
+      default:
+        return {
+          className: `${baseClasses} bg-gray-800 dark:bg-gray-900 border-gray-700 text-gray-400 hover:bg-gray-700 hover:border-gray-600`,
+          content: (
+            <div className="h-full flex items-center justify-center text-[10px] opacity-50">
+              +
+            </div>
+          )
+        }
     }
-    
-    if (isSlotBooked(date, time)) {
-      return 'bg-red-100 border-red-300 text-red-800 cursor-pointer hover:bg-red-200'
-    }
-    
-    if (isSlotAvailable(date, time)) {
-      return 'bg-green-100 border-green-300 text-green-800 cursor-pointer hover:bg-green-200 hover:shadow-md transition-all'
-    }
-    
-    return 'bg-black dark:bg-gray-900 border-gray-800 text-white hover:bg-gray-800 cursor-pointer'
   }
 
   // Get availability slot for a time
@@ -346,10 +399,8 @@ const CompleteAvailabilityManager = () => {
 
       const result = await addAvailability({ id: studioId, ...slotData }).unwrap()
       
-      // Force refetch to update the calendar with a small delay
-      setTimeout(async () => {
-        await refetch()
-      }, 100)
+      // Force refetch to update the calendar immediately
+      await refetch()
       
       toast.success('Time slot added successfully! Calendar updated.')
       setShowAddModal(false)
@@ -498,22 +549,42 @@ const CompleteAvailabilityManager = () => {
       {/* Weekly Calendar Grid */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border shadow-xl overflow-hidden">
         {/* Header Row */}
-        <div className="grid grid-cols-8 border-b">
-          <div className="p-4 bg-gray-50 dark:bg-gray-700 font-semibold">Time</div>
-          {weekDates.map((date, index) => (
-            <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 text-center">
-              <div className="font-semibold">
-                {date.toLocaleDateString('en-US', { weekday: 'short' })}
+        <div className="grid grid-cols-8 border-b bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-800">
+          <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 font-bold text-gray-800 dark:text-white border-r">
+            Time
+          </div>
+          {weekDates.map((date, index) => {
+            const isToday = date.toDateString() === new Date().toDateString()
+            return (
+              <div key={index} className={`p-4 text-center border-r last:border-r-0 ${
+                isToday 
+                  ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900' 
+                  : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800'
+              }`}>
+                <div className={`font-bold ${
+                  isToday 
+                    ? 'text-blue-800 dark:text-blue-200' 
+                    : 'text-gray-800 dark:text-white'
+                }`}>
+                  {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                </div>
+                <div className={`text-sm mt-1 ${
+                  isToday 
+                    ? 'text-blue-600 dark:text-blue-300 font-semibold' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {date.getDate()}
+                  {isToday && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1"></div>
+                  )}
+                </div>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {date.getDate()}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Time Slots Grid */}
-        <div className="max-h-[600px] overflow-y-auto">
+        <div className="max-h-[600px] overflow-y-auto scrollbar-styled">
           {timeSlots.map((time) => (
             <div key={time} className="grid grid-cols-8 border-b last:border-b-0">
               <div className="p-3 bg-gray-50 dark:bg-gray-700 border-r font-medium">
@@ -522,40 +593,15 @@ const CompleteAvailabilityManager = () => {
               {weekDates.map((date, index) => {
                 const booking = getSlotBooking(date, time)
                 
+                const slotStyle = getSlotStyle(index, parseInt(time.split(':')[0]))
                 return (
                   <div
                     key={index}
-                    className={`p-2 border-r last:border-r-0 transition-all min-h-[60px] ${getSlotColor(date, time)}`}
+                    className={`${slotStyle.className} border-r last:border-r-0`}
                     onClick={() => handleSlotClick(date, time)}
                     onMouseEnter={() => handleSlotHover(date, time)}
                   >
-                    {booking && (
-                      <div className="bg-red-500 text-white rounded p-1 space-y-1 shadow-sm">
-                        <div className="text-xs font-semibold truncate flex items-center">
-                          <div className="w-2 h-2 bg-white rounded-full mr-1 flex-shrink-0"></div>
-                          {booking.client?.name || booking.user?.name || 'Client'}
-                        </div>
-                        <div className="text-xs opacity-90 truncate">
-                          {booking.service?.name || 'Session'}
-                        </div>
-                        <div className="text-xs opacity-75 truncate">
-                          {new Date(booking.start).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            hour12: false 
-                          })} - {new Date(booking.end).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            hour12: false 
-                          })}
-                        </div>
-                        {booking.notes && (
-                          <div className="text-xs opacity-75 truncate italic">
-                            "{booking.notes.substring(0, 20)}{booking.notes.length > 20 ? '...' : ''}"
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {slotStyle.content}
                   </div>
                 )
               })}

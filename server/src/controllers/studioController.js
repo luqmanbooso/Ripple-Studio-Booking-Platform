@@ -160,9 +160,7 @@ const addAvailability = catchAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
 
-  console.log('=== AVAILABILITY REQUEST ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  console.log('User ID:', userId);
+  // Request received successfully
 
   const studio = await Studio.findById(id).populate('user');
 

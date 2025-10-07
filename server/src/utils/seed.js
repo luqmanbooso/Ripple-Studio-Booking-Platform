@@ -91,8 +91,8 @@ const seedData = async () => {
         isApproved: i <= 3, // First 3 approved, last 2 pending
         statusReason: i <= 3 ? 'Approved by admin' : 'Pending review',
         availability: [{
-          start: new Date('2024-01-01T09:00:00Z'),
-          end: new Date('2024-12-31T22:00:00Z'),
+          start: new Date('2025-01-01T09:00:00Z'),
+          end: new Date('2025-12-31T22:00:00Z'),
           isRecurring: true,
           daysOfWeek: [0, 1, 2, 3, 4, 5, 6] // All days
         }]

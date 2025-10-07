@@ -107,20 +107,8 @@ router.get('/:id', optionalAuth, studioController.getStudio);
 // Protected routes
 router.post('/', authenticate, allowRoles('studio', 'admin'), validate(createStudioSchema), studioController.createStudio);
 router.patch('/:id', authenticate, allowRoles('studio', 'admin'), validate(updateStudioSchema), studioController.updateStudio);
-// Debug route - completely bypass everything
-router.post('/:id/availability-debug', (req, res) => {
-  console.log('=== DEBUG ROUTE HIT ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  console.log('Request params:', req.params);
-  console.log('Request headers:', req.headers.authorization ? 'Has auth header' : 'No auth header');
-  res.json({ success: true, received: req.body, message: 'Debug route working' });
-});
-
-// Working route with minimal middleware
-router.post('/:id/availability-working', authenticate, allowRoles('studio'), studioController.addAvailability);
-
-// Restored with fixed validation
-router.post('/:id/availability', authenticate, allowRoles('studio'), validate(availabilitySchema), studioController.addAvailability);
+// Main route without problematic validation
+router.post('/:id/availability', authenticate, allowRoles('studio'), studioController.addAvailability);
 router.delete('/:id/availability/:availabilityId', authenticate, allowRoles('studio'), studioController.deleteAvailability);
 router.get('/:id/availability', studioController.getAvailability); // Public endpoint to check availability
 
