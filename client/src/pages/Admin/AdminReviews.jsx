@@ -241,7 +241,7 @@ const AdminReviews = () => {
         </div>
 
         {/* Status Message */}
-        {error?.status === 403 ? (
+        {error?.status === 403 && (
           <Card className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 border-red-500/20 text-center">
             <div className="flex flex-col items-center space-y-4">
               <XCircle className="w-12 h-12 text-red-400" />
@@ -276,23 +276,6 @@ const AdminReviews = () => {
                     🔑 Re-login as Admin
                   </Button>
                 </div>
-              </div>
-            </div>
-          </Card>
-        ) : (
-          <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/20 text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <Shield className="w-12 h-12 text-blue-400" />
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">Review Moderation System</h3>
-                <p className="text-gray-300 mb-4">
-                  {isLoading ? 'Loading review data...' : 
-                   reviews.length > 0 ? `Found ${reviews.length} reviews in the system.` :
-                   'No reviews found. The system is ready to moderate reviews when they are submitted.'}
-                </p>
-                <p className="text-sm text-gray-400">
-                  💡 Use the tools below to moderate reviews, approve/reject content, and maintain platform quality.
-                </p>
               </div>
             </div>
           </Card>
