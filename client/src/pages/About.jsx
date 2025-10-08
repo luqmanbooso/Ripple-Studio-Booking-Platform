@@ -16,91 +16,91 @@ import Card from '../components/ui/Card'
 
 const About = () => {
   const stats = [
-    { number: '50K+', label: 'Active Users', icon: Users },
-    { number: '25K+', label: 'Successful Bookings', icon: Music },
-    { number: '150+', label: 'Countries', icon: Globe },
-    { number: '4.9', label: 'Platform Rating', icon: Star }
+    { number: '10K+', label: 'Active Musicians', icon: Users },
+    { number: '5K+', label: 'Studio Sessions', icon: Music },
+    { number: '500+', label: 'Partner Studios', icon: Globe },
+    { number: '4.8', label: 'Average Rating', icon: Star }
   ]
 
   const values = [
     {
       icon: Heart,
-      title: 'Passion for Music',
-      description: 'We believe music has the power to connect people and transform lives. Every feature we build is driven by our love for music and the creative process.'
+      title: 'Quality Studios',
+      description: 'We partner only with verified, professional recording studios that meet our strict quality standards for equipment, acoustics, and service.'
     },
     {
       icon: Users,
-      title: 'Community First',
-      description: 'Our platform is built by musicians, for musicians. We prioritize the needs of our community and foster meaningful connections between artists.'
+      title: 'Artist-Centric',
+      description: 'Every decision we make prioritizes the artist experience. From discovery to booking to recording, we ensure seamless creative workflows.'
     },
     {
       icon: Shield,
-      title: 'Trust & Safety',
-      description: 'We maintain the highest standards of security and verification to ensure safe, reliable interactions for all our users.'
+      title: 'Secure Bookings',
+      description: 'Our platform provides secure payment processing, verified studio profiles, and comprehensive booking protection for peace of mind.'
     },
     {
       icon: Zap,
-      title: 'Innovation',
-      description: 'We continuously push the boundaries of technology to create seamless, intuitive experiences that empower creativity.'
+      title: 'Instant Access',
+      description: 'Book premium recording studios in minutes, not days. Our real-time availability system connects you with the perfect space instantly.'
     }
   ]
 
   const team = [
     {
-      name: 'Alex Rodriguez',
-      role: 'CEO & Co-Founder',
-      bio: 'Former music producer with 15+ years in the industry. Passionate about connecting artists worldwide.',
+      name: 'David Chen',
+      role: 'CEO & Founder',
+      bio: 'Grammy-nominated producer turned entrepreneur. Built Ripple to solve the studio booking challenges he faced as an artist.',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
-      speciality: 'Product Strategy'
+      speciality: 'Music Industry'
     },
     {
-      name: 'Sarah Chen',
+      name: 'Maya Patel',
       role: 'CTO & Co-Founder',
-      bio: 'Full-stack engineer and classically trained pianist. Believes technology should amplify creativity.',
+      bio: 'Former Spotify engineer and session musician. Combines deep technical expertise with real-world music production experience.',
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
-      speciality: 'Technology'
+      speciality: 'Platform Engineering'
     },
     {
-      name: 'Marcus Thompson',
-      role: 'Head of Community',
-      bio: 'Professional recording engineer and community builder. Ensures every user has an amazing experience.',
+      name: 'James Morrison',
+      role: 'Head of Studio Relations',
+      bio: 'Former studio owner with 20+ years in professional audio. Ensures our partner studios meet the highest standards.',
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face',
-      speciality: 'Community Relations'
+      speciality: 'Studio Partnerships'
     },
     {
-      name: 'Emily Watson',
-      role: 'VP of Business Development',
-      bio: 'Music industry veteran with deep connections across labels, studios, and independent artists.',
+      name: 'Lisa Rodriguez',
+      role: 'VP of Artist Success',
+      bio: 'Multi-platinum artist manager who understands what musicians need to create their best work.',
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face',
-      speciality: 'Partnerships'
+      speciality: 'Artist Relations'
     }
   ]
 
   const timeline = [
     {
-      year: '2020',
-      title: 'The Idea',
-      description: 'Founded by two musicians frustrated with the complexity of booking studio time and finding collaborators.'
-    },
-    {
-      year: '2021',
-      title: 'First Launch',
-      description: 'Launched beta version with 100 artists and 20 studios. Processed first 1,000 bookings.'
-    },
-    {
       year: '2022',
-      title: 'Global Expansion',
-      description: 'Expanded to 50 countries, added real-time features, and reached 10,000 active users.'
+      title: 'The Vision',
+      description: 'Founded by David Chen after struggling to book quality studio time for his own productions. Started with a simple mission: make studio booking as easy as ordering food.'
     },
     {
       year: '2023',
-      title: 'Major Milestone',
-      description: 'Processed over 100,000 bookings, launched mobile app, and secured Series A funding.'
+      title: 'Beta Launch',
+      description: 'Launched with 50 premium studios across major music cities. Processed first 500 successful bookings with 98% satisfaction rate.'
+    },
+    {
+      year: '2024',
+      title: 'Rapid Growth',
+      description: 'Expanded to 500+ studios worldwide. Introduced real-time booking, secure payments, and comprehensive studio profiles.'
     },
     {
       year: '2025',
-      title: 'Present Day',
-      description: 'Leading platform for music collaboration with AI-powered matching and global reach.'
+      title: 'Industry Leader',
+      description: 'Now the trusted platform for 10,000+ musicians and 500+ professional studios. Processing 1,000+ bookings monthly.'
+    },
+    {
+      year: 'Future',
+      title: 'What\'s Next',
+      description: 'Expanding into equipment rental, producer matching, and AI-powered studio recommendations to create the complete music production ecosystem.'
     }
   ]
 
@@ -116,11 +116,11 @@ const About = () => {
             className="text-center max-w-4xl mx-auto"
           >
             <h1 className="text-5xl md:text-7xl font-bold text-gradient mb-8">
-              About MusicBooking
+              About Ripple
             </h1>
             <p className="text-xl md:text-2xl text-light-textSecondary dark:text-gray-300 leading-relaxed">
-              We're on a mission to democratize music creation by connecting artists, 
-              producers, and studios worldwide through technology that amplifies creativity.
+              Connecting musicians with professional recording studios worldwide. 
+              We're revolutionizing how artists discover, book, and collaborate in premium studio spaces.
             </p>
           </motion.div>
         </div>
@@ -175,13 +175,13 @@ const About = () => {
                 Our Mission
               </h2>
               <p className="text-lg text-light-textSecondary dark:text-gray-300 leading-relaxed mb-6">
-                Music creation should be limitless. Whether you're a bedroom producer in Tokyo, 
-                a vocalist in Nashville, or a studio owner in Berlin, great music happens when 
-                talented people connect.
+                Every great song starts with the right environment. Whether you're a solo artist 
+                looking for the perfect vocal booth, a band needing a full live room, or a producer 
+                seeking world-class mixing facilities, the studio you choose shapes your sound.
               </p>
               <p className="text-lg text-light-textSecondary dark:text-gray-300 leading-relaxed">
-                We're breaking down the barriers that prevent artists from collaborating, 
-                making it as easy to book a world-class studio as it is to order a ride.
+                Ripple eliminates the guesswork and hassle of studio booking. We connect you with 
+                verified, professional recording spaces that match your exact needs, budget, and timeline.
               </p>
             </motion.div>
             
@@ -194,8 +194,8 @@ const About = () => {
               <div className="aspect-square bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-600 dark:to-accent-600 rounded-3xl p-8 flex items-center justify-center">
                 <div className="text-center text-white">
                   <Target className="w-20 h-20 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold mb-2">50M+</h3>
-                  <p className="text-lg opacity-90">Minutes of music created</p>
+                  <h3 className="text-2xl font-bold mb-2">100K+</h3>
+                  <p className="text-lg opacity-90">Hours of studio time booked</p>
                 </div>
               </div>
             </motion.div>
@@ -373,18 +373,18 @@ const About = () => {
           >
                          <Card className="p-12 bg-gradient-to-r from-light-primary/20 to-light-accent/20 dark:from-primary-900/20 dark:to-accent-900/20">
                <h2 className="text-4xl font-bold text-gradient mb-6">
-                 Join Our Mission
+                 Ready to Find Your Perfect Studio?
                </h2>
                <p className="text-xl text-light-textSecondary dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-                 Whether you're an artist, studio owner, or music enthusiast, 
-                 you're part of our story. Let's create the future of music together.
+                 Join thousands of musicians who trust Ripple to find and book 
+                 professional recording studios. Your next hit song is just a booking away.
                </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button className="btn-primary text-lg px-8 py-4">
-                  Start Creating
+                  Browse Studios
                 </button>
                 <button className="btn-outline text-lg px-8 py-4">
-                  Learn More
+                  List Your Studio
                 </button>
               </div>
             </Card>
