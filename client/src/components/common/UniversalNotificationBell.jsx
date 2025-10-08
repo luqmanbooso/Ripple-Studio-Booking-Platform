@@ -91,13 +91,14 @@ const UniversalNotificationBell = ({ className = '' }) => {
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative inline-block ${className}`} style={{ overflow: 'visible', margin: '4px' }}>
       {/* Notification Bell Button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        style={{ overflow: 'visible' }}
       >
         <Bell className={`w-5 h-5 ${isConnected ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'}`} />
         
@@ -106,14 +107,14 @@ const UniversalNotificationBell = ({ className = '' }) => {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+            className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium border-2 border-white dark:border-gray-800 z-10"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </motion.span>
         )}
         
         {/* Connection Status Indicator */}
-        <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full ${
+        <div className={`absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 z-10 ${
           isConnected ? 'bg-green-500' : 'bg-red-500'
         }`} />
       </Button>
