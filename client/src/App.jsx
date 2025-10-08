@@ -73,6 +73,7 @@ import UnifiedBookingsPage from "./pages/Dashboard/UnifiedBookingsPage";
 import NotificationsPage from "./pages/Dashboard/NotificationsPage";
 
 // Settings pages
+import Settings from "./pages/Settings/Settings";
 import Profile from "./pages/Settings/Profile";
 import Security from "./pages/Settings/Security";
 import StudioSettings from "./pages/Dashboard/StudioSettings";
@@ -276,6 +277,14 @@ function App() {
 
             {/* Settings routes */}
             <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/settings/profile"
               element={
                 <ProtectedRoute>
@@ -365,6 +374,14 @@ function App() {
             />
             <Route
               path="/dashboard/spending"
+              element={
+                <ProtectedRoute allowedRoles={["client"]}>
+                  <ClientSpending />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/spending-history"
               element={
                 <ProtectedRoute allowedRoles={["client"]}>
                   <ClientSpending />

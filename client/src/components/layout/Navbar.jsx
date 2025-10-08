@@ -21,7 +21,8 @@ import {
   Home,
   TrendingUp,
   Globe,
-  Phone
+  Phone,
+  CreditCard
 } from 'lucide-react'
 import { logout } from '../../store/authSlice'
 import { disconnectSocket } from '../../lib/socket'
@@ -317,6 +318,17 @@ const Navbar = () => {
                             <Calendar className="w-4 h-4 group-hover:animate-spin-slow" />
                             <span>My Bookings</span>
                           </Link>
+                          
+                          {user?.role !== 'studio' && (
+                            <Link
+                              to="/spending-history"
+                              className="flex items-center space-x-3 px-4 py-3 text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                              onClick={() => setIsProfileOpen(false)}
+                            >
+                              <CreditCard className="w-4 h-4 group-hover:animate-spin-slow" />
+                              <span>Spending History</span>
+                            </Link>
+                          )}
                           
                           <Link
                             to="/settings"

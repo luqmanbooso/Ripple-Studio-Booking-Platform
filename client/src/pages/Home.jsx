@@ -31,9 +31,9 @@ const Home = () => {
 
   // Professional data with neon theme colors
   const stats = [
-    { icon: Users, label: 'Active Users', value: '10,000+', color: 'text-primary-400', bg: 'bg-primary-500/10', glow: 'shadow-primary-500/20' },
-    { icon: Music, label: 'Studios Listed', value: '500+', color: 'text-accent-400', bg: 'bg-accent-500/10', glow: 'shadow-accent-500/20' },
-    { icon: Award, label: 'Sessions Booked', value: '50,000+', color: 'text-purple-400', bg: 'bg-purple-500/10', glow: 'shadow-purple-500/20' },
+    { icon: Users, label: 'Active Users', value: '1,000+', color: 'text-primary-400', bg: 'bg-primary-500/10', glow: 'shadow-primary-500/20' },
+    { icon: Music, label: 'Studios Listed', value: '10+', color: 'text-accent-400', bg: 'bg-accent-500/10', glow: 'shadow-accent-500/20' },
+    { icon: Award, label: 'Sessions Booked', value: '500+', color: 'text-purple-400', bg: 'bg-purple-500/10', glow: 'shadow-purple-500/20' },
     { icon: Star, label: 'Average Rating', value: '4.9/5', color: 'text-yellow-400', bg: 'bg-yellow-500/10', glow: 'shadow-yellow-500/20' }
   ]
 
@@ -262,7 +262,7 @@ const Home = () => {
                     <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="User" />
                     <img className="w-8 h-8 rounded-full border-2 border-primary-400" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face" alt="User" />
                   </div>
-                  <span className="text-sm text-gray-400">10,000+ Users Trust Ripple</span>
+                  <span className="text-sm text-gray-400">1,000+ Users Trust Ripple</span>
                 </div>
               </motion.div>
             </motion.div>

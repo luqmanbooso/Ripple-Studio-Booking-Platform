@@ -25,7 +25,7 @@ const UniversalNotificationBell = ({ className = '' }) => {
   if (!user) return null
 
   // Filter notifications based on current filter
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = (notifications || []).filter(notification => {
     if (filter === 'unread') return !notification.isRead
     if (filter === 'high') return notification.priority === 'high'
     return true

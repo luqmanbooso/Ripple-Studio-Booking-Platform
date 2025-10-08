@@ -14,7 +14,7 @@ const updateProfile = catchAsync(async (req, res) => {
     userId,
     { name, phone, country: 'Sri Lanka', city }, // Always set country to Sri Lanka
     { new: true, runValidators: true }
-  ).populate('artist').populate('studio');
+  ).populate('studio');
 
   if (!user) {
     throw new ApiError('User not found', 404);
@@ -82,7 +82,6 @@ const getUser = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   const user = await User.findById(id)
-    .populate('artist')
     .populate('studio')
     .select('-password -refreshToken');
 
