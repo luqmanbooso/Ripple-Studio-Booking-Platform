@@ -17,7 +17,7 @@ import Search from "./pages/Search";
 import StudioProfile from "./pages/StudioProfile";
 import NewBooking from "./pages/NewBooking";
 import Checkout from "./pages/Checkout";
-import ThankYou from "./pages/ThankYou";
+import BookingSuccess from "./pages/BookingSuccess";
 import Community from "./pages/Community";
 import Pricing from "./pages/Pricing";
 import Blog from "./pages/Blog";
@@ -257,7 +257,7 @@ function App() {
               path="/booking/success"
               element={
                 <ProtectedRoute>
-                  <ThankYou />
+                  <BookingSuccess />
                 </ProtectedRoute>
               }
             />

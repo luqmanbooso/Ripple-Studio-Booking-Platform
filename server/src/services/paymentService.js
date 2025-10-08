@@ -51,15 +51,14 @@ const createCheckoutSession = async (booking) => {
   }
 
   try {
-    // Generate unique order ID
     const orderId = `booking_${booking._id}_${Date.now()}`;
 
     // Prepare payment data according to PayHere API
     const paymentData = {
       merchant_id: process.env.PAYHERE_MERCHANT_ID,
-      return_url: `${process.env.CORS_ORIGIN}/thank-you`,
+      return_url: `${process.env.CORS_ORIGIN}/booking/success`,
       cancel_url: `${process.env.CORS_ORIGIN}/checkout`,
-      notify_url: `${process.env.SERVER_URL}/api/webhook/payhere`,
+      notify_url: `${process.env.SERVER_URL}/api/webhooks/payhere`,
       order_id: orderId,
       items: booking.service?.name || "Studio Booking",
       currency: (booking.currency || "LKR").toUpperCase(),
@@ -71,12 +70,13 @@ const createCheckoutSession = async (booking) => {
       address: booking.client.address || "",
       city: booking.client.city || "",
       country: "LK",
+      custom_1: booking._id.toString(), // Pass booking ID for webhook
+      custom_2: booking.studio._id.toString(), // Pass studio ID for reference
       merchant_secret: process.env.PAYHERE_MERCHANT_SECRET,
     };
 
     // Generate hash for security
     const hash = generatePayHereHash(paymentData);
-
     logger.info("PayHere payment data:", {
       merchant_id: paymentData.merchant_id,
       order_id: paymentData.order_id,

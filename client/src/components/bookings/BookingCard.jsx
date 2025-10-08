@@ -16,11 +16,12 @@ import {
 import toast from 'react-hot-toast'
 
 import Button from '../ui/Button'
-import { useUpdateBookingMutation } from '../../store/bookingApi'
+import { useUpdateBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
 import ReviewModal from '../reviews/ReviewModal'
 
 const BookingCard = ({ booking, userRole, onUpdate }) => {
   const [updateBooking, { isLoading }] = useUpdateBookingMutation()
+  const [confirmBooking, { isLoading: confirmLoading }] = useConfirmBookingMutation()
   const [showReviewModal, setShowReviewModal] = useState(false)
 
   const formatDate = (date) => {
@@ -54,6 +55,16 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
     }
   }
 
+  const handleConfirmBooking = async () => {
+    try {
+      await confirmBooking(booking._id).unwrap()
+      toast.success('Booking confirmed successfully!')
+      onUpdate?.()
+    } catch (error) {
+      toast.error(error.data?.message || 'Failed to confirm booking')
+    }
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed':
@@ -71,7 +82,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
     }
   }
 
-  const canConfirm = userRole === 'studio' && booking.status === 'payment_pending'
+  const canConfirm = userRole === 'studio' && ['payment_pending', 'reservation_pending'].includes(booking.status)
   const canCancel = ['payment_pending', 'confirmed', 'reservation_pending'].includes(booking.status)
   const canReview = booking.status === 'completed' && !booking.hasReview
   const isUpcoming = new Date(booking.start) > new Date()
@@ -230,8 +241,8 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
           <div className="flex flex-wrap gap-2">
             {canConfirm && (
               <Button
-                onClick={() => handleStatusUpdate('confirmed')}
-                loading={isLoading}
+                onClick={handleConfirmBooking}
+                loading={confirmLoading}
                 icon={<Check className="w-4 h-4" />}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >

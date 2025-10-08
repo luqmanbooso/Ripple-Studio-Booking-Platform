@@ -389,11 +389,90 @@ const getBookedSlots = catchAsync(async (req, res) => {
   res.json({ status: "success", data: { bookedSlots } });
 });
 
+// Manual booking confirmation (for studios)
+const confirmBooking = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+
+  const booking = await Booking.findById(id).populate([
+    { path: "client", select: "name email" },
+    { path: "studio", populate: { path: "user", select: "_id name email" } },
+  ]);
+
+  if (!booking) {
+    throw new ApiError("Booking not found", 404);
+  }
+
+  // Check if user is the studio owner OR the client who made the booking
+  const isStudioOwner = booking.studio.user._id.toString() === userId.toString();
+  const isBookingClient = booking.client._id.toString() === userId.toString();
+  
+  if (!isStudioOwner && !isBookingClient) {
+    throw new ApiError("Not authorized to confirm this booking", 403);
+  }
+
+  // Check if booking can be confirmed
+  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+    throw new ApiError("Booking cannot be confirmed in its current state", 400);
+  }
+
+  // Use booking service to confirm
+  const bookingService = require('../services/bookingService');
+  const confirmedBooking = await bookingService.confirmBooking(booking, booking.payherePaymentId || 'manual_confirmation');
+
+  res.json({
+    status: "success",
+    message: "Booking confirmed successfully",
+    data: {
+      booking: confirmedBooking,
+    },
+  });
+});
+
+// Client payment confirmation (for clients after successful payment)
+const confirmPayment = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+
+  const booking = await Booking.findById(id).populate([
+    { path: "client", select: "name email" },
+    { path: "studio", populate: { path: "user", select: "_id name email" } },
+  ]);
+
+  if (!booking) {
+    throw new ApiError("Booking not found", 404);
+  }
+
+  // Check if user is the client who made the booking
+  if (booking.client._id.toString() !== userId.toString()) {
+    throw new ApiError("Not authorized to confirm this booking", 403);
+  }
+
+  // Check if booking can be confirmed
+  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+    throw new ApiError("Booking cannot be confirmed in its current state", 400);
+  }
+
+  // Use booking service to confirm
+  const bookingService = require('../services/bookingService');
+  const confirmedBooking = await bookingService.confirmBooking(booking, 'client_confirmation');
+
+  res.json({
+    status: "success",
+    message: "Payment confirmed successfully",
+    data: {
+      booking: confirmedBooking,
+    },
+  });
+});
+
 module.exports = {
   createBooking,
   getMyBookings,
   getBooking,
   cancelBooking,
   completeBooking,
+  confirmBooking,
+  confirmPayment,
   getBookedSlots,
 };

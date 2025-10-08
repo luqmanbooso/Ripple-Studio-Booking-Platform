@@ -7,15 +7,79 @@ const { emitToUser, emitToProvider } = require('../utils/sockets');
 
 const router = express.Router();
 
+// Test endpoint to verify webhook route is working
+router.get('/test', (req, res) => {
+  logger.info('PayHere webhook test endpoint accessed');
+  res.json({ 
+    status: 'success', 
+    message: 'PayHere webhook route is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Manual webhook trigger for testing (development only)
+router.post('/test-webhook', async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({ error: 'Only available in development' });
+  }
+
+  try {
+    const { bookingId } = req.body;
+    
+    if (!bookingId) {
+      return res.status(400).json({ error: 'bookingId is required' });
+    }
+
+    const booking = await Booking.findById(bookingId).populate([
+      { path: 'client', select: 'name email' },
+      { path: 'studio', populate: { path: 'user', select: 'name email' } }
+    ]);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Simulate successful payment webhook
+    const confirmedBooking = await bookingService.confirmBooking(booking, 'test_payment_' + Date.now());
+
+    logger.info(`Test webhook triggered for booking: ${bookingId}`);
+    
+    res.json({
+      status: 'success',
+      message: 'Test webhook processed successfully',
+      booking: {
+        id: confirmedBooking._id,
+        status: confirmedBooking.status
+      }
+    });
+  } catch (error) {
+    logger.error('Test webhook error:', error);
+    res.status(500).json({ error: 'Test webhook failed' });
+  }
+});
+
 // PayHere webhook endpoint
 router.post('/payhere', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const payload = req.body;
     const receivedHash = payload.md5sig;
 
+    // Log webhook payload for debugging
+    logger.info('PayHere webhook received:', {
+      order_id: payload.order_id,
+      payment_id: payload.payment_id,
+      status_code: payload.status_code,
+      custom_1: payload.custom_1,
+      payhere_amount: payload.payhere_amount,
+      payhere_currency: payload.payhere_currency
+    });
+
     // Verify webhook signature
     if (!paymentService.verifyWebhookSignature(payload, receivedHash)) {
-      logger.error('PayHere webhook signature verification failed');
+      logger.error('PayHere webhook signature verification failed', {
+        received_hash: receivedHash,
+        payload: payload
+      });
       return res.status(400).send('Invalid signature');
     }
 

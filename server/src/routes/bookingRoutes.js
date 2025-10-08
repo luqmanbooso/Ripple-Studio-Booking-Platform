@@ -87,5 +87,7 @@ router.get('/my', validate(getBookingsSchema), authenticate, bookingController.g
 router.get('/:id', authenticate, bookingController.getBooking);
 router.patch('/:id/cancel', validate(cancelBookingSchema), authenticate, bookingController.cancelBooking);
 router.patch('/:id/complete', validate(completeBookingSchema), authenticate, bookingController.completeBooking);
+router.patch('/:id/confirm', authenticate, bookingController.confirmBooking);
+router.patch('/:id/confirm-payment', authenticate, bookingController.confirmPayment);
 
 module.exports = router;
