@@ -124,22 +124,7 @@ const ClientSpending = () => {
           </div>
         </div>
 
-        {/* Demo Message */}
-        <Card className="p-6 bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/20 text-center">
-          <div className="flex flex-col items-center space-y-4">
-            <CreditCard className="w-12 h-12 text-green-400" />
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">Client Spending History Demo</h3>
-              <p className="text-gray-300 mb-4">
-                This is the Client Spending History Dashboard. To see live data, you need confirmed bookings with payments. 
-                Currently showing the interface with demo functionality.
-              </p>
-              <p className="text-sm text-gray-400">
-                Note: Spending queries are temporarily disabled to prevent API errors. Enable them when you have booking history.
-              </p>
-            </div>
-          </div>
-        </Card>
+
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
