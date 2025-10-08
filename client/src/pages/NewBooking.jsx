@@ -12,6 +12,7 @@ import EquipmentSelector from "../components/booking/EquipmentSelector";
 import StudioShowcase from "../components/booking/StudioShowcase";
 import { useGetStudioQuery } from "../store/studioApi";
 import { useCreateBookingMutation } from "../store/bookingApi";
+import { formatCurrency } from "../utils/currency";
 import api from "../lib/axios";
 
 const NewBooking = () => {
@@ -736,13 +737,13 @@ const NewBooking = () => {
                           selectedServices.map((service, index) => (
                             <div key={index} className="flex justify-between text-xs">
                               <span className="text-gray-300">{service.name}</span>
-                              <span className="text-green-400">${service.price}</span>
+                              <span className="text-green-400">{formatCurrency(service.price)}</span>
                             </div>
                           ))
                         ) : selectedService ? (
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-300">{selectedService.name}</span>
-                            <span className="text-green-400">${selectedService.price}</span>
+                            <span className="text-green-400">{formatCurrency(selectedService.price)}</span>
                           </div>
                         ) : null}
                       </div>
@@ -762,7 +763,7 @@ const NewBooking = () => {
                         {selectedEquipment.map((item, index) => (
                           <div key={index} className="flex justify-between text-xs">
                             <span className="text-gray-300">{item.name}</span>
-                            <span className="text-orange-400">${item.rentalPrice}</span>
+                            <span className="text-orange-400">{formatCurrency(item.rentalPrice)}</span>
                           </div>
                         ))}
                       </div>
@@ -809,7 +810,7 @@ const NewBooking = () => {
                       </div>
                       <div className="text-xs text-gray-400 space-y-1">
                         {selectedTimes.length > 0 && (
-                          <div>Services: ${calculatePrice() * selectedTimes.length}</div>
+                          <div>Services: {formatCurrency(calculatePrice() * selectedTimes.length)}</div>
                         )}
                         {selectedEquipment.length > 0 && (
                           <div>Equipment: ${calculateEquipmentCost()}</div>

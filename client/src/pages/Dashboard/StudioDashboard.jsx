@@ -48,6 +48,7 @@ import { useGetMyBookingsQuery } from '../../store/bookingApi'
 import { useGetStudioRevenueQuery } from '../../store/revenueApi'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { formatCurrency } from '../../utils/currency'
 
 const StudioDashboard = () => {
   const { user } = useSelector(state => state.auth)
@@ -194,7 +195,7 @@ const StudioDashboard = () => {
   const stats = [
     {
       label: 'Total Revenue',
-      value: `$${analytics.totalRevenue.toFixed(2)}`,
+      value: formatCurrency(analytics.totalRevenue),
       change: `${analytics.monthlyGrowth >= 0 ? '+' : ''}${analytics.monthlyGrowth.toFixed(1)}%`,
       changeType: analytics.monthlyGrowth >= 0 ? 'positive' : 'negative',
       icon: BadgeDollarSign,
@@ -224,7 +225,7 @@ const StudioDashboard = () => {
     },
     {
       label: 'Avg Booking Value',
-      value: `$${(analytics.avgBookingValue || 0).toFixed(2)}`,
+      value: formatCurrency(analytics.avgBookingValue || 0),
       change: `${(analytics.performanceMetrics?.conversionRate || 0).toFixed(1)}% conversion`,
       changeType: 'positive',
       icon: Target,

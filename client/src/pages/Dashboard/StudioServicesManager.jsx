@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
+import { formatCurrency } from '../../utils/currency'
 import { 
   useGetStudioServicesQuery, 
   useAddServiceMutation, 
@@ -152,7 +153,7 @@ const StudioServicesManager = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Avg Price</p>
-              <p className="text-2xl font-bold">${getAveragePrice().toFixed(0)}</p>
+              <p className="text-2xl font-bold">{formatCurrency(getAveragePrice() || 0)}</p>
             </div>
             <DollarSign className="w-8 h-8 text-green-200" />
           </div>
@@ -237,7 +238,7 @@ const StudioServicesManager = () => {
                         <DollarSign className="w-4 h-4 text-green-500" />
                         <div>
                           <p className="text-sm text-gray-500">Price</p>
-                          <p className="font-semibold text-gray-900 dark:text-white">${service.price}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(service.price)}</p>
                         </div>
                       </div>
                       

@@ -12,6 +12,7 @@ import {
 
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { formatCurrency } from "../utils/currency";
 
 const ThankYou = () => {
   const [searchParams] = useSearchParams();
@@ -196,7 +197,7 @@ const ThankYou = () => {
                   {new Date(bookingDetails.scheduledDate).toLocaleDateString()}
                 </p>
                 <p>Duration: {bookingDetails.duration} hours</p>
-                <p>Total: ${bookingDetails.totalAmount}</p>
+                <p>Total: {formatCurrency(bookingDetails.totalAmount)}</p>
               </div>
             </motion.div>
           )}

@@ -40,6 +40,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
 import ImageSlider from "../components/ui/ImageSlider";
+import { formatCurrency, formatPriceRange } from "../utils/currency";
 import { useGetStudioQuery } from "../store/studioApi";
 import { useGetReviewsQuery } from "../store/reviewApi";
 
@@ -361,7 +362,7 @@ const StudioProfile = () => {
                           <div className="flex items-center space-x-2 bg-green-500/20 backdrop-blur-sm rounded-full px-4 py-2">
                             <DollarSign className="w-4 h-4 text-green-400" />
                             <span className="text-sm font-medium text-green-300">
-                              from ${Math.min(...services.map((s) => s.price))}
+                              from {formatPriceRange(Math.min(...services.map((s) => s.price)), Math.max(...services.map((s) => s.price)))}
                             </span>
                           </div>
                         )}
@@ -639,7 +640,7 @@ const StudioProfile = () => {
                             </h4>
                             <div className="text-right">
                               <div className="text-xl font-bold text-accent-400">
-                                ${service.price}
+                                {formatCurrency(service.price)}
                               </div>
                               <div className="text-sm text-gray-400">
                                 {service.durationMins} mins

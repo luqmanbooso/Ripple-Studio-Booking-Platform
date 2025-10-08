@@ -16,6 +16,7 @@ import {
   useMarkAllAsReadMutation,
   useDeleteNotificationMutation
 } from '../store/notificationApi'
+import { formatCurrency } from '../utils/currency'
 
 const NotificationContext = createContext({})
 
@@ -175,7 +176,7 @@ export const NotificationProvider = ({ children }) => {
           const notification = {
             type: 'payment_received',
             title: 'Payment Received',
-            message: `Payment of $${data.amount} received from ${data.client?.name}`,
+            message: `Payment of ${formatCurrency(data.amount)} received from ${data.client?.name}`,
             data: data,
             priority: 'medium'
           }
