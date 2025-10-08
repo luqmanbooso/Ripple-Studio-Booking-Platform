@@ -10,6 +10,7 @@ import {
   removeNotification as removeNotificationLocal
 } from '../store/notificationSlice'
 import {
+  useGetNotificationsQuery,
   useGetNotificationStatsQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
@@ -31,7 +32,14 @@ export const NotificationProvider = ({ children }) => {
   const { user, token } = useSelector(state => state.auth)
   const { notifications, unreadCount, isConnected } = useSelector(state => state.notifications)
   
-  // API hooks
+  // API hooks - fetch existing notifications from database
+  const { data: notificationsData, refetch: refetchNotifications } = useGetNotificationsQuery(
+    { page: 1, limit: 50 }, 
+    { 
+      skip: !user,
+      refetchOnMountOrArgChange: true 
+    }
+  )
   const { data: stats, refetch: refetchStats } = useGetNotificationStatsQuery(undefined, { 
     skip: !user,
     pollingInterval: 30000 // Poll every 30 seconds
@@ -39,6 +47,27 @@ export const NotificationProvider = ({ children }) => {
   const [markAsReadMutation] = useMarkAsReadMutation()
   const [markAllAsReadMutation] = useMarkAllAsReadMutation()
   const [deleteNotificationMutation] = useDeleteNotificationMutation()
+
+  // Sync notifications from API with local state
+  useEffect(() => {
+    if (notificationsData?.notifications && user) {
+      const formattedNotifications = notificationsData.notifications.map(notification => ({
+        id: notification._id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        timestamp: notification.createdAt,
+        isRead: notification.isRead,
+        priority: notification.priority || 'medium',
+        data: notification.data || {}
+      }))
+      
+      dispatch(syncNotifications({
+        notifications: formattedNotifications,
+        unreadCount: stats?.unreadCount || 0
+      }))
+    }
+  }, [notificationsData, stats, user, dispatch])
 
   // Socket connection management
   useEffect(() => {
@@ -254,35 +283,39 @@ export const NotificationProvider = ({ children }) => {
     try {
       await markAsReadMutation(notificationId).unwrap()
       dispatch(markAsReadLocal(notificationId))
+      refetchStats()
+      refetchNotifications()
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
       toast.error('Failed to mark notification as read')
     }
-  }, [markAsReadMutation, dispatch, refetchStats])
+  }, [markAsReadMutation, dispatch, refetchStats, refetchNotifications])
 
   const markAllAsRead = useCallback(async () => {
     try {
       await markAllAsReadMutation().unwrap()
       dispatch(markAllAsReadLocal())
       refetchStats()
+      refetchNotifications()
       toast.success('All notifications marked as read')
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error)
       toast.error('Failed to mark all notifications as read')
     }
-  }, [markAllAsReadMutation, dispatch, refetchStats])
+  }, [markAllAsReadMutation, dispatch, refetchStats, refetchNotifications])
 
   const deleteNotification = useCallback(async (notificationId) => {
     try {
       await deleteNotificationMutation(notificationId).unwrap()
       dispatch(removeNotificationLocal(notificationId))
       refetchStats()
+      refetchNotifications()
       toast.success('Notification deleted')
     } catch (error) {
       console.error('Failed to delete notification:', error)
       toast.error('Failed to delete notification')
     }
-  }, [deleteNotificationMutation, dispatch, refetchStats])
+  }, [deleteNotificationMutation, dispatch, refetchStats, refetchNotifications])
 
   // Emit notification events
   const emitNotification = useCallback((event, data) => {

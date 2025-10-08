@@ -338,10 +338,7 @@ const AdminUsers = () => {
                   </Button>
                 </div>
               )}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl">
-                <span className="text-xs text-gray-400">Total Users</span>
-                <div className="font-semibold text-white">{userStats?.data?.total || usersData?.data?.pagination?.total || 0}</div>
-              </div>
+             
             </div>
           </motion.div>
 
@@ -350,63 +347,75 @@ const AdminUsers = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
           >
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Users</p>
-                  <p className="text-2xl font-bold text-white mt-1">
-                    {userStats?.data?.total || 0}
-                  </p>
+            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+              <Card className="group bg-gradient-to-br from-blue-500/10 via-white/5 to-purple-500/10 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 p-6 shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Users</p>
+                    <p className="text-3xl font-bold text-white group-hover:text-blue-200 transition-colors">
+                      {userStats?.data?.total || 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">All registered users</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-xl flex items-center justify-center border border-white/20 shadow-lg group-hover:shadow-blue-500/20 transition-all duration-300">
+                    <Users className="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" />
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                  <Users className="w-5 h-5 text-blue-400" />
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Verified</p>
-                  <p className="text-2xl font-bold text-green-400 mt-1">
-                    {userStats?.data?.verified || 0}
-                  </p>
+            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+              <Card className="group bg-gradient-to-br from-green-500/10 via-white/5 to-emerald-500/10 backdrop-blur-xl border border-white/10 hover:border-green-500/30 p-6 shadow-lg hover:shadow-green-500/10 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Verified</p>
+                    <p className="text-3xl font-bold text-green-400 group-hover:text-green-300 transition-colors">
+                      {userStats?.data?.verified || 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Identity confirmed</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500/30 to-emerald-500/30 rounded-xl flex items-center justify-center border border-white/20 shadow-lg group-hover:shadow-green-500/20 transition-all duration-300">
+                    <CheckCircle className="w-6 h-6 text-green-400 group-hover:scale-110 transition-transform" />
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Active</p>
-                  <p className="text-2xl font-bold text-blue-400 mt-1">
-                    {userStats?.data?.active || 0}
-                  </p>
+            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+              <Card className="group bg-gradient-to-br from-cyan-500/10 via-white/5 to-blue-500/10 backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 p-6 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Active</p>
+                    <p className="text-3xl font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                      {userStats?.data?.active || 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Recently active</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 rounded-xl flex items-center justify-center border border-white/20 shadow-lg group-hover:shadow-cyan-500/20 transition-all duration-300">
+                    <UserCheck className="w-6 h-6 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                  <UserCheck className="w-5 h-5 text-blue-400" />
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Blocked</p>
-                  <p className="text-2xl font-bold text-red-400 mt-1">
-                    {userStats?.data?.blocked || 0}
-                  </p>
+            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+              <Card className="group bg-gradient-to-br from-red-500/10 via-white/5 to-pink-500/10 backdrop-blur-xl border border-white/10 hover:border-red-500/30 p-6 shadow-lg hover:shadow-red-500/10 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Blocked</p>
+                    <p className="text-3xl font-bold text-red-400 group-hover:text-red-300 transition-colors">
+                      {userStats?.data?.blocked || 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Access restricted</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500/30 to-pink-500/30 rounded-xl flex items-center justify-center border border-white/20 shadow-lg group-hover:shadow-red-500/20 transition-all duration-300">
+                    <Ban className="w-6 h-6 text-red-400 group-hover:scale-110 transition-transform" />
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                  <Ban className="w-5 h-5 text-red-400" />
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
           </motion.div>
 
           {/* Search and Filters */}
@@ -414,57 +423,60 @@ const AdminUsers = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mb-6"
+            className="mb-8"
           >
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-4">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
+            <Card className="bg-gradient-to-r from-white/5 via-white/10 to-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 p-6 shadow-lg transition-all duration-300">
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={selectedUsers.length === (usersData?.data?.users?.length || 0) && selectedUsers.length > 0}
                       onChange={selectAllUsers}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 bg-white/10 border-2 border-white/30 rounded-md focus:ring-blue-500 focus:ring-2 transition-all duration-200 hover:border-blue-400"
                     />
-                    <span className="text-sm text-gray-400">Select All</span>
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Select All</span>
                   </label>
                 </div>
+                
                 <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-400 transition-colors" />
                     <input
                       type="text"
                       placeholder="Search by name, email, or ID..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                      className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white/15 hover:border-white/30 transition-all duration-200 text-sm font-medium"
                     />
                   </div>
                 </div>
                 
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 min-w-[150px]"
-                >
-                  {roleOptions.map(option => (
-                    <option key={option.value} value={option.value} className="bg-slate-800">
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 min-w-[150px]"
-                >
-                  {statusOptions.map(option => (
-                    <option key={option.value} value={option.value} className="bg-slate-800">
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-4">
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-medium focus:outline-none focus:border-blue-500 hover:border-white/30 transition-all duration-200 min-w-[160px]"
+                  >
+                    {roleOptions.map(option => (
+                      <option key={option.value} value={option.value} className="bg-slate-800 text-white">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-medium focus:outline-none focus:border-blue-500 hover:border-white/30 transition-all duration-200 min-w-[160px]"
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value} className="bg-slate-800 text-white">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </Card>
           </motion.div>
@@ -504,103 +516,127 @@ const AdminUsers = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.05 }}
                 >
-                  <Card className="group bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/30 transition-all duration-300">
-                    <div className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={selectedUsers.includes(user._id)}
-                            onChange={() => toggleUserSelection(user._id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <div className="flex-1 min-w-0">
-                            {/* User Header */}
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
-                                {getRoleIcon(user.role)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h3 className="text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-200 truncate">
-                                    {user.name}
-                                  </h3>
-                                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getRoleColor(user.role)}`}>
+                  <Card className="group bg-gradient-to-br from-white/5 via-white/5 to-white/10 backdrop-blur-xl border border-white/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-500 hover:transform hover:scale-[1.02] cursor-pointer">
+                    <div className="p-6 relative overflow-hidden">
+                      {/* Subtle animated background effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-2xl transform translate-x-16 -translate-y-16"></div>
+                      </div>
+                      
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                checked={selectedUsers.includes(user._id)}
+                                onChange={() => toggleUserSelection(user._id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-5 h-5 text-blue-600 bg-white/10 border-2 border-white/30 rounded-md focus:ring-blue-500 focus:ring-2 focus:ring-offset-0 transition-all duration-200 hover:border-blue-400"
+                              />
+                              {selectedUsers.includes(user._id) && (
+                                <div className="absolute inset-0 bg-blue-500/20 rounded-md animate-ping"></div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              {/* User Header */}
+                              <div className="flex items-center gap-4 mb-4">
+                                <div className="relative">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
                                     {getRoleIcon(user.role)}
-                                    <span className="capitalize">{user.role.replace('_', ' ')}</span>
+                                  </div>
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-gray-900 flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                                   </div>
                                 </div>
-                                <p className="text-gray-500 text-xs">Joined {formatDate(user.createdAt)}</p>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="text-xl font-bold text-white group-hover:text-blue-200 transition-colors duration-300 truncate">
+                                      {user.name}
+                                    </h3>
+                                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm border shadow-sm ${getRoleColor(user.role)}`}>
+                                      {getRoleIcon(user.role)}
+                                      <span className="capitalize tracking-wide">{user.role.replace('_', ' ')}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-400 text-sm flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-blue-400" />
+                                    Joined {formatDate(user.createdAt)}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          
-                          {/* User Info Row */}
-                          <div className="flex items-center gap-4 text-sm text-gray-400">
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-4 h-4 text-blue-400" />
-                              <span className="truncate">{user.email}</span>
-                            </div>
-                            {user.phone && (
-                              <div className="flex items-center gap-1">
-                                <Phone className="w-4 h-4 text-green-400" />
-                                <span className="truncate">{user.phone}</span>
-                              </div>
-                            )}
-                            {user.city && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4 text-purple-400" />
-                                <span className="truncate">{user.city}</span>
-                              </div>
-                            )}
-                          </div>
-                          </div>
-                        </div>
-                        
-                        {/* Status and Actions */}
-                        <div className="flex flex-col items-end gap-3 ml-4">
-                          {/* Status Badge */}
-                          <div className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border ${getStatusColor(getUserStatus(user))}`}>
-                            {getStatusIcon(getUserStatus(user))}
-                            <span className="capitalize">{getUserStatus(user)}</span>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                viewUserDetails(user);
-                              }}
-                              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2 py-1 text-xs"
-                            >
-                              <Eye className="w-3 h-3" />
-                            </Button>
                             
-                            {!user.verified ? (
+                              {/* User Info Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                                  <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                  <span className="text-gray-300 truncate">{user.email}</span>
+                                </div>
+                                {user.phone && (
+                                  <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                                    <Phone className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                    <span className="text-gray-300 truncate">{user.phone}</span>
+                                  </div>
+                                )}
+                                {user.city && (
+                                  <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                                    <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                    <span className="text-gray-300 truncate">{user.city}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Status and Actions */}
+                          <div className="flex flex-col items-end gap-4 ml-6">
+                            {/* Enhanced Status Badge */}
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm border shadow-lg ${getStatusColor(getUserStatus(user))}`}>
+                              {getStatusIcon(getUserStatus(user))}
+                              <span className="capitalize tracking-wide">{getUserStatus(user)}</span>
+                            </div>
+                            
+                            {/* Enhanced Action Buttons */}
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Button
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleVerifyUser(user._id);
+                                  viewUserDetails(user);
                                 }}
-                                className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 text-xs"
-                                disabled={isVerifying}
+                                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40 px-3 py-2 text-xs font-medium shadow-sm hover:shadow-md transition-all duration-200 group/btn"
                               >
-                                <CheckCircle className="w-3 h-3" />
+                                <Eye className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                View
                               </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUnverifyUser(user._id);
-                                }}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 text-xs"
-                                disabled={isUnverifying}
-                              >
-                                <XCircle className="w-3 h-3" />
+                              
+                              {!user.verified ? (
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleVerifyUser(user._id);
+                                  }}
+                                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-green-500/25 transition-all duration-200 group/btn"
+                                  disabled={isVerifying}
+                                >
+                                  <CheckCircle className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                  Verify
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnverifyUser(user._id);
+                                  }}
+                                  className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-200 group/btn"
+                                  disabled={isUnverifying}
+                                >
+                                  <XCircle className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                  Unverify
                               </Button>
                             )}
                             
@@ -611,10 +647,11 @@ const AdminUsers = () => {
                                   e.stopPropagation();
                                   handleUnblockUser(user._id);
                                 }}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-xs"
+                                className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 group/btn"
                                 disabled={isUnblocking}
                               >
-                                <Unlock className="w-3 h-3" />
+                                <Unlock className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                Unblock
                               </Button>
                             ) : user.role !== 'admin' && (
                               <Button
@@ -623,9 +660,10 @@ const AdminUsers = () => {
                                   e.stopPropagation();
                                   openBlockModal(user);
                                 }}
-                                className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-xs"
+                                className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-red-500/25 transition-all duration-200 group/btn"
                               >
-                                <Lock className="w-3 h-3" />
+                                <Lock className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                Block
                               </Button>
                             )}
                             
@@ -635,9 +673,10 @@ const AdminUsers = () => {
                                 e.stopPropagation();
                                 openRoleModal(user);
                               }}
-                              className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 text-xs"
+                              className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-200 group/btn"
                             >
-                              <Shield className="w-3 h-3" />
+                              <Shield className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                              Role
                             </Button>
                             
                             {user.role !== 'admin' && (
@@ -647,11 +686,13 @@ const AdminUsers = () => {
                                   e.stopPropagation();
                                   openDeleteModal(user);
                                 }}
-                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs"
+                                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3 py-2 text-xs font-medium shadow-sm hover:shadow-lg hover:shadow-red-600/25 transition-all duration-200 group/btn"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3 h-3 mr-1 group-hover/btn:scale-110 transition-transform" />
+                                Delete
                               </Button>
                             )}
+                          </div>
                           </div>
                         </div>
                       </div>
@@ -662,35 +703,37 @@ const AdminUsers = () => {
             </motion.div>
           )}
 
-          {/* Pagination */}
+          {/* Enhanced Pagination */}
           {usersData?.data?.pagination && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex justify-center mt-4"
+              className="flex justify-center mt-8"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-lg">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(page - 1)}
                   disabled={page <= 1}
-                  className="border-slate-700"
+                  className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-white/20 hover:border-blue-500/50 text-white px-6 py-2 font-medium transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </Button>
                 
-                <span className="text-gray-400 px-4">
-                  Page {page} of {usersData.data.pagination.pages}
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-300 px-4 font-medium">
+                    Page <span className="text-blue-400 font-bold">{page}</span> of <span className="text-blue-400 font-bold">{usersData.data.pagination.pages}</span>
+                  </span>
+                </div>
                 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(page + 1)}
                   disabled={page >= usersData.data.pagination.pages}
-                  className="border-slate-700"
+                  className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-white/20 hover:border-blue-500/50 text-white px-6 py-2 font-medium transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </Button>
