@@ -6,15 +6,8 @@ import {
   Clock, 
   Star, 
   Search, 
-  Plus,
-  Filter,
-  ChevronRight,
-  Building,
-  Music,
   TrendingUp,
-  Award,
   Sparkles,
-  Eye,
   CreditCard,
   BarChart3
 } from 'lucide-react'
