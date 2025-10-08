@@ -54,7 +54,7 @@ const AdminNavbar = () => {
               <img
                 src="/logo.png"
                 alt="Ripple Logo"
-                className="h-16 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </Link>
           </div>
