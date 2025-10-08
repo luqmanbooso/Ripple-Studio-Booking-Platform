@@ -6,7 +6,6 @@ import {
   Menu, 
   X, 
   User, 
-  Settings, 
   LogOut, 
   Music, 
   Search,
@@ -20,9 +19,6 @@ import {
   Globe,
   Phone,
   Building2,
-  Image,
-  Wrench,
-  BarChart3,
   DollarSign,
   Users,
   Clock
@@ -91,11 +87,6 @@ const StudioNavbar = () => {
       name: 'Studio Profile',
       href: '/dashboard/profile',
       icon: Building2
-    },
-    {
-      name: 'Analytics',
-      href: '/dashboard/analytics',
-      icon: BarChart3
     },
     {
       name: 'Revenue',
@@ -304,14 +295,6 @@ const StudioNavbar = () => {
                           <span>Studio Profile</span>
                         </Link>
                         
-                        <Link
-                          to="/settings/profile"
-                          className="flex items-center space-x-3 px-4 py-3 text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
-                          onClick={() => setIsProfileOpen(false)}
-                        >
-                          <Settings className="w-4 h-4 group-hover:animate-spin-slow" />
-                          <span>Account Settings</span>
-                        </Link>
                         
                         <button
                           onClick={handleLogout}

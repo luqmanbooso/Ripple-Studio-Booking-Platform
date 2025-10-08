@@ -22,8 +22,8 @@ const ReviewModal = ({ isOpen, onClose, booking, type = 'studio' }) => {
 
     try {
       await createReview({
-        targetType: type,
-        targetId: type === 'studio' ? booking.studio._id : booking.client._id,
+        targetType: 'Studio',
+        targetId: booking.studio._id,
         booking: booking._id,
         rating,
         comment: comment.trim()
@@ -34,7 +34,9 @@ const ReviewModal = ({ isOpen, onClose, booking, type = 'studio' }) => {
       setRating(0)
       setComment('')
     } catch (error) {
-      toast.error(error.data?.message || 'Failed to submit review')
+      console.error('Review submission error:', error)
+      const errorMessage = error.data?.message || error.message || 'Failed to submit review'
+      toast.error(errorMessage)
     }
   }
 

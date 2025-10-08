@@ -5,10 +5,13 @@ import {
   Users, Calendar, DollarSign, MessageCircle
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { useUpdateBookingStatusMutation } from '../../store/bookingApi'
+import { useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
 
 const BulkStatusUpdateModal = ({ isOpen, onClose, selectedBookings, onUpdate }) => {
-  const [updateBookingStatus, { isLoading }] = useUpdateBookingStatusMutation()
+  const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
+  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
+  
+  const isLoading = isCompleting || isCancelling
   
   const [bulkAction, setBulkAction] = useState({
     status: '',
@@ -54,21 +57,23 @@ const BulkStatusUpdateModal = ({ isOpen, onClose, selectedBookings, onUpdate }) 
       return
     }
 
-    if (bulkAction.status === 'cancelled' && !bulkAction.reason.trim()) {
-      toast.error('Please provide a reason for cancellation')
-      return
-    }
 
     try {
-      const updatePromises = selectedBookings.map(booking => 
-        updateBookingStatus({
-          id: booking._id,
-          status: bulkAction.status,
-          reason: bulkAction.reason,
-          refundAmount: bulkAction.refundAmount,
-          notifyClient: bulkAction.notifyClients
-        }).unwrap()
-      )
+      const updatePromises = selectedBookings.map(booking => {
+        if (bulkAction.status === 'completed') {
+          return completeBooking({
+            id: booking._id,
+            notes: bulkAction.reason || 'Bulk completion'
+          }).unwrap()
+        } else if (bulkAction.status === 'cancelled') {
+          return cancelBooking({
+            id: booking._id,
+            reason: bulkAction.reason || 'Bulk cancellation'
+          }).unwrap()
+        } else {
+          throw new Error('Unsupported bulk operation')
+        }
+      })
 
       await Promise.all(updatePromises)
       

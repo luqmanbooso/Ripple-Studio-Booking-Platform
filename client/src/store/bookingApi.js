@@ -123,17 +123,6 @@ export const bookingApi = createApi({
         'Bookings',
       ],
     }),
-    updateBookingStatus: builder.mutation({
-      query: ({ id, status }) => ({
-        url: `/${id}/status`,
-        method: 'PATCH',
-        body: { status },
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Booking', id },
-        'Bookings',
-      ],
-    }),
   }),
 })
 
@@ -146,5 +135,4 @@ export const {
   useUpdateBookingMutation,
   useConfirmBookingMutation,
   useRejectBookingMutation,
-  useUpdateBookingStatusMutation,
 } = bookingApi

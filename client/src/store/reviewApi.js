@@ -62,6 +62,47 @@ export const reviewApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Review', id }],
     }),
+    // Admin endpoints
+    getAllReviewsForModeration: builder.query({
+      query: (params) => {
+        // Filter out empty string parameters to avoid validation errors
+        const filteredParams = Object.entries(params || {}).reduce((acc, [key, value]) => {
+          if (value !== '' && value !== null && value !== undefined) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+        
+        return {
+          url: '/admin/all',
+          params: filteredParams,
+        };
+      },
+      providesTags: ['Reviews'],
+    }),
+    moderateReview: builder.mutation({
+      query: ({ reviewId, ...data }) => ({
+        url: `/admin/${reviewId}/moderate`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Reviews'],
+    }),
+    deleteReview: builder.mutation({
+      query: (reviewId) => ({
+        url: `/admin/${reviewId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Reviews'],
+    }),
+    bulkModerateReviews: builder.mutation({
+      query: (data) => ({
+        url: '/admin/bulk-moderate',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Reviews'],
+    }),
   }),
 })
 
@@ -69,4 +110,8 @@ export const {
   useCreateReviewMutation,
   useGetReviewsQuery,
   useUpdateReviewMutation,
+  useGetAllReviewsForModerationQuery,
+  useModerateReviewMutation,
+  useDeleteReviewMutation,
+  useBulkModerateReviewsMutation,
 } = reviewApi

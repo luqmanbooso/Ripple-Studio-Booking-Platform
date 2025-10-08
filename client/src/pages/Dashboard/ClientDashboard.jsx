@@ -139,7 +139,7 @@ const ClientDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
         >
           <Link to="/search?type=studios">
             <motion.div
@@ -197,6 +197,26 @@ const ClientDashboard = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Browse Genres</h3>
                 <p className="text-gray-400 leading-relaxed">Explore studios by music genre and find specialized recording environments</p>
+              </div>
+            </motion.div>
+          </Link>
+
+          <Link to="/dashboard/spending">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -5 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative p-8 bg-gradient-to-br from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-2xl cursor-pointer overflow-hidden backdrop-blur-sm"
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-orange-500/25">
+                  <CreditCard className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-300 transition-colors">Spending History</h3>
+                <p className="text-gray-400 leading-relaxed">Track your booking expenses and download financial reports</p>
               </div>
             </motion.div>
           </Link>

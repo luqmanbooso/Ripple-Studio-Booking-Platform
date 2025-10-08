@@ -174,7 +174,14 @@ bookingSchema.methods.canCancel = function () {
 // Check if booking can be completed
 bookingSchema.methods.canComplete = function () {
   const now = new Date();
-  return this.status === "confirmed" && now >= this.start;
+  
+  // Allow completion if booking is confirmed
+  // For better UX, allow studios to mark sessions as completed even if they haven't started yet
+  // This is useful for walk-ins or early completions
+  return this.status === "confirmed";
+  
+  // Original strict logic (uncomment if you want time-based restrictions):
+  // return this.status === "confirmed" && now >= this.start;
 };
 
 // Get refund amount based on cancellation time
