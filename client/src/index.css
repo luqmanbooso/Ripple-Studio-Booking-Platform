@@ -524,7 +524,7 @@
     pointer-events: none;
   }
 
-  /* Custom Scrollbar Styles */
+  /* Enhanced Custom Scrollbar Styles */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -558,10 +558,10 @@
     background: rgba(0, 0, 0, 0.5);
   }
   
-  /* Alternative: Always show but styled */
+  /* Enhanced styled scrollbar for notifications */
   .scrollbar-styled {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
   }
   
   .scrollbar-styled::-webkit-scrollbar {
@@ -570,29 +570,76 @@
   
   .scrollbar-styled::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 3px;
   }
   
   .scrollbar-styled::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 3px;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
   }
   
   .scrollbar-styled::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    transform: scaleX(1.2);
   }
   
-  /* Dark mode scrollbar */
+  /* Dark mode enhanced scrollbar */
   .dark .scrollbar-styled {
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
   
   .dark .scrollbar-styled::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
   }
   
   .dark .scrollbar-styled::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Notification-specific scrollbar enhancements */
+  .notification-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+  }
+  
+  .notification-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .notification-scroll::-webkit-scrollbar-track {
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+  
+  .notification-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), rgba(59, 130, 246, 0.6));
+    border-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .notification-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.6), rgba(59, 130, 246, 0.8));
+    transform: scaleY(1.1);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  }
+  
+  .dark .notification-scroll {
+    scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
+  }
+  
+  .dark .notification-scroll::-webkit-scrollbar-track {
+    background: rgba(59, 130, 246, 0.1);
+  }
+  
+  .dark .notification-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.5), rgba(59, 130, 246, 0.7));
+  }
+  
+  .dark .notification-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.7), rgba(59, 130, 246, 0.9));
   }
 
   /* Custom Date Input Styling */

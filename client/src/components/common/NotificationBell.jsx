@@ -285,8 +285,7 @@ const NotificationBell = () => {
               </div>
 
               {/* Notifications List */}
-              <div className="max-h-80 overflow-y-auto">
-                {isLoading ? (
+              <div className="max-h-80 overflow-y-auto notification-scroll">{isLoading ? (
                   <div className="flex items-center justify-center p-8">
                     <Spinner size="md" />
                   </div>
@@ -296,8 +295,7 @@ const NotificationBell = () => {
                     <p>No notifications yet</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-700">
-                    {notifications.map((notification) => (
+                  <div className="divide-y divide-gray-700">{notifications.map((notification) => (
                       <motion.div
                         key={notification._id}
                         initial={{ opacity: 0 }}
