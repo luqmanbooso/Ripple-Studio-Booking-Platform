@@ -1,5 +1,6 @@
 const express = require('express');
 const Booking = require('../models/Booking');
+const Payment = require('../models/Payment');
 const paymentService = require('../services/paymentService');
 const bookingService = require('../services/bookingService');
 const logger = require('../utils/logger');
@@ -139,6 +140,30 @@ const handlePaymentSuccess = async (payload) => {
     booking.paymentMethod = payload.method;
     booking.paymentCardType = payload.card_type;
     
+    // Update payment record with completed status
+    const payment = await Payment.findOne({ 
+      booking: bookingId,
+      payhereOrderId: booking.payhereOrderId 
+    });
+
+    if (payment) {
+      payment.markCompleted(payload.payment_id, {
+        merchant_id: payload.merchant_id,
+        method: payload.method,
+        status_message: payload.status_message,
+        card_holder_name: payload.card_holder_name,
+        card_no: payload.card_no,
+        card_type: payload.card_type,
+        custom_1: payload.custom_1,
+        custom_2: payload.custom_2
+      });
+      payment.webhookPayload = payload;
+      await payment.save();
+      logger.info(`Payment record updated to Completed: ${payment._id}`);
+    } else {
+      logger.warn(`Payment record not found for booking: ${bookingId}`);
+    }
+    
     // Confirm the booking
     await bookingService.confirmBooking(booking, payload.payment_id);
 
@@ -162,6 +187,20 @@ const handlePaymentPending = async (payload) => {
       booking.payherePaymentId = payload.payment_id;
       await booking.save();
 
+      // Update payment record
+      const payment = await Payment.findOne({ 
+        booking: bookingId,
+        payhereOrderId: booking.payhereOrderId 
+      });
+
+      if (payment) {
+        payment.payherePaymentId = payload.payment_id;
+        payment.webhookReceived = true;
+        payment.webhookReceivedAt = new Date();
+        payment.webhookPayload = payload;
+        await payment.save();
+      }
+
       logger.info(`Payment pending for booking: ${bookingId}`);
     }
   } catch (error) {
@@ -182,6 +221,18 @@ const handlePaymentCanceled = async (payload) => {
       booking.status = 'cancelled';
       booking.cancellationReason = 'Payment canceled by user';
       await booking.save();
+
+      // Update payment record to Failed
+      const payment = await Payment.findOne({ 
+        booking: bookingId,
+        payhereOrderId: booking.payhereOrderId 
+      });
+
+      if (payment) {
+        payment.markFailed('Payment canceled by user', '-1');
+        payment.webhookPayload = payload;
+        await payment.save();
+      }
 
       // Notify client of cancellation
       await bookingService.createNotification(booking.client._id, 'payment_cancelled', {
@@ -209,6 +260,21 @@ const handlePaymentFailed = async (payload) => {
     if (booking) {
       booking.status = 'payment_failed';
       await booking.save();
+
+      // Update payment record to Failed
+      const payment = await Payment.findOne({ 
+        booking: bookingId,
+        payhereOrderId: booking.payhereOrderId 
+      });
+
+      if (payment) {
+        payment.markFailed(
+          payload.status_message || 'Payment failed',
+          payload.status_code
+        );
+        payment.webhookPayload = payload;
+        await payment.save();
+      }
 
       // Notify client of payment failure
       await bookingService.createNotification(booking.client._id, 'payment_failed', {
@@ -240,6 +306,19 @@ const handlePaymentChargeback = async (payload) => {
       ]);
 
     if (booking) {
+      // Update payment record to Chargeback
+      const payment = await Payment.findOne({ 
+        booking: bookingId,
+        payhereOrderId: booking.payhereOrderId 
+      });
+
+      if (payment) {
+        payment.status = 'Chargeback';
+        payment.addStatusChange('Chargeback', null, 'Chargeback initiated by customer');
+        payment.webhookPayload = payload;
+        await payment.save();
+      }
+
       // Notify relevant parties about the chargeback
       const providerUser = booking.artist ? booking.artist.user : booking.studio.user;
       

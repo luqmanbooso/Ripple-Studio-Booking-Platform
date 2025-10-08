@@ -12,9 +12,8 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
 import { 
-  useGetClientSpendingQuery,
-  useLazyDownloadSpendingReportQuery
-} from '../../store/revenueApi'
+  useGetMyPaymentsQuery
+} from '../../store/paymentApi'
 
 const ClientSpending = () => {
   const { user } = useSelector(state => state.auth)
@@ -22,21 +21,41 @@ const ClientSpending = () => {
   const [page, setPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Client spending query - temporarily disabled to prevent 400 errors
-  const { data: spendingData, isLoading, refetch } = useGetClientSpendingQuery({
+  // Client payments query
+  const { data: paymentsData, isLoading, refetch } = useGetMyPaymentsQuery({
     page,
     limit: 10,
-    startDate: getStartDate(),
-    endDate: new Date().toISOString()
-  }, {
-    skip: true // Temporarily skip the query to prevent 400 errors
+    status: '' // Get all payments
   })
 
-  // Download report query
-  const [downloadReport, { isLoading: downloadLoading }] = useLazyDownloadSpendingReportQuery()
+  const payments = paymentsData?.data?.payments || []
+  
+  // Calculate statistics from payments
+  const calculateStats = () => {
+    const completedPayments = payments.filter(p => p.status === 'Completed')
+    const totalSpent = completedPayments.reduce((sum, p) => sum + p.amount, 0)
+    const totalBookings = completedPayments.length
+    const averagePerBooking = totalBookings > 0 ? totalSpent / totalBookings : 0
+    
+    // This month's spending
+    const thisMonth = new Date()
+    thisMonth.setDate(1)
+    thisMonth.setHours(0, 0, 0, 0)
+    
+    const thisMonthPayments = completedPayments.filter(p => 
+      new Date(p.completedAt || p.createdAt) >= thisMonth
+    )
+    const thisMonthSpent = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0)
+    
+    return {
+      totalSpent,
+      totalBookings,
+      averagePerBooking,
+      thisMonthSpent
+    }
+  }
 
-  const revenues = spendingData?.data?.revenues || []
-  const statistics = spendingData?.data?.statistics || {}
+  const statistics = calculateStats()
 
   function getStartDate() {
     const now = new Date()
@@ -57,27 +76,44 @@ const ClientSpending = () => {
   // Handle report download
   const handleDownloadReport = async (format = 'csv') => {
     try {
-      const result = await downloadReport({
-        startDate: getStartDate(),
-        endDate: new Date().toISOString(),
-        format
-      }).unwrap()
+      // Create CSV content from payments
+      const csvContent = payments.map(payment => ({
+        Date: new Date(payment.completedAt || payment.createdAt).toLocaleDateString(),
+        Studio: payment.bookingSnapshot?.studio?.name || 'N/A',
+        Service: payment.bookingSnapshot?.service?.name || 'N/A',
+        Amount: `LKR ${payment.amount}`,
+        Status: payment.status
+      }))
+      
+      const csvString = [
+        Object.keys(csvContent[0] || {}).join(','),
+        ...csvContent.map(row => Object.values(row).join(','))
+      ].join('\n')
+      
+      const blob = new Blob([csvString], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `spending-history-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
       
       toast.success('Report downloaded successfully!')
     } catch (error) {
-      toast.error(error.data?.message || 'Failed to download report')
+      toast.error('Failed to download report')
     }
   }
 
-  // Filter revenues based on search
-  const filteredRevenues = revenues.filter(revenue => {
+  // Filter payments based on search
+  const filteredPayments = payments.filter(payment => {
     if (!searchTerm) return true
     
     const searchLower = searchTerm.toLowerCase()
     return (
-      revenue.studio?.name?.toLowerCase().includes(searchLower) ||
-      revenue.bookingId?.service?.name?.toLowerCase().includes(searchLower) ||
-      new Date(revenue.createdAt).toLocaleDateString().includes(searchLower)
+      payment.bookingSnapshot?.studio?.name?.toLowerCase().includes(searchLower) ||
+      payment.bookingSnapshot?.service?.name?.toLowerCase().includes(searchLower) ||
+      payment.payhereOrderId?.toLowerCase().includes(searchLower) ||
+      new Date(payment.completedAt || payment.createdAt).toLocaleDateString().includes(searchLower)
     )
   })
 
@@ -115,7 +151,6 @@ const ClientSpending = () => {
             
             <Button
               onClick={() => handleDownloadReport('csv')}
-              loading={downloadLoading}
               className="bg-blue-600 hover:bg-blue-700"
               icon={<Download className="w-4 h-4" />}
             >
@@ -145,7 +180,7 @@ const ClientSpending = () => {
               <div>
                 <p className="text-green-300 text-sm font-medium">Average Per Booking</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  LKR {Math.round(statistics.averageSpending || 0).toLocaleString()}
+                  LKR {Math.round(statistics.averagePerBooking || 0).toLocaleString()}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-400" />
@@ -169,7 +204,7 @@ const ClientSpending = () => {
               <div>
                 <p className="text-orange-300 text-sm font-medium">This Month</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  LKR {(filteredRevenues.reduce((sum, r) => sum + r.totalAmount, 0)).toLocaleString()}
+                  LKR {statistics.thisMonthSpent?.toLocaleString() || '0'}
                 </p>
               </div>
               <BarChart3 className="w-8 h-8 text-orange-400" />
@@ -210,27 +245,28 @@ const ClientSpending = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredRevenues.map((revenue) => (
-                  <tr key={revenue._id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                {filteredPayments.map((payment) => (
+                  <tr key={payment._id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                     <td className="py-3 px-4 text-gray-300">
-                      {new Date(revenue.createdAt).toLocaleDateString()}
+                      {new Date(payment.completedAt || payment.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4 text-white">
-                      {revenue.studio?.name || 'Unknown Studio'}
+                      {payment.bookingSnapshot?.studio?.name || 'Unknown Studio'}
                     </td>
                     <td className="py-3 px-4 text-gray-300">
-                      {revenue.bookingId?.service?.name || 'Session'}
+                      {payment.bookingSnapshot?.service?.name || 'Session'}
                     </td>
                     <td className="py-3 px-4 text-white font-medium">
-                      LKR {revenue.totalAmount.toLocaleString()}
+                      LKR {payment.amount.toLocaleString()}
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        revenue.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
-                        revenue.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                        payment.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
+                        payment.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                        payment.status === 'Failed' ? 'bg-red-500/20 text-red-400' :
                         'bg-gray-500/20 text-gray-400'
                       }`}>
-                        {revenue.status}
+                        {payment.status}
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -265,7 +301,7 @@ const ClientSpending = () => {
             </table>
           </div>
 
-          {filteredRevenues.length === 0 && (
+          {filteredPayments.length === 0 && (
             <div className="text-center py-8 text-gray-400">
               <PieChart className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No spending records found</p>
