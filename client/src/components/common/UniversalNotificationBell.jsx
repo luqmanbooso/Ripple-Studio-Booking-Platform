@@ -196,7 +196,7 @@ const UniversalNotificationBell = ({ className = '' }) => {
               </div>
 
               {/* Notifications List */}
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto notification-scroll">
                 {filteredNotifications.length === 0 ? (
                   <div className="text-center p-8 text-gray-500 dark:text-gray-400">
                     <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -214,7 +214,7 @@ const UniversalNotificationBell = ({ className = '' }) => {
                         key={notification.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer border-l-4 ${getPriorityColor(notification.priority)} ${
+                        className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer border-l-4 transition-all duration-200 ${getPriorityColor(notification.priority)} ${
                           !notification.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
                         }`}
                         onClick={() => handleNotificationClick(notification)}
@@ -238,7 +238,7 @@ const UniversalNotificationBell = ({ className = '' }) => {
                                   {formatTimeAgo(notification.timestamp)}
                                 </span>
                                 {!notification.isRead && (
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                                 )}
                               </div>
                             </div>
@@ -267,7 +267,8 @@ const UniversalNotificationBell = ({ className = '' }) => {
                                   markAsRead(notification.id)
                                 }}
                                 icon={<Check className="w-3 h-3" />}
-                                className="text-gray-500 hover:text-green-500"
+                                className="text-gray-500 hover:text-green-500 transition-colors duration-200"
+                                title="Mark as read"
                               />
                             )}
                             <Button
@@ -278,7 +279,8 @@ const UniversalNotificationBell = ({ className = '' }) => {
                                 deleteNotification(notification.id)
                               }}
                               icon={<Trash2 className="w-3 h-3" />}
-                              className="text-gray-500 hover:text-red-500"
+                              className="text-gray-500 hover:text-red-500 transition-colors duration-200"
+                              title="Delete notification"
                             />
                           </div>
                         </div>

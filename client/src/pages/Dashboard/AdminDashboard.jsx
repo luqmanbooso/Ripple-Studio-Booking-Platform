@@ -395,10 +395,10 @@ const AdminDashboard = () => {
           </div>
         </section>
 
-        {/* Premium Tab Navigation */}
-        <nav className="mb-10">
-          <div className="bg-gray-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-elegant">
-            <div className="flex items-center space-x-1 overflow-x-auto">
+        {/* Enhanced Premium Tab Navigation */}
+        <nav className="mb-12">
+          <div className="bg-gradient-to-r from-gray-50/80 via-white/90 to-gray-50/80 dark:from-slate-800/80 dark:via-slate-900/90 dark:to-slate-800/80 backdrop-blur-xl p-2 rounded-3xl border border-gray-200/50 dark:border-slate-700/50 shadow-2xl shadow-indigo-500/10 dark:shadow-purple-500/20">
+            <div className="flex items-center space-x-2 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
@@ -406,23 +406,51 @@ const AdminDashboard = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center space-x-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
+                    className={`group relative flex items-center space-x-4 px-8 py-4 rounded-2xl text-sm font-bold transition-all duration-300 ease-out whitespace-nowrap transform hover:scale-105 ${
                       isActive
-                        ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-white shadow-elegant border border-gray-200 dark:border-slate-700'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-2xl shadow-purple-500/30 border border-purple-300/30 backdrop-blur-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gradient-to-r hover:from-white/80 hover:to-gray-50/80 dark:hover:from-slate-700/80 dark:hover:to-slate-600/80 hover:shadow-lg hover:shadow-gray-500/20 border border-transparent hover:border-gray-200/50 dark:hover:border-slate-600/50'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                    
-                    {/* Active indicator */}
+                    {/* Background Glow for Active Tab */}
                     {isActive && (
-                      <div className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl animate-pulse"></div>
+                    )}
+                    
+                    {/* Icon with enhanced styling */}
+                    <div className={`relative z-10 p-2 rounded-xl ${isActive ? 'bg-white/20 backdrop-blur-sm' : 'group-hover:bg-gray-100/80 dark:group-hover:bg-slate-700/80'} transition-all duration-300`}>
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : tab.color} transition-all duration-300 group-hover:scale-110`} />
+                    </div>
+                    
+                    {/* Label with enhanced typography */}
+                    <span className="relative z-10 tracking-wide">{tab.label}</span>
+                    
+                    {/* Active indicator with animated gradient */}
+                    {isActive && (
+                      <div className="absolute inset-x-0 -bottom-0.5 h-1 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 rounded-full animate-shimmer"></div>
+                    )}
+                    
+                    {/* Hover indicator */}
+                    {!isActive && (
+                      <div className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-slate-600 dark:to-slate-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     )}
                   </button>
                 )
               })}
             </div>
+            
+            {/* Tab Navigation Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl pointer-events-none"></div>
+          </div>
+          
+          {/* Tab Description */}
+          <div className="mt-4 text-center">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {activeTab === 'overview' && '📊 Complete overview of your music platform performance'}
+              {activeTab === 'analytics' && '📈 Advanced analytics and detailed reporting dashboard'}
+              {activeTab === 'management' && '⚙️ Comprehensive platform and user management tools'}
+              {activeTab === 'system' && '🖥️ Real-time system monitoring and health diagnostics'}
+            </p>
           </div>
         </nav>
 

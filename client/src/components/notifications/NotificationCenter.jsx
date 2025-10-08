@@ -155,57 +155,68 @@ const NotificationCenter = ({ isOpen, onClose }) => {
             )}
 
             {/* Notifications List */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto notification-scroll">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                  <Bell className="w-12 h-12 text-gray-400 mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 text-center">
-                    No notifications yet
+                  <Bell className="w-16 h-16 text-gray-400 mb-4 opacity-50" />
+                  <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">No notifications yet</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
+                    You'll receive notifications for bookings, payments, and updates here
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {notifications.map((notification) => {
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">{notifications.map((notification) => {
                     const { icon: IconComponent, color } = getNotificationIcon(notification.type)
                     return (
                       <div
                         key={notification._id}
-                        className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 ${
+                          !notification.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10 border-l-4 border-blue-500' : ''
+                        }`}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
-                            <IconComponent className="w-4 h-4" />
+                          <div className={`p-2 rounded-full ${!notification.isRead ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'} transition-colors duration-200`}>
+                            <IconComponent className={`w-4 h-4 ${color} ${!notification.isRead ? 'opacity-100' : 'opacity-70'}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                {notification.title}
-                              </p>
-                              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center space-x-2">
+                                <p className={`text-sm font-medium truncate ${
+                                  !notification.isRead ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'
+                                }`}>
+                                  {notification.title}
+                                </p>
+                                {!notification.isRead && (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                )}
+                              </div>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 flex-shrink-0">
                                 {formatTimestamp(notification.createdAt)}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">
                               {notification.message}
                             </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex space-x-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-3">
                                 {!notification.isRead && (
                                   <button
                                     onClick={() => handleMarkAsRead(notification._id)}
-                                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                    className="inline-flex items-center text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
                                   >
+                                    <Check className="w-3 h-3 mr-1" />
                                     Mark as read
                                   </button>
                                 )}
                               </div>
                               <button
                                 onClick={() => handleDeleteNotification(notification._id)}
-                                className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                className="inline-flex items-center text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 opacity-70 hover:opacity-100 transition-all duration-200"
+                                title="Delete notification"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>

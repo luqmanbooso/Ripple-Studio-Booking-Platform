@@ -24,6 +24,7 @@ const mediaRoutes = require("./routes/mediaRoutes");
 const equipmentRoutes = require("./routes/equipmentRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
+const revenueRoutes = require("./routes/revenueRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -128,6 +129,7 @@ app.use("/api/media", mediaRoutes);
 app.use("/api/equipment", equipmentRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/revenue", revenueRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {

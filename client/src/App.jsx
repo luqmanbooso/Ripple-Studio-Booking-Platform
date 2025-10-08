@@ -38,6 +38,7 @@ import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminBookings from "./pages/Admin/AdminBookings";
 import AdminStudios from "./pages/Admin/AdminStudios";
 import AdminRevenue from "./pages/Admin/AdminRevenue";
+import AdminRevenueManagement from "./pages/Admin/AdminRevenueManagement";
 import AdminReviews from "./pages/Admin/AdminReviews";
 import AdminPayments from "./pages/Admin/AdminPayments";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
@@ -54,6 +55,7 @@ import StudioMediaManager from "./pages/Dashboard/StudioMediaManager";
 import StudioEquipmentManager from "./pages/Dashboard/StudioEquipmentManager";
 import StudioAnalytics from "./pages/Dashboard/StudioAnalytics";
 import StudioRevenue from "./pages/Dashboard/StudioRevenue";
+import ClientSpending from "./pages/Dashboard/ClientSpending";
 import StudioAmenities from "./pages/Dashboard/StudioAmenities";
 import TestPage from "./pages/Dashboard/TestPage";
 import DiagnosticPage from "./pages/Dashboard/DiagnosticPage";
@@ -354,6 +356,22 @@ function App() {
               }
             />
             <Route
+              path="/dashboard/revenue"
+              element={
+                <ProtectedRoute allowedRoles={["studio"]}>
+                  <StudioRevenue />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/spending"
+              element={
+                <ProtectedRoute allowedRoles={["client"]}>
+                  <ClientSpending />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/dashboard/notifications"
               element={
                 <ProtectedRoute allowedRoles={["studio", "client"]}>
@@ -413,7 +431,7 @@ function AdminRoutes() {
       <Route path="bookings" element={<AdminBookings />} />
       <Route path="studios" element={<AdminStudios />} />
       <Route path="studios/approvals" element={<AdminStudioApprovals />} />
-      <Route path="revenue" element={<AdminRevenue />} />
+      <Route path="revenue" element={<AdminRevenueManagement />} />
       <Route path="analytics" element={<AdminAnalytics />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />

@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
-import { useGetMyBookingsQuery, useUpdateBookingStatusMutation } from '../../store/bookingApi'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
 
 const EnhancedStudioBookings = () => {
   const { user } = useSelector(state => state.auth)
@@ -28,7 +28,8 @@ const EnhancedStudioBookings = () => {
     status: statusFilter !== 'all' ? statusFilter : undefined
   })
 
-  const [updateBookingStatus] = useUpdateBookingStatusMutation()
+  const [completeBooking] = useCompleteBookingMutation()
+  const [cancelBooking] = useCancelBookingMutation()
 
   const bookings = bookingsData?.data?.bookings || []
 
@@ -47,8 +48,16 @@ const EnhancedStudioBookings = () => {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
-      await updateBookingStatus({ id: bookingId, status: newStatus }).unwrap()
-      toast.success(`Booking ${newStatus} successfully`)
+      if (newStatus === 'completed') {
+        await completeBooking({ id: bookingId, notes: '' }).unwrap()
+        toast.success('Booking completed successfully')
+      } else if (newStatus === 'cancelled') {
+        await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
+        toast.success('Booking cancelled successfully')
+      } else {
+        toast.error('Unsupported status update')
+        return
+      }
     } catch (error) {
       toast.error(error.data?.message || 'Failed to update booking')
     }
@@ -66,16 +75,37 @@ const EnhancedStudioBookings = () => {
 
   const generateTimeSlots = () => {
     const slots = []
+    // Generate 30-minute slots from 9 AM to 9 PM
     for (let hour = 9; hour <= 21; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`)
+      if (hour < 21) { // Don't add :30 for the last hour
+        slots.push(`${hour.toString().padStart(2, '0')}:30`)
+      }
     }
     return slots
   }
 
   const getBookingForTimeSlot = (timeSlot) => {
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number)
+    
     return filteredBookings.find(booking => {
-      const bookingTime = new Date(booking.start).toTimeString().slice(0, 5)
-      return bookingTime === timeSlot
+      const bookingStart = new Date(booking.start)
+      const bookingEnd = new Date(booking.end)
+      
+      // Create a time object for the slot (using selected date)
+      const slotTime = new Date(selectedDate)
+      slotTime.setHours(slotHour, slotMinute, 0, 0)
+      
+      // Check if the slot time falls within the booking duration
+      return slotTime >= bookingStart && slotTime < bookingEnd
+    })
+  }
+
+  // Get all bookings for the selected date (for better calendar display)
+  const getDayBookings = () => {
+    return filteredBookings.filter(booking => {
+      const bookingDate = new Date(booking.start)
+      return bookingDate.toDateString() === selectedDate.toDateString()
     })
   }
 
@@ -247,6 +277,50 @@ const EnhancedStudioBookings = () => {
                 </motion.div>
               )
             })}
+          </div>
+          
+          {/* All Bookings for Selected Date */}
+          <div className="mt-8">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              All Bookings for {selectedDate.toLocaleDateString()}
+            </h4>
+            {getDayBookings().length > 0 ? (
+              <div className="space-y-3">
+                {getDayBookings().map(booking => (
+                  <motion.div
+                    key={booking._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => (setSelectedBooking(booking), setShowDetails(true))}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{booking.client?.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{booking.service?.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {new Date(booking.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                        {new Date(booking.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                        {booking.status}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No bookings scheduled for this date</p>
+              </div>
+            )}
           </div>
         </Card>
       )}

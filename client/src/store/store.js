@@ -18,6 +18,7 @@ import { equipmentApi } from './equipmentApi'
 import { serviceApi } from './serviceApi'
 import { notificationApi } from './notificationApi'
 import { ticketApi } from './ticketApi'
+import { revenueApi } from './revenueApi'
 
 export const store = configureStore({
   reducer: {
@@ -35,6 +36,7 @@ export const store = configureStore({
     [serviceApi.reducerPath]: serviceApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [ticketApi.reducerPath]: ticketApi.reducer,
+    [revenueApi.reducerPath]: revenueApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -53,6 +55,7 @@ export const store = configureStore({
       serviceApi.middleware,
       notificationApi.middleware,
       ticketApi.middleware,
+      revenueApi.middleware,
     ),
   devTools: process.env.NODE_ENV !== 'production',
 })

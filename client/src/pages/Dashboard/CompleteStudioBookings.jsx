@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
-import { useGetMyBookingsQuery, useUpdateBookingStatusMutation } from '../../store/bookingApi'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
 import { useGetStudioQuery } from '../../store/studioApi'
 
 const CompleteStudioBookings = () => {
@@ -26,8 +26,8 @@ const CompleteStudioBookings = () => {
     limit: 50,
     status: filterStatus !== 'all' ? filterStatus : undefined
   })
-  
-  const [updateBookingStatus] = useUpdateBookingStatusMutation()
+  const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
+  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
 
   const bookings = bookingsData?.data?.bookings || []
 
@@ -42,11 +42,21 @@ const CompleteStudioBookings = () => {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
-      await updateBookingStatus({ id: bookingId, status: newStatus }).unwrap()
-      toast.success(`Booking ${newStatus}!`)
+      if (newStatus === 'completed') {
+        await completeBooking({ id: bookingId, notes: '' }).unwrap()
+        toast.success('Booking completed!')
+      } else if (newStatus === 'cancelled') {
+        await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
+        toast.success('Booking cancelled!')
+      } else {
+        toast.error('Unsupported status update')
+        return
+      }
       refetch()
     } catch (error) {
-      toast.error('Failed to update booking status')
+      console.error('Booking update error:', error)
+      const errorMessage = error.data?.message || error.message || 'Failed to update booking status'
+      toast.error(errorMessage)
     }
   }
 

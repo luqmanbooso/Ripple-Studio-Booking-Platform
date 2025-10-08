@@ -3,6 +3,7 @@ const Studio = require("../models/Studio");
 const Payout = require("../models/Payout");
 const Notification = require("../models/Notification");
 const paymentService = require("./paymentService");
+const RevenueService = require("./revenueService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
 const logger = require("../utils/logger");
 
@@ -121,6 +122,22 @@ const confirmBooking = async (booking, paymentId) => {
     booking.status = "confirmed";
     booking.payherePaymentId = paymentId;
     await booking.save();
+
+    // Create revenue record from confirmed booking
+    try {
+      const paymentDetails = {
+        paymentId: paymentId,
+        paymentMethod: 'card', // Default to card, can be enhanced later
+        paymentDate: new Date(),
+        currency: booking.currency || 'LKR'
+      };
+
+      const revenue = await RevenueService.createRevenueFromBooking(booking, paymentDetails);
+      logger.info(`Revenue record created for booking: ${booking._id}, revenue: ${revenue._id}`);
+    } catch (revenueError) {
+      logger.error("Error creating revenue record:", revenueError);
+      // Don't fail the booking confirmation if revenue creation fails
+    }
 
     // Create notifications
     const providerType = booking.artist ? "artist" : "studio";
