@@ -19,8 +19,6 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 
 import Button from '../components/ui/Button'
-import Input from '../components/ui/Input'
-import Textarea from '../components/ui/Textarea'
 import Card from '../components/ui/Card'
 
 const contactSchema = z.object({
@@ -60,42 +58,43 @@ const Contact = () => {
   const contactInfo = [
     {
       icon: Mail,
-      title: 'Email Us',
-      info: 'support@musicbooking.io',
-      description: 'Send us an email anytime',
-      action: 'mailto:support@musicbooking.io'
+      title: 'Email Support',
+      info: 'support@ripple.studio',
+      description: 'Get help with bookings & technical issues',
+      action: 'mailto:support@ripple.studio'
     },
     {
       icon: Phone,
-      title: 'Call Us',
-      info: '+1 (555) 123-4567',
-      description: 'Mon-Fri 9AM-6PM EST',
-      action: 'tel:+15551234567'
+      title: 'Studio Hotline',
+      info: '+1 (615) 555-WAVE',
+      description: 'Mon-Fri 9AM-8PM EST',
+      action: 'tel:+16155559283'
     },
     {
       icon: MapPin,
-      title: 'Visit Us',
-      info: '123 Music Street, Nashville, TN',
-      description: 'Our headquarters',
+      title: 'Nashville HQ',
+      info: '1200 Music Row, Nashville, TN 37212',
+      description: 'Heart of Music City',
       action: '#'
     },
     {
       icon: MessageSquare,
-      title: 'Live Chat',
-      info: 'Chat with support',
-      description: 'Available 24/7',
+      title: 'Live Support',
+      info: 'Chat with our team',
+      description: 'Available during business hours',
       action: '#'
     }
   ]
 
   const inquiryTypes = [
     { value: '', label: 'Select inquiry type' },
-    { value: 'general', label: 'General Question' },
-    { value: 'technical', label: 'Technical Support' },
-    { value: 'billing', label: 'Billing & Payments' },
-    { value: 'partnership', label: 'Partnership Inquiry' },
+    { value: 'booking', label: 'Booking Support' },
+    { value: 'technical', label: 'Technical Issues' },
+    { value: 'billing', label: 'Payments & Billing' },
+    { value: 'studio', label: 'Studio Partnership' },
+    { value: 'artist', label: 'Artist Support' },
     { value: 'press', label: 'Press & Media' },
-    { value: 'feedback', label: 'Feedback & Suggestions' }
+    { value: 'feedback', label: 'Platform Feedback' }
   ]
 
   const socialLinks = [
@@ -107,16 +106,16 @@ const Contact = () => {
 
   const faqs = [
     {
-      question: 'How quickly do you respond to inquiries?',
-      answer: 'We typically respond to all inquiries within 24 hours during business days.'
+      question: 'How quickly do you respond to booking issues?',
+      answer: 'We respond to booking-related inquiries within 2 hours during business hours, and within 24 hours on weekends.'
     },
     {
-      question: 'Can I schedule a demo of the platform?',
-      answer: 'Yes! Contact our sales team to schedule a personalized demo of our platform.'
+      question: 'Can I get help choosing the right studio?',
+      answer: 'Absolutely! Our team can help match you with studios based on your genre, budget, and specific recording needs.'
     },
     {
-      question: 'Do you offer phone support?',
-      answer: 'Phone support is available for Pro and Enterprise customers during business hours.'
+      question: 'What if I need to cancel or reschedule my booking?',
+      answer: 'Contact us immediately. Cancellation policies vary by studio, but we\'ll work with you and the studio to find the best solution.'
     }
   ]
 
@@ -135,8 +134,8 @@ const Contact = () => {
               Get in Touch
             </h1>
             <p className="text-xl md:text-2xl text-light-textSecondary dark:text-gray-300 leading-relaxed">
-              Have a question, need support, or want to partner with us? 
-              We'd love to hear from you.
+              Need help with a booking, have questions about our studios, or want to partner with us? 
+              Our team is here to help you make great music.
             </p>
           </motion.div>
         </div>
@@ -198,24 +197,39 @@ const Contact = () => {
                   Send us a message
                 </h2>
                 <p className="text-light-textSecondary dark:text-gray-400 mb-8">
-                  Fill out the form below and we'll get back to you as soon as possible.
+                  Tell us how we can help with your recording needs, and we'll get back to you within 24 hours.
                 </p>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
-                    <Input
-                      label="Your Name"
-                      placeholder="John Doe"
-                      error={errors.name?.message}
-                      {...register('name')}
-                    />
-                    <Input
-                      label="Email Address"
-                      type="email"
-                      placeholder="john@example.com"
-                      error={errors.email?.message}
-                      {...register('email')}
-                    />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-light-text dark:text-gray-300">
+                        Your Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register('name')}
+                      />
+                      {errors.name && (
+                        <p className="text-sm text-red-400">{errors.name.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-light-text dark:text-gray-300">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="john@example.com"
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register('email')}
+                      />
+                      {errors.email && (
+                        <p className="text-sm text-red-400">{errors.email.message}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
@@ -223,35 +237,57 @@ const Contact = () => {
                       <label className="block text-sm font-medium text-light-text dark:text-gray-300">
                         Inquiry Type
                       </label>
-                      <select
-                        className="input-field w-full"
-                        {...register('type')}
-                      >
-                        {inquiryTypes.map((type) => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10"
+                          {...register('type')}
+                        >
+                          {inquiryTypes.map((type) => (
+                            <option key={type.value} value={type.value} className="bg-gray-700 text-white">
+                              {type.label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                       {errors.type && (
                         <p className="text-sm text-red-400">{errors.type.message}</p>
                       )}
                     </div>
-                    <Input
-                      label="Subject"
-                      placeholder="How can we help?"
-                      error={errors.subject?.message}
-                      {...register('subject')}
-                    />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-light-text dark:text-gray-300">
+                        Subject
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="How can we help?"
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register('subject')}
+                      />
+                      {errors.subject && (
+                        <p className="text-sm text-red-400">{errors.subject.message}</p>
+                      )}
+                    </div>
                   </div>
 
-                  <Textarea
-                    label="Message"
-                    placeholder="Tell us more about your inquiry..."
-                    rows={6}
-                    error={errors.message?.message}
-                    {...register('message')}
-                  />
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-light-text dark:text-gray-300">
+                      Message
+                    </label>
+                    <textarea
+                      rows={6}
+                      placeholder="Tell us more about your inquiry..."
+                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                      {...register('message')}
+                    />
+                    {errors.message && (
+                      <p className="text-sm text-red-400">{errors.message.message}</p>
+                    )}
+                  </div>
 
                   <Button
                     type="submit"
@@ -301,13 +337,13 @@ const Contact = () => {
                   <h3 className="text-xl font-semibold text-gray-100">Global Presence</h3>
                 </div>
                 <p className="text-gray-400 mb-4">
-                  While our headquarters are in Nashville, we serve musicians worldwide across 150+ countries.
+                  Based in Music City, we connect artists with premium recording studios across major music markets worldwide.
                 </p>
                 <div className="space-y-2 text-sm text-gray-400">
-                  <div>🇺🇸 Nashville, TN (HQ)</div>
-                  <div>🇬🇧 London, UK</div>
-                  <div>🇩🇪 Berlin, Germany</div>
-                  <div>🇯🇵 Tokyo, Japan</div>
+                  <div>🎵 Nashville, TN (Headquarters)</div>
+                  <div>🎸 Los Angeles, CA</div>
+                  <div>🎤 New York, NY</div>
+                  <div>🥁 London, UK</div>
                 </div>
               </Card>
 
@@ -317,7 +353,7 @@ const Contact = () => {
                   Follow Us
                 </h3>
                 <p className="text-gray-400 mb-6">
-                  Stay connected for the latest updates and music industry insights.
+                  Follow us for studio spotlights, artist features, and platform updates.
                 </p>
                 <div className="flex space-x-4">
                   {socialLinks.map((social) => {
@@ -369,15 +405,18 @@ const Contact = () => {
             className="text-center"
           >
             <h2 className="text-3xl font-bold gradient-text mb-8">
-              Find Us
+              Visit Our Nashville HQ
             </h2>
             <Card className="p-8">
-              <div className="h-64 bg-gray-700 rounded-lg flex items-center justify-center">
+              <div className="h-64 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
                 <div className="text-center">
-                  <MapPin className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400">Interactive map coming soon</p>
+                  <MapPin className="w-16 h-16 text-primary-400 mx-auto mb-4" />
+                  <p className="text-gray-300 text-lg font-medium">Ripple Studios</p>
+                  <p className="text-gray-400 mt-2">
+                    1200 Music Row, Nashville, TN 37212
+                  </p>
                   <p className="text-gray-500 text-sm mt-2">
-                    123 Music Street, Nashville, TN 37203
+                    In the heart of Music City's creative district
                   </p>
                 </div>
               </div>

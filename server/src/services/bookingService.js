@@ -1,4 +1,5 @@
 const Booking = require("../models/Booking");
+const Payment = require("../models/Payment");
 const Studio = require("../models/Studio");
 const Payout = require("../models/Payout");
 const Notification = require("../models/Notification");
@@ -58,9 +59,10 @@ const completeBooking = async (booking, notes = "") => {
  * Cancel a booking
  * @param {object} booking - Booking object
  * @param {string} reason - Cancellation reason
+ * @param {object} cancelledBy - User who cancelled (for audit)
  * @returns {Promise<object>} - Updated booking
  */
-const cancelBooking = async (booking, reason = "") => {
+const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
   try {
     const refundAmount = booking.getRefundAmount();
 
@@ -70,16 +72,34 @@ const cancelBooking = async (booking, reason = "") => {
     booking.refundAmount = refundAmount;
     await booking.save();
 
+    // Find associated payment record
+    const payment = await Payment.findOne({
+      booking: booking._id,
+      status: 'Completed'
+    });
+
     // Process refund if applicable
-    if (refundAmount > 0 && booking.payherePaymentId) {
+    if (refundAmount > 0 && booking.payherePaymentId && payment) {
       try {
+        // Update payment record with refund status
+        payment.processRefund(
+          refundAmount,
+          reason || 'Booking cancelled',
+          cancelledBy
+        );
+        await payment.save();
+
+        // Call PayHere refund API (manual processing required)
         await paymentService.refundPayment(
           booking.payherePaymentId,
           refundAmount
         );
+        
         booking.status = "refunded";
         booking.refundedAt = new Date();
         await booking.save();
+
+        logger.info(`Payment record ${payment._id} marked as Refunded`);
       } catch (refundError) {
         logger.error("Refund failed:", refundError);
         // Keep booking as cancelled even if refund fails
@@ -93,7 +113,7 @@ const cancelBooking = async (booking, reason = "") => {
 
     await createNotification(booking.client, "booking_cancelled", {
       title: "Booking Cancelled",
-      message: `Your booking has been cancelled. ${refundAmount > 0 ? `Refund amount: $${refundAmount}` : ""}`,
+      message: `Your booking has been cancelled. ${refundAmount > 0 ? `Refund amount: LKR ${refundAmount}` : ""}`,
       bookingId: booking._id,
     });
 
@@ -103,7 +123,7 @@ const cancelBooking = async (booking, reason = "") => {
       bookingId: booking._id,
     });
 
-    logger.info(`Booking cancelled: ${booking._id}, Refund: $${refundAmount}`);
+    logger.info(`Booking cancelled: ${booking._id}, Refund: LKR ${refundAmount}`);
     return booking;
   } catch (error) {
     logger.error("Error cancelling booking:", error);

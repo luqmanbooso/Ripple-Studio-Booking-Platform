@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const logger = require("../utils/logger");
+const Payment = require("../models/Payment");
 
 /**
  * Create MD5 hash
@@ -93,6 +94,15 @@ const createCheckoutSession = async (booking) => {
     booking.payhereOrderId = orderId;
     booking.payherePaymentData = checkoutData;
     await booking.save();
+
+    // Create payment record for tracking
+    try {
+      await Payment.createFromBooking(booking, orderId);
+      logger.info(`Payment record created for booking: ${booking._id}`);
+    } catch (error) {
+      logger.error(`Failed to create payment record:`, error);
+      // Don't fail the checkout process if payment record creation fails
+    }
 
     logger.info(
       `PayHere checkout session created: ${orderId} for booking: ${booking._id}`

@@ -16,6 +16,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Spinner from "../components/ui/Spinner";
 import PayHereGateway from "../components/common/PayHereGateway";
+import PayHereCheckout from "../components/payment/PayHereCheckout";
 import ReservationTimer from "../components/common/ReservationTimer";
 
 const Checkout = () => {
@@ -31,6 +32,7 @@ const Checkout = () => {
   const [checkoutUrl, setCheckoutUrl] = useState(null);
   const [checkoutData, setCheckoutData] = useState(null);
   const [hasError, setHasError] = useState(false);
+  const [useNewPayment, setUseNewPayment] = useState(true); // Toggle between old and new payment flow
 
   useEffect(() => {
     const bookingData = location.state?.booking;
@@ -184,19 +186,67 @@ const Checkout = () => {
     );
   }
 
+  const handlePaymentSuccess = (orderId) => {
+    navigate(`/payment-success?order_id=${orderId}&booking_id=${booking._id}`);
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Payment error:', error);
+    toast.error('Payment failed. Please try again.');
+  };
+
+  const handlePaymentCancel = () => {
+    navigate(`/payment-cancel?booking_id=${booking._id}&order_id=${paymentData?.checkoutData?.order_id}`);
+  };
+
   return (
     <>
       <ReservationTimer 
         booking={booking} 
         onExpired={handleReservationExpired}
       />
-      <PayHereGateway
-        booking={booking}
-        checkoutData={paymentData?.checkoutData}
-        onBack={handleBack}
-        onRetry={handleRetry}
-        isLoading={isLoading}
-      />
+      
+      {useNewPayment && paymentData?.checkoutData ? (
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Payment</h1>
+                <p className="text-gray-600">Secure payment powered by PayHere</p>
+              </div>
+              
+              {/* Payment Component */}
+              <PayHereCheckout
+                checkoutData={paymentData.checkoutData}
+                bookingId={booking._id}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+                onCancel={handlePaymentCancel}
+              />
+              
+              {/* Back Button */}
+              <div className="text-center mt-8">
+                <button
+                  onClick={handleBack}
+                  className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-700 font-medium"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back to Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <PayHereGateway
+          booking={booking}
+          checkoutData={paymentData?.checkoutData}
+          onBack={handleBack}
+          onRetry={handleRetry}
+          isLoading={isLoading}
+        />
+      )}
     </>
   );
 };

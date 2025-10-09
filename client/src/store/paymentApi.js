@@ -37,24 +37,92 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const paymentApi = createApi({
   reducerPath: 'paymentApi',
   baseQuery: baseQueryWithReauth,
+  tagTypes: ['Payment', 'MyPayments'],
   endpoints: (builder) => ({
+    // Checkout session creation
     createCheckoutSession: builder.mutation({
       query: (data) => ({
         url: '/create-checkout-session',
         method: 'POST',
         body: data,
       }),
+      invalidatesTags: ['MyPayments'],
     }),
+
+    // Test endpoint to create sample payment (development only)
+    createTestPayment: builder.mutation({
+      query: () => ({
+        url: '/create-test-payment',
+        method: 'POST',
+      }),
+      invalidatesTags: ['MyPayments'],
+    }),
+    
+    // Get user's payment history
+    getMyPayments: builder.query({
+      query: ({ page = 1, limit = 10, status } = {}) => ({
+        url: '/my-payments',
+        params: { page, limit, status },
+      }),
+      providesTags: ['MyPayments'],
+    }),
+    
+    // Get payments for a specific booking
+    getBookingPayments: builder.query({
+      query: (bookingId) => `/booking/${bookingId}/payments`,
+      providesTags: (result, error, bookingId) => [
+        { type: 'Payment', id: bookingId },
+      ],
+    }),
+    
+    // Get single payment details
+    getPayment: builder.query({
+      query: (paymentId) => `/${paymentId}`,
+      providesTags: (result, error, paymentId) => [
+        { type: 'Payment', id: paymentId },
+      ],
+    }),
+    
+    // Admin: Get all payments
+    getAllPayments: builder.query({
+      query: ({ page = 1, limit = 20, status, search } = {}) => ({
+        url: '/admin/all',
+        params: { page, limit, status, search },
+      }),
+      providesTags: ['Payment'],
+    }),
+    
+    // Initiate refund
+    initiateRefund: builder.mutation({
+      query: ({ paymentId, amount, reason }) => ({
+        url: `/${paymentId}/refund`,
+        method: 'POST',
+        body: { amount, reason },
+      }),
+      invalidatesTags: (result, error, { paymentId }) => [
+        { type: 'Payment', id: paymentId },
+        'MyPayments',
+      ],
+    }),
+    
+    // Legacy refund endpoint
     refundBooking: builder.mutation({
       query: (bookingId) => ({
         url: `/refund/${bookingId}`,
         method: 'POST',
       }),
+      invalidatesTags: ['MyPayments'],
     }),
   }),
 })
 
 export const {
   useCreateCheckoutSessionMutation,
+  useCreateTestPaymentMutation,
+  useGetMyPaymentsQuery,
+  useGetBookingPaymentsQuery,
+  useGetPaymentQuery,
+  useGetAllPaymentsQuery,
+  useInitiateRefundMutation,
   useRefundBookingMutation,
 } = paymentApi

@@ -18,6 +18,8 @@ import StudioProfile from "./pages/StudioProfile";
 import NewBooking from "./pages/NewBooking";
 import Checkout from "./pages/Checkout";
 import BookingSuccess from "./pages/BookingSuccess";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Community from "./pages/Community";
 import Pricing from "./pages/Pricing";
 import Blog from "./pages/Blog";
@@ -264,6 +266,22 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/payment-success"
+              element={
+                <ProtectedRoute>
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment-cancel"
+              element={
+                <ProtectedRoute>
+                  <PaymentCancel />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Dashboard routes */}
             <Route
@@ -384,7 +402,7 @@ function App() {
               path="/spending-history"
               element={
                 <ProtectedRoute allowedRoles={["client"]}>
-                  <ClientSpending />
+                  <PaymentHistory />
                 </ProtectedRoute>
               }
             />
