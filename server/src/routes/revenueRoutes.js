@@ -55,6 +55,22 @@ const querySchema = {
   })
 };
 
+const payoutQuerySchema = {
+  query: z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(10),
+    status: z.enum(['requested', 'approved', 'processing', 'completed', 'failed']).optional()
+  })
+};
+
+const platformQuerySchema = {
+  query: z.object({
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    studioId: objectId.optional()
+  })
+};
+
 // ==================== STUDIO ROUTES ====================
 
 // Get studio revenue dashboard
@@ -104,7 +120,7 @@ router.get('/client/export',
 router.get('/admin/platform', 
   authenticate, 
   allowRoles('admin'),
-  validate(querySchema),
+  validate(platformQuerySchema),
   revenueController.getPlatformRevenue
 );
 
@@ -112,7 +128,7 @@ router.get('/admin/platform',
 router.get('/admin/payouts', 
   authenticate, 
   allowRoles('admin'),
-  validate(querySchema),
+  validate(payoutQuerySchema),
   revenueController.getAllPayoutRequests
 );
 

@@ -28,21 +28,17 @@ const AdminRevenueManagement = () => {
   const [selectedPayout, setSelectedPayout] = useState(null)
   const [showPayoutModal, setShowPayoutModal] = useState(false)
 
-  // Platform revenue query - temporarily disabled to prevent 400 errors
+  // Platform revenue query
   const { data: platformData, isLoading: platformLoading, refetch } = useGetPlatformRevenueQuery({
     startDate: getStartDate(),
     endDate: new Date().toISOString()
-  }, {
-    skip: true // Temporarily skip the query to prevent 400 errors
   })
 
-  // Payout requests query - temporarily disabled to prevent 400 errors
+  // Payout requests query
   const { data: payoutData, isLoading: payoutLoading } = useGetAllPayoutRequestsQuery({
     status: payoutStatus,
     page: 1,
     limit: 20
-  }, {
-    skip: true // Temporarily skip the query to prevent 400 errors
   })
 
   // Mutations
@@ -151,23 +147,13 @@ const AdminRevenueManagement = () => {
           </div>
         </div>
 
-        {/* Demo Message */}
-        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/20 text-center">
-          <div className="flex flex-col items-center space-y-4">
-            <DollarSign className="w-12 h-12 text-blue-400" />
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">Admin Revenue Management Demo</h3>
-              <p className="text-gray-300 mb-4">
-                This is the Admin Revenue Management Dashboard. To see live data, the platform needs active studios with confirmed bookings. 
-                Currently showing the interface with demo functionality.
-              </p>
-              <p className="text-sm text-gray-400">
-                Note: Revenue queries are temporarily disabled to prevent API errors. Enable them when you have proper test data.
-              </p>
-            </div>
+        {/* Loading State */}
+        {platformLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" />
           </div>
-        </Card>
-
+        ) : (
+          <>
         {/* Platform Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="p-6 bg-gradient-to-br from-blue-500/20 to-blue-600/20 border-blue-500/30">
@@ -404,6 +390,9 @@ const AdminRevenueManagement = () => {
         onProcess={handleProcessPayout}
         loading={processLoading}
       />
+          </>
+        )}
+        </div>
       </div>
     </div>
   )
