@@ -95,7 +95,7 @@ const register = catchAsync(async (req, res) => {
         description: studio?.description || '',
         studioType: studio?.studioType || 'Recording',
         hourlyRate: studio?.hourlyRate || 0,
-        capacity: studio?.capacity || 0,
+        capacity: studio?.capacity || 1,
         location: { 
           country: 'Sri Lanka',
           city: city,
@@ -109,13 +109,10 @@ const register = catchAsync(async (req, res) => {
         isApproved: false
       };
       
-      console.log('Creating studio with data:', studioData);
       const studioProfile = await Studio.create(studioData);
-      console.log('Studio created successfully:', studioProfile._id);
       
       user.studio = studioProfile._id;
       await user.save();
-      console.log('User updated with studio reference');
 
       // Notify admin about new studio registration
       try {
