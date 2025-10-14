@@ -93,7 +93,6 @@ import { store } from "./store/store";
 
 // Providers
 import NotificationProvider from "./providers/NotificationProvider";
-import AuthenticationStatus from "./components/common/AuthenticationStatus";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 function App() {
@@ -204,9 +203,6 @@ function App() {
       {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
       {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
       
-      {/* Authentication Status */}
-      <AuthenticationStatus />
-
       {/* Conditional Navbar */}
       {isAdminRoute ? (
         <AdminNavbar />
