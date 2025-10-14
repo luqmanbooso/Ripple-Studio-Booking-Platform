@@ -22,13 +22,27 @@ class RevenueService {
       // Calculate breakdown from booking
       const breakdown = await this.calculateRevenueBreakdown(booking);
       
+      // Calculate required financial fields manually (don't rely on pre-save middleware)
+      const slotsTotal = breakdown.slots.amount || 0;
+      const servicesTotal = breakdown.services.reduce((sum, service) => sum + service.amount, 0);
+      const equipmentTotal = breakdown.equipment.reduce((sum, equipment) => sum + equipment.amount, 0);
+      const addOnsTotal = breakdown.addOns.reduce((sum, addOn) => sum + addOn.amount, 0);
+      const subtotal = slotsTotal + servicesTotal + equipmentTotal + addOnsTotal;
+      const platformCommission = subtotal * platformCommissionRate;
+      const studioEarnings = subtotal - platformCommission;
+      
       // Create revenue record
       const revenue = new Revenue({
         bookingId: booking._id,
         studio: booking.studio,
         client: booking.client,
         breakdown,
+        subtotal,
         platformCommissionRate: parseFloat(platformCommissionRate),
+        platformCommission,
+        studioEarnings,
+        totalAmount: subtotal,
+        invoices: [], // Initialize empty invoices array
         paymentDetails: {
           paymentId: paymentDetails.paymentId,
           paymentMethod: paymentDetails.paymentMethod || 'card',

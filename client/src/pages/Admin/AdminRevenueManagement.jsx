@@ -125,24 +125,6 @@ const AdminRevenueManagement = () => {
   const payoutRequests = payoutData?.data?.payouts || []
   const recentRevenues = platformData?.data?.recentRevenues || []
 
-  // Debug logging
-  console.log('=== AdminRevenueManagement Debug ===')
-  console.log('Platform Loading:', platformLoading)
-  console.log('Platform Error:', platformError)
-  console.log('Platform Data:', platformData)
-  console.log('Platform Success:', platformSuccess)
-  console.log('Platform Fetching:', platformFetching)
-  console.log('Platform Uninitialized:', platformUninitialized)
-  console.log('Payout Loading:', payoutLoading)
-  console.log('Payout Error:', payoutError)
-  console.log('User:', user)
-  console.log('Auth Token:', token ? 'Present' : 'Missing')
-  console.log('Token length:', token ? token.length : 0)
-  console.log('Query params:', { 
-    startDate: getStartDate, 
-    endDate: getEndDate 
-  })
-
   // Show loading state only if no token or initial loading with no data yet  
   if (!token) {
     return (
@@ -270,34 +252,6 @@ const AdminRevenueManagement = () => {
             </div>
           </div>
 
-          {/* Debug Information - Always Visible */}
-          <Card className="p-6 bg-blue-500/10 border-blue-500/20">
-            <h3 className="text-lg font-bold text-white mb-4">🔍 Debug Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <h4 className="text-white font-semibold mb-2">API Status</h4>
-                <p className="text-gray-300">Platform Loading: {platformLoading ? '⏳ Yes' : '✅ No'}</p>
-                <p className="text-gray-300">Platform Error: {platformError ? `❌ ${platformError.status}` : '✅ No error'}</p>
-                <p className="text-gray-300">Payout Loading: {payoutLoading ? '⏳ Yes' : '✅ No'}</p>
-                <p className="text-gray-300">Payout Error: {payoutError ? `❌ ${payoutError.status}` : '✅ No error'}</p>
-              </div>
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <h4 className="text-white font-semibold mb-2">Data Status</h4>
-                <p className="text-gray-300">Platform Data: {platformData ? '✅ Loaded' : '❌ No data'}</p>
-                <p className="text-gray-300">Payout Data: {payoutData ? '✅ Loaded' : '❌ No data'}</p>
-                <p className="text-gray-300">Statistics: {Object.keys(statistics).length} keys</p>
-                <p className="text-gray-300">Timestamp: {new Date().toLocaleTimeString()}</p>
-              </div>
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <h4 className="text-white font-semibold mb-2">User Info</h4>
-                <p className="text-gray-300">User: {user?.name || 'Unknown'}</p>
-                <p className="text-gray-300">Role: {user?.role || 'Unknown'}</p>
-                <p className="text-gray-300">User ID: {user?._id || 'N/A'}</p>
-                <p className="text-gray-300">Component: AdminRevenueManagement</p>
-              </div>
-            </div>
-          </Card>
-
           {/* Platform Revenue Statistics - 3% Commission Focus */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <motion.div
@@ -310,7 +264,7 @@ const AdminRevenueManagement = () => {
                   <div>
                     <p className="text-gray-400 text-sm">Total Platform Revenue (3%)</p>
                     <p className="text-2xl font-bold text-white">
-                      LKR {(statistics.totalPlatformRevenue || 0).toLocaleString()}
+                      LKR {(statistics.totalCommission || 0).toLocaleString()}
                     </p>
                     <p className="text-green-400 text-xs mt-1">
                       +{statistics.revenueGrowth || 0}% from last period
@@ -333,7 +287,7 @@ const AdminRevenueManagement = () => {
                   <div>
                     <p className="text-gray-400 text-sm">Total Booking Value</p>
                     <p className="text-2xl font-bold text-white">
-                      LKR {(statistics.totalBookingValue || 0).toLocaleString()}
+                      LKR {(statistics.totalRevenue || 0).toLocaleString()}
                     </p>
                     <p className="text-blue-400 text-xs mt-1">
                       97% paid to studios

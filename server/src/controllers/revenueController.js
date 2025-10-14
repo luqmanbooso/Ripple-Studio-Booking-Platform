@@ -4,6 +4,7 @@ const Studio = require('../models/Studio');
 const RevenueService = require('../services/revenueService');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const logger = require('../utils/logger');
 
 // ==================== STUDIO REVENUE ENDPOINTS ====================
 
@@ -328,8 +329,18 @@ const getPlatformRevenue = catchAsync(async (req, res) => {
   if (studioId) filter.studio = studioId;
   if (startDate || endDate) {
     filter.createdAt = {};
-    if (startDate) filter.createdAt.$gte = new Date(startDate);
-    if (endDate) filter.createdAt.$lte = new Date(endDate);
+    if (startDate) {
+      // Set start of day for startDate
+      const start = new Date(startDate);
+      start.setUTCHours(0, 0, 0, 0);
+      filter.createdAt.$gte = start;
+    }
+    if (endDate) {
+      // Set end of day for endDate to include all records created on that date
+      const end = new Date(endDate);
+      end.setUTCHours(23, 59, 59, 999);
+      filter.createdAt.$lte = end;
+    }
   }
 
   // Get comprehensive statistics
@@ -429,13 +440,21 @@ const updateCommissionRate = catchAsync(async (req, res) => {
     throw new ApiError('Commission rate must be between 0 and 1', 400);
   }
 
-  // Update environment variable or database setting
+  // Update environment variable (this will be used for new revenue calculations)
   process.env.PLATFORM_COMMISSION_RATE = rate.toString();
+
+  // You could also store this in a database settings table for persistence
+  // For now, we'll use environment variable approach
+  
+  logger.info(`Platform commission rate updated to ${(rate * 100).toFixed(1)}% by admin`);
 
   res.json({
     status: 'success',
-    message: 'Commission rate updated successfully',
-    data: { newRate: rate }
+    message: `Commission rate updated to ${(rate * 100).toFixed(1)}%`,
+    data: { 
+      newRate: rate,
+      newRatePercentage: (rate * 100).toFixed(1)
+    }
   });
 });
 
