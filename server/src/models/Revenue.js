@@ -45,7 +45,7 @@ const revenueSchema = new mongoose.Schema({
   platformCommissionRate: {
     type: Number,
     required: true,
-    default: 0.10, // 10% default commission
+    default: 0.03, // 3% default commission for platform
     min: 0,
     max: 1
   },

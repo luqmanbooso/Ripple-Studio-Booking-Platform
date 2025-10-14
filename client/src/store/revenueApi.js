@@ -1,7 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { setCredentials, logout } from './authSlice'
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api/revenue',
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token
     if (token) {
@@ -12,13 +14,33 @@ const baseQuery = fetchBaseQuery({
 })
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
+  console.log('RevenueAPI: Making request', args)
   let result = await baseQuery(args, api, extraOptions)
+  console.log('RevenueAPI: Initial result', result)
   
   if (result.error && result.error.status === 401) {
-    // Handle token refresh or logout
-    api.dispatch({ type: 'auth/logout' })
+    console.log('RevenueAPI: 401 error, attempting token refresh')
+    try {
+      const refreshRes = await fetch('/api/auth/refresh', { method: 'GET', credentials: 'include' })
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json()
+        const newToken = refreshData.data.accessToken
+        const user = api.getState().auth.user
+        console.log('RevenueAPI: Token refreshed, retrying request')
+        api.dispatch(setCredentials({ user, token: newToken }))
+        result = await baseQuery(args, api, extraOptions)
+        console.log('RevenueAPI: Retry result', result)
+      } else {
+        console.log('RevenueAPI: Token refresh failed, logging out')
+        api.dispatch(logout())
+      }
+    } catch (err) {
+      console.log('RevenueAPI: Token refresh error', err)
+      api.dispatch(logout())
+    }
   }
   
+  console.log('RevenueAPI: Final result', result)
   return result
 }
 

@@ -8,6 +8,7 @@ const paymentRoutes = require("./paymentRoutes");
 const adminRoutes = require("./adminRoutes");
 const uploadRoutes = require("./uploadRoutes");
 const feedbackRoutes = require("./feedbackRoutes");
+const revenueRoutes = require("./revenueRoutes");
 
 const payhereWebhook = require("../webhooks/payhereWebhook");
 
@@ -28,6 +29,7 @@ router.use("/payments", paymentRoutes);
 router.use("/admin", adminRoutes);
 router.use("/upload", uploadRoutes);
 router.use("/feedback", feedbackRoutes);
+router.use("/revenue", revenueRoutes);
 
 router.use("/webhook", payhereWebhook);
 
