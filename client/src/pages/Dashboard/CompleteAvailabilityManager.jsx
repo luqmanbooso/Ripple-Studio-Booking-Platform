@@ -327,6 +327,52 @@ const CompleteAvailabilityManager = () => {
     'Saturday': 6
   }
 
+  // Handle bulk slot creation for multiple selections
+  const handleBulkSlotCreation = async () => {
+    if (selectedSlots.length === 0) {
+      toast.error('No slots selected')
+      return
+    }
+
+    try {
+      const bulkSlots = []
+      
+      // Create slot data for each selected slot
+      for (const slotKey of selectedSlots) {
+        const [dateStr, timeStr] = slotKey.split('-').slice(-2)
+        const startTimeMinutes = parseInt(timeStr.split(':')[0]) * 60 + parseInt(timeStr.split(':')[1])
+        const endTimeMinutes = startTimeMinutes + 60 // 1-hour slots
+        
+        bulkSlots.push({
+          date: dateStr,
+          startTime: startTimeMinutes,
+          endTime: endTimeMinutes,
+          isRecurring: false,
+          price: parseFloat(slotForm.price) || 5000,
+          description: slotForm.description || `Available slot ${timeStr}`
+        })
+      }
+
+      // Add all slots in parallel
+      const promises = bulkSlots.map(slotData => 
+        addAvailability({ id: studioId, ...slotData }).unwrap()
+      )
+      
+      await Promise.all(promises)
+      await refetch()
+      
+      toast.success(`${selectedSlots.length} time slots added successfully!`)
+      setShowAddModal(false)
+      setSelectedSlots([])
+      setIsSelecting(false)
+      setSelectionStart(null)
+      
+    } catch (error) {
+      console.error('Failed to add bulk slots:', error)
+      toast.error('Failed to add some slots. Please try again.')
+    }
+  }
+
   // Handle add time slot
   const handleAddTimeSlot = async () => {
     try {
@@ -356,9 +402,9 @@ const CompleteAvailabilityManager = () => {
       let slotData;
       
       if (slotForm.isRecurring) {
-        // Recurring slot - use start/end times with days of week
-        const startDate = new Date(`2000-01-01T${slotForm.startTime}:00Z`)
-        const endDate = new Date(`2000-01-01T${slotForm.endTime}:00Z`)
+        // Recurring slot - use local time without timezone conversion
+        const startDate = new Date(`2000-01-01T${slotForm.startTime}:00`)
+        const endDate = new Date(`2000-01-01T${slotForm.endTime}:00`)
         
         slotData = {
           start: startDate.toISOString(),
@@ -622,7 +668,16 @@ const CompleteAvailabilityManager = () => {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add Time Slot</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {selectedSlots.length > 1 ? `Add ${selectedSlots.length} Time Slots` : 'Add Time Slot'}
+                    </h2>
+                    {selectedSlots.length > 1 && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Creating availability for {selectedSlots.length} selected slots
+                      </p>
+                    )}
+                  </div>
                   <button
                     onClick={() => {
                       setShowAddModal(false)
@@ -636,31 +691,56 @@ const CompleteAvailabilityManager = () => {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Time Range */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Start Time</label>
-                    <input
-                      type="time"
-                      value={slotForm.startTime}
-                      onChange={(e) => setSlotForm({ ...slotForm, startTime: e.target.value })}
-                      className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                {/* Show selected slots info for bulk operations */}
+                {selectedSlots.length > 1 && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Selected Time Slots:</h3>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      {selectedSlots.slice(0, 6).map((slot, index) => {
+                        const timeStr = slot.split('-').slice(-1)[0];
+                        return (
+                          <div key={index} className="bg-white dark:bg-gray-700 px-2 py-1 rounded text-center">
+                            {timeStr}
+                          </div>
+                        );
+                      })}
+                      {selectedSlots.length > 6 && (
+                        <div className="bg-white dark:bg-gray-700 px-2 py-1 rounded text-center">
+                          +{selectedSlots.length - 6} more
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">End Time</label>
-                    <input
-                      type="time"
-                      value={slotForm.endTime}
-                      onChange={(e) => setSlotForm({ ...slotForm, endTime: e.target.value })}
-                      className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+                )}
 
-                {/* Recurring */}
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
+                {/* Time Range - Only show for single slot or recurring */}
+                {(selectedSlots.length <= 1 || slotForm.isRecurring) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Start Time</label>
+                      <input
+                        type="time"
+                        value={slotForm.startTime}
+                        onChange={(e) => setSlotForm({ ...slotForm, startTime: e.target.value })}
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">End Time</label>
+                      <input
+                        type="time"
+                        value={slotForm.endTime}
+                        onChange={(e) => setSlotForm({ ...slotForm, endTime: e.target.value })}
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Recurring - Only show for single slot operations */}
+                {selectedSlots.length <= 1 && (
+                  <div>
+                    <label className="flex items-center space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={slotForm.isRecurring}
@@ -673,7 +753,8 @@ const CompleteAvailabilityManager = () => {
                     />
                     <span className="font-medium text-gray-700 dark:text-gray-300">Recurring weekly</span>
                   </label>
-                </div>
+                  </div>
+                )}
 
                 {/* Specific Date for Non-Recurring */}
                 {!slotForm.isRecurring && (
@@ -752,13 +833,23 @@ const CompleteAvailabilityManager = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleAddTimeSlot}
-                  disabled={isAdding}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isAdding ? 'Adding...' : 'Add Time Slot'}
-                </button>
+                {selectedSlots.length > 1 && !slotForm.isRecurring ? (
+                  <button
+                    onClick={handleBulkSlotCreation}
+                    disabled={isAdding}
+                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isAdding ? 'Adding...' : `Add ${selectedSlots.length} Slots`}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddTimeSlot}
+                    disabled={isAdding}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isAdding ? 'Adding...' : 'Add Time Slot'}
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

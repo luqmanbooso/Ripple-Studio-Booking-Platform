@@ -26,7 +26,7 @@ const updateReviewSchema = {
 
 const getReviewsSchema = {
   query: pagination.extend({
-    targetType: z.enum(['artist', 'studio']).optional(),
+    targetType: z.enum(['Artist', 'Studio']).optional(),
     targetId: objectId.optional()
   })
 };
