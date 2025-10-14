@@ -177,7 +177,7 @@ const AdminRevenueManagement = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Revenue Management</h1>
-                <p className="text-gray-400">Monitor 3% platform commission from bookings and manage studio payouts</p>
+                <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and manage studio payouts</p>
               </div>
             </div>
             
@@ -226,7 +226,7 @@ const AdminRevenueManagement = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Revenue Management</h1>
-              <p className="text-gray-400">Monitor 3% platform commission from bookings and manage studio payouts</p>
+              <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and manage studio payouts</p>
             </div>
             
             <div className="flex items-center space-x-4 mt-4 md:mt-0">

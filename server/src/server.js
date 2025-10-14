@@ -28,6 +28,18 @@ const revenueRoutes = require("./routes/revenueRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
+
+// Initialize platform settings from database
+const initializePlatformSettings = async () => {
+  try {
+    const Settings = require('./models/Settings');
+    const commissionRate = await Settings.getCommissionRate();
+    process.env.PLATFORM_COMMISSION_RATE = commissionRate.toString();
+    console.log(`✅ Platform commission rate loaded: ${(commissionRate * 100).toFixed(1)}%`);
+  } catch (error) {
+    console.log(`⚠️  Could not load platform settings, using defaults: ${error.message}`);
+  }
+};
 const { rateLimiter } = require("./middleware/rateLimit");
 
 // Import socket handlers
@@ -155,6 +167,10 @@ const connectDB = async (retries = 5) => {
       bufferCommands: false,
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    
+    // Initialize platform settings
+    await initializePlatformSettings();
+    
     return conn;
   } catch (error) {
     console.error(

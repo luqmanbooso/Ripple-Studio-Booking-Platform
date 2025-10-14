@@ -282,7 +282,7 @@ revenueSchema.statics.getRevenueStats = async function(filters = {}) {
   ];
   
   const result = await this.aggregate(pipeline);
-  return result[0] || {
+  const stats = result[0] || {
     totalRevenue: 0,
     totalCommission: 0,
     totalStudioEarnings: 0,
@@ -290,6 +290,12 @@ revenueSchema.statics.getRevenueStats = async function(filters = {}) {
     totalBookings: 0,
     confirmedRevenue: 0
   };
+
+  // Get current commission rate from Settings model
+  const Settings = require('./Settings');
+  stats.commissionRate = await Settings.getCommissionRate();
+  
+  return stats;
 };
 
 module.exports = mongoose.model('Revenue', revenueSchema);

@@ -1,6 +1,7 @@
 const Revenue = require('../models/Revenue');
 const Booking = require('../models/Booking');
 const Studio = require('../models/Studio');
+const Settings = require('../models/Settings');
 const RevenueService = require('../services/revenueService');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
@@ -440,11 +441,11 @@ const updateCommissionRate = catchAsync(async (req, res) => {
     throw new ApiError('Commission rate must be between 0 and 1', 400);
   }
 
-  // Update environment variable (this will be used for new revenue calculations)
+  // Store in database for persistence
+  await Settings.setCommissionRate(rate);
+  
+  // Update environment variable for immediate effect
   process.env.PLATFORM_COMMISSION_RATE = rate.toString();
-
-  // You could also store this in a database settings table for persistence
-  // For now, we'll use environment variable approach
   
   logger.info(`Platform commission rate updated to ${(rate * 100).toFixed(1)}% by admin`);
 

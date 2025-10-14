@@ -16,8 +16,9 @@ class RevenueService {
         throw new ApiError('Revenue record already exists for this booking', 400);
       }
 
-      // Get platform commission rate (default 3%)
-      const platformCommissionRate = process.env.PLATFORM_COMMISSION_RATE || 0.03;
+      // Get platform commission rate from database or fallback to environment
+      const Settings = require('../models/Settings');
+      const platformCommissionRate = await Settings.getCommissionRate();
 
       // Calculate breakdown from booking
       const breakdown = await this.calculateRevenueBreakdown(booking);
