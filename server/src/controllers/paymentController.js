@@ -10,7 +10,6 @@ const createCheckoutSession = catchAsync(async (req, res) => {
 
   const booking = await Booking.findById(bookingId).populate([
     { path: "client" },
-    { path: "artist", populate: { path: "user" } },
     { path: "studio", populate: { path: "user" } },
   ]);
 
@@ -165,7 +164,6 @@ const verifyPayherePayment = catchAsync(async (req, res) => {
 
   const booking = await Booking.findById(bookingId).populate([
     { path: "client", select: "name email" },
-    { path: "artist", populate: { path: "user", select: "name email" } },
     { path: "studio", populate: { path: "user", select: "name email" } },
   ]);
 

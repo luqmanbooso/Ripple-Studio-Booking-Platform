@@ -95,7 +95,7 @@ const CompleteAvailabilityManager = () => {
         booking,
         clickable: true,
         clientName: booking.client?.name || booking.clientName || 'Client',
-        service: booking.service || 'Session',
+        service: booking.service?.name || booking.service || 'Session',
         duration: Math.round((booking.endTime - booking.startTime) / 60),
         status: booking.status,
         notes: booking.notes
@@ -826,7 +826,7 @@ const CompleteAvailabilityManager = () => {
                     <Info className="w-5 h-5 text-blue-600 mt-0.5" />
                     <div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">Service</div>
-                      <div className="font-semibold">{selectedBooking.service}</div>
+                      <div className="font-semibold">{selectedBooking.service?.name || selectedBooking.service || 'Session'}</div>
                     </div>
                   </div>
                 )}
@@ -1013,17 +1013,17 @@ const CompleteAvailabilityManager = () => {
                   </h3>
                   <div className="space-y-1 text-sm">
                     <p><span className="font-medium">Service:</span> {selectedBooking.service?.name || 'Recording Session'}</p>
-                    <p><span className="font-medium">Date:</span> {new Date(selectedBooking.start).toLocaleDateString()}</p>
-                    <p><span className="font-medium">Time:</span> {new Date(selectedBooking.start).toLocaleTimeString('en-US', { 
+                    <p><span className="font-medium">Date:</span> {selectedBooking.start ? new Date(selectedBooking.start).toLocaleDateString() : 'Not available'}</p>
+                    <p><span className="font-medium">Time:</span> {selectedBooking.start && selectedBooking.end ? `${new Date(selectedBooking.start).toLocaleTimeString('en-US', { 
                       hour: '2-digit', 
                       minute: '2-digit',
                       hour12: true 
-                    })} - {new Date(selectedBooking.end).toLocaleTimeString('en-US', { 
+                    })} - ${new Date(selectedBooking.end).toLocaleTimeString('en-US', { 
                       hour: '2-digit', 
                       minute: '2-digit',
                       hour12: true 
-                    })}</p>
-                    <p><span className="font-medium">Duration:</span> {Math.round((new Date(selectedBooking.end) - new Date(selectedBooking.start)) / (1000 * 60))} minutes</p>
+                    })}` : 'Not available'}</p>
+                    <p><span className="font-medium">Duration:</span> {selectedBooking.start && selectedBooking.end ? Math.round((new Date(selectedBooking.end) - new Date(selectedBooking.start)) / (1000 * 60)) : 0} minutes</p>
                     <p><span className="font-medium">Status:</span> 
                       <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${
                         selectedBooking.status === 'confirmed' ? 'bg-green-100 text-green-800' :

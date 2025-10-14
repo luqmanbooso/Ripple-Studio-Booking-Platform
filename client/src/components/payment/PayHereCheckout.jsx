@@ -36,6 +36,60 @@ const PayHereCheckout = ({ checkoutData, bookingId, onSuccess, onError, onCancel
     };
   }, []);
 
+  const verifyPaymentWithBackend = async (orderId) => {
+    try {
+      // Call backend to verify payment
+      const response = await fetch('/api/payments/verify-payhere', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          order_id: orderId,
+          payment_id: orderId, // PayHere uses same ID
+          status_code: 2, // Success status
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Payment verification response error:', response.status, errorText);
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Payment verified successfully!');
+        
+        if (onSuccess) {
+          onSuccess(orderId);
+        } else {
+          // Redirect to success page with verified payment
+          navigate(`/payment-success?order_id=${orderId}&booking_id=${bookingId}`);
+        }
+      } else {
+        throw new Error(result.message || 'Payment verification failed');
+      }
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      
+      // Show more specific error message
+      if (error.message.includes('Server error: 500')) {
+        toast.error('Payment processing error. Your payment may have succeeded - please check your bookings or contact support.');
+      } else {
+        toast.error('Payment verification failed. Please contact support.');
+      }
+      
+      // Still redirect to success page so user can see their booking status
+      if (onSuccess) {
+        onSuccess(orderId);
+      } else {
+        navigate(`/payment-success?order_id=${orderId}&booking_id=${bookingId}`);
+      }
+    }
+  };
+
   const initiatePayment = () => {
     if (!window.payhere) {
       toast.error('Payment gateway not loaded. Please refresh the page.');
@@ -49,8 +103,8 @@ const PayHereCheckout = ({ checkoutData, bookingId, onSuccess, onError, onCancel
     const payment = {
       sandbox: true, // Sandbox mode for testing
       merchant_id: checkoutData.merchant_id,
-      return_url: `${window.location.origin}/booking/payment-success`,
-      cancel_url: `${window.location.origin}/booking/payment-cancel`,
+      return_url: `${window.location.origin}/payment-success`,
+      cancel_url: `${window.location.origin}/payment-cancel`,
       notify_url: checkoutData.notify_url,
       order_id: checkoutData.order_id,
       items: checkoutData.items,
@@ -73,14 +127,9 @@ const PayHereCheckout = ({ checkoutData, bookingId, onSuccess, onError, onCancel
       console.log('Payment completed. OrderID:', orderId);
       setPaymentStatus('success');
       setIsProcessing(false);
-      toast.success('Payment completed successfully!');
       
-      if (onSuccess) {
-        onSuccess(orderId);
-      } else {
-        // Redirect to success page
-        navigate(`/booking/payment-success?order_id=${orderId}&booking_id=${bookingId}`);
-      }
+      // Verify payment with backend before showing success
+      verifyPaymentWithBackend(orderId);
     };
 
     window.payhere.onDismissed = function onDismissed() {

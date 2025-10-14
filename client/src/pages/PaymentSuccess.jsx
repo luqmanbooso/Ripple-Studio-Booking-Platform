@@ -16,39 +16,71 @@ const PaymentSuccess = () => {
   const paymentId = searchParams.get('payment_id');
 
   // Fetch booking details
-  const { data: bookingData, isLoading: bookingLoading } = useGetBookingQuery(bookingId, {
+  const { data: bookingData, isLoading: bookingLoading, refetch: refetchBooking } = useGetBookingQuery(bookingId, {
     skip: !bookingId
   });
 
   // Fetch payment details
-  const { data: paymentsData, isLoading: paymentsLoading } = useGetBookingPaymentsQuery(bookingId, {
+  const { data: paymentsData, isLoading: paymentsLoading, refetch: refetchPayments } = useGetBookingPaymentsQuery(bookingId, {
     skip: !bookingId
   });
 
   const booking = bookingData?.data;
   const payments = paymentsData?.data?.payments || [];
-  const completedPayment = payments.find(p => p.status === 'Completed');
+  const completedPayment = payments.find(p => p.status === 'Completed') || 
+                          payments.find(p => p.payhereOrderId === orderId);
 
   useEffect(() => {
-    // Simulate verification process
-    const timer = setTimeout(() => {
-      setIsVerifying(false);
-      if (completedPayment) {
-        toast.success('Payment verified successfully!');
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const verifyPayment = async () => {
+      if (orderId && bookingId && !completedPayment && retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Payment verification attempt ${retryCount}/${maxRetries}`);
+        
+        // Refetch data to check for updated payment status
+        await Promise.all([refetchBooking(), refetchPayments()]);
+        
+        // If still no payment found, retry after delay
+        if (!completedPayment && retryCount < maxRetries) {
+          setTimeout(verifyPayment, 2000);
+        } else {
+          setIsVerifying(false);
+          if (completedPayment) {
+            toast.success('Payment verified successfully!');
+          }
+        }
+      } else {
+        setIsVerifying(false);
+        if (completedPayment) {
+          toast.success('Payment verified successfully!');
+        }
       }
-    }, 2000);
+    };
 
+    const timer = setTimeout(verifyPayment, 1000);
     return () => clearTimeout(timer);
-  }, [completedPayment]);
+  }, [orderId, bookingId, completedPayment, refetchBooking, refetchPayments]);
 
   const generateCalendarLink = () => {
-    if (!booking) return '';
+    if (!booking || !booking.start || !booking.end) return '';
     
     const startDate = new Date(booking.start);
     const endDate = new Date(booking.end);
     
+    // Check if dates are valid
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return '';
+    }
+    
     const formatDate = (date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      try {
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      } catch (error) {
+        console.error('Date formatting error:', error);
+        return '';
+      }
     };
 
     const title = encodeURIComponent(`Studio Booking - ${booking.studio?.name || 'Studio'}`);
@@ -59,7 +91,14 @@ const PaymentSuccess = () => {
       `Payment ID: ${completedPayment?.payherePaymentId || 'N/A'}`
     );
 
-    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${details}`;
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    
+    if (!formattedStartDate || !formattedEndDate) {
+      return '';
+    }
+
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formattedStartDate}/${formattedEndDate}&details=${details}`;
     
     return googleCalendarUrl;
   };
@@ -75,7 +114,21 @@ const PaymentSuccess = () => {
       date: completedPayment.completedAt || completedPayment.createdAt,
       service: booking.service?.name || 'Studio Session',
       studio: booking.studio?.name || 'Studio',
-      duration: `${format(new Date(booking.start), 'PPp')} - ${format(new Date(booking.end), 'p')}`,
+      duration: booking.start && booking.end 
+        ? (() => {
+            try {
+              const startDate = new Date(booking.start);
+              const endDate = new Date(booking.end);
+              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                return 'Not available';
+              }
+              return `${format(startDate, 'PPp')} - ${format(endDate, 'p')}`;
+            } catch (error) {
+              console.error('Date formatting error in receipt:', error);
+              return 'Not available';
+            }
+          })()
+        : 'Not available',
     };
 
     const receiptContent = `
@@ -211,13 +264,16 @@ Visit: https://ripple.lk
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date & Time:</span>
                   <span className="font-medium text-gray-800">
-                    {format(new Date(booking.start), 'PPP')}
+                    {booking.start ? format(new Date(booking.start), 'PPP') : 'Not available'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration:</span>
                   <span className="font-medium text-gray-800">
-                    {format(new Date(booking.start), 'p')} - {format(new Date(booking.end), 'p')}
+                    {booking.start && booking.end 
+                      ? `${format(new Date(booking.start), 'p')} - ${format(new Date(booking.end), 'p')}`
+                      : 'Not available'
+                    }
                   </span>
                 </div>
                 <div className="flex justify-between">

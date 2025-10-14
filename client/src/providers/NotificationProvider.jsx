@@ -43,7 +43,7 @@ export const NotificationProvider = ({ children }) => {
   )
   const { data: stats, refetch: refetchStats } = useGetNotificationStatsQuery(undefined, { 
     skip: !user,
-    pollingInterval: 30000 // Poll every 30 seconds
+    pollingInterval: 120000 // Poll every 2 minutes (reduced from 30 seconds)
   })
   const [markAsReadMutation] = useMarkAsReadMutation()
   const [markAllAsReadMutation] = useMarkAllAsReadMutation()

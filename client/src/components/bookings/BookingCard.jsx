@@ -82,6 +82,23 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
     }
   }
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Confirmed'
+      case 'completed':
+        return 'Completed'
+      case 'cancelled':
+        return 'Cancelled'
+      case 'payment_pending':
+        return 'Payment Due'
+      case 'reservation_pending':
+        return 'Reservation'
+      default:
+        return status?.replace('_', ' ') || 'Unknown'
+    }
+  }
+
   const canConfirm = userRole === 'studio' && ['payment_pending', 'reservation_pending'].includes(booking.status)
   const canCancel = ['payment_pending', 'confirmed', 'reservation_pending'].includes(booking.status)
   const canReview = booking.status === 'completed' && !booking.hasReview
@@ -120,7 +137,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
             </div>
             <div className="text-right">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                {booking.status.replace('_', ' ').toUpperCase()}
+                {getStatusLabel(booking.status)}
               </span>
               <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
                 ${booking.price}

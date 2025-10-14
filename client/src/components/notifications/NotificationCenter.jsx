@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell,
@@ -33,7 +33,11 @@ const NotificationCenter = ({ isOpen, onClose }) => {
     { page, limit: 20 },
     { skip: !user }
   )
-  const { data: stats } = useGetNotificationStatsQuery(undefined, { skip: !user })
+  const { data: stats } = useGetNotificationStatsQuery(undefined, { 
+    skip: !user,
+    // Remove polling here since NotificationProvider already handles it
+    pollingInterval: false
+  })
   const [markAsReadMutation] = useMarkAsReadMutation()
   const [markAllAsRead] = useMarkAllAsReadMutation()
   const [deleteNotification] = useDeleteNotificationMutation()
