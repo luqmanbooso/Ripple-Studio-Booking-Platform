@@ -150,12 +150,28 @@ export const revenueApi = createApi({
 
     // Update commission rate
     updateCommissionRate: builder.mutation({
-      query: (data) => ({
+      query: ({ rate }) => ({
         url: '/admin/commission-rate',
         method: 'PATCH',
-        body: data
+        body: { rate }
       }),
-      invalidatesTags: ['Statistics']
+      invalidatesTags: ['Revenue']
+    }),
+
+    // Generate admin report
+    generateAdminReport: builder.query({
+      query: (params) => ({
+        url: '/admin/report',
+        params,
+        responseHandler: (response) => {
+          // Handle CSV download
+          if (params.format === 'csv') {
+            return response.blob();
+          }
+          return response.json();
+        }
+      }),
+      providesTags: ['Revenue']
     }),
 
     // Get studio revenue (admin view)
@@ -197,6 +213,7 @@ export const {
   useGetAllPayoutRequestsQuery,
   useProcessPayoutRequestMutation,
   useUpdateCommissionRateMutation,
+  useLazyGenerateAdminReportQuery,
   useGetAdminStudioRevenueQuery,
   
   // Shared hooks

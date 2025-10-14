@@ -148,6 +148,13 @@ router.patch('/admin/commission-rate',
   revenueController.updateCommissionRate
 );
 
+// Generate admin report
+router.get('/admin/report', 
+  authenticate, 
+  allowRoles('admin'),
+  revenueController.generateAdminReport
+);
+
 // Get any studio's revenue (admin only)
 router.get('/admin/studio/:studioId', 
   authenticate, 

@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { 
   DollarSign, TrendingUp, Users, Building2, 
-  CheckCircle, XCircle, Clock, AlertTriangle,
-  Download, Filter, Search, Eye, Settings,
-  PieChart, BarChart3, CreditCard, Wallet
+  Clock, AlertTriangle,
+  Download, Settings,
+  PieChart, BarChart3, CreditCard
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import toast from 'react-hot-toast'
@@ -15,18 +15,16 @@ import Modal from '../../components/ui/Modal'
 import Spinner from '../../components/ui/Spinner'
 import { 
   useGetPlatformRevenueQuery,
-  useGetAllPayoutRequestsQuery,
-  useProcessPayoutRequestMutation,
-  useUpdateCommissionRateMutation
+  useUpdateCommissionRateMutation,
+  useLazyGenerateAdminReportQuery
 } from '../../store/revenueApi'
 
 const AdminRevenueManagement = () => {
   const { user, token } = useSelector(state => state.auth)
   const [timeframe, setTimeframe] = useState('month')
-  const [payoutStatus, setPayoutStatus] = useState('requested')
   const [showCommissionModal, setShowCommissionModal] = useState(false)
-  const [selectedPayout, setSelectedPayout] = useState(null)
-  const [showPayoutModal, setShowPayoutModal] = useState(false)
+  const [reportType, setReportType] = useState('platform')
+  const [reportFormat, setReportFormat] = useState('csv')
 
   // Helper functions - memoize dates to prevent constant re-renders
   const getStartDate = useMemo(() => {
@@ -75,35 +73,41 @@ const AdminRevenueManagement = () => {
     skip: !token // Skip query if no token available
   })
 
-  // Payout requests query with proper auth handling
-  const { data: payoutData, isLoading: payoutLoading, error: payoutError } = useGetAllPayoutRequestsQuery({
-    status: payoutStatus,
-    page: 1,
-    limit: 20
-  }, {
-    skip: !token // Skip query if no token available
-  })
-
-  // Mutations
-  const [processPayoutRequest, { isLoading: processLoading }] = useProcessPayoutRequestMutation()
+  // Mutations and lazy queries
   const [updateCommissionRate, { isLoading: commissionLoading }] = useUpdateCommissionRateMutation()
+  const [generateReport, { isLoading: reportLoading }] = useLazyGenerateAdminReportQuery()
 
   // Event handlers
-  const handleProcessPayout = async (revenueId, payoutIndex, status, notes = '') => {
+  const handleGenerateReport = async () => {
     try {
-      await processPayoutRequest({
-        revenueId,
-        payoutIndex,
-        status,
-        notes,
-        processedBy: user._id
-      }).unwrap()
-      
-      toast.success(`Payout ${status} successfully`)
-      setShowPayoutModal(false)
-      setSelectedPayout(null)
+      const params = {
+        startDate: getStartDate,
+        endDate: getEndDate,
+        format: reportFormat,
+        reportType: reportType
+      }
+
+      const result = await generateReport(params).unwrap()
+
+      if (reportFormat === 'csv') {
+        // Create and trigger download for CSV
+        const blob = new Blob([result], { type: 'text/csv' })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${reportType}-revenue-report-${new Date().toISOString().split('T')[0]}.csv`
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+        toast.success('Report downloaded successfully')
+      } else {
+        // Handle JSON response
+        console.log('Report data:', result)
+        toast.success('Report generated successfully')
+      }
     } catch (error) {
-      toast.error(error.data?.message || 'Failed to process payout')
+      toast.error(error.data?.message || 'Failed to generate report')
     }
   }
 
@@ -122,7 +126,6 @@ const AdminRevenueManagement = () => {
 
   // Data processing
   const statistics = platformData?.data?.statistics || {}
-  const payoutRequests = payoutData?.data?.payouts || []
   const recentRevenues = platformData?.data?.recentRevenues || []
 
   // Show loading state only if no token or initial loading with no data yet  
@@ -169,7 +172,7 @@ const AdminRevenueManagement = () => {
   }
 
   // Show error state if there are errors
-  if (platformError || payoutError) {
+  if (platformError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <div className="relative z-10 p-6">
@@ -177,7 +180,7 @@ const AdminRevenueManagement = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Revenue Management</h1>
-                <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and manage studio payouts</p>
+                <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and generate detailed reports</p>
               </div>
             </div>
             
@@ -187,11 +190,10 @@ const AdminRevenueManagement = () => {
                 <div>
                   <h3 className="text-lg font-bold text-white mb-2">Error Loading Revenue Data</h3>
                   <p className="text-red-300 mb-4">
-                    {platformError?.data?.message || payoutError?.data?.message || 'Unable to load revenue information'}
+                    {platformError?.data?.message || 'Unable to load revenue information'}
                   </p>
                   <div className="text-sm text-gray-400 space-y-1">
                     {platformError && <p>Platform API Error: {platformError.status} - {JSON.stringify(platformError.data)}</p>}
-                    {payoutError && <p>Payout API Error: {payoutError.status} - {JSON.stringify(payoutError.data)}</p>}
                   </div>
                   <Button 
                     onClick={() => {
@@ -226,7 +228,7 @@ const AdminRevenueManagement = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Revenue Management</h1>
-              <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and manage studio payouts</p>
+              <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and generate detailed reports</p>
             </div>
             
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
@@ -347,141 +349,102 @@ const AdminRevenueManagement = () => {
             </motion.div>
           </div>
 
-          {/* Studio Payout Management */}
+          {/* Report Generation */}
           <Card className="p-6 bg-gray-800/50 border-gray-700/50">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Studio Payout Requests</h2>
+              <h2 className="text-xl font-bold text-white">Generate Reports</h2>
               <div className="flex items-center space-x-3">
                 <select
-                  value={payoutStatus}
-                  onChange={(e) => setPayoutStatus(e.target.value)}
+                  value={reportType}
+                  onChange={(e) => setReportType(e.target.value)}
                   className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm"
                 >
-                  <option value="requested">Requested</option>
-                  <option value="approved">Approved</option>
-                  <option value="processing">Processing</option>
-                  <option value="completed">Completed</option>
-                  <option value="failed">Failed</option>
+                  <option value="platform">Platform Revenue</option>
+                  <option value="studios">Studio Performance</option>
+                </select>
+                <select
+                  value={reportFormat}
+                  onChange={(e) => setReportFormat(e.target.value)}
+                  className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+                >
+                  <option value="csv">CSV Download</option>
+                  <option value="json">JSON View</option>
                 </select>
                 <Button
-                  onClick={() => refetch()}
-                  variant="outline"
-                  size="sm"
+                  onClick={handleGenerateReport}
+                  loading={reportLoading}
                   icon={<Download className="w-4 h-4" />}
+                  className="bg-purple-600 hover:bg-purple-700"
                 >
-                  Refresh
+                  Generate Report
                 </Button>
               </div>
             </div>
 
-            {payoutLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Spinner />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Studio</th>
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Amount (97%)</th>
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Request Date</th>
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Bank Details</th>
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Status</th>
-                      <th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payoutRequests.map((payout, index) => (
-                      <tr key={`${payout.revenueId}-${index}`} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                        <td className="py-3 px-4 text-white">
-                          {payout.studio?.name || 'Unknown Studio'}
-                        </td>
-                        <td className="py-3 px-4 text-white font-medium">
-                          LKR {payout.amount.toLocaleString()}
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
-                          {new Date(payout.requestedAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
-                          <div className="text-sm">
-                            <p>{payout.bankDetails?.bankName}</p>
-                            <p className="text-gray-400">****{payout.bankDetails?.accountNumber?.slice(-4)}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            payout.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                            payout.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
-                            payout.status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' :
-                            payout.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                            'bg-gray-500/20 text-gray-400'
-                          }`}>
-                            {payout.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
-                            {payout.status === 'requested' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleProcessPayout(payout.revenueId, 0, 'approved')}
-                                  loading={processLoading}
-                                  icon={<CheckCircle className="w-4 h-4" />}
-                                  className="text-green-400 hover:text-green-300"
-                                >
-                                  Approve
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleProcessPayout(payout.revenueId, 0, 'failed', 'Rejected by admin')}
-                                  loading={processLoading}
-                                  icon={<XCircle className="w-4 h-4" />}
-                                  className="text-red-400 hover:text-red-300"
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                            {payout.status === 'approved' && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleProcessPayout(payout.revenueId, 0, 'completed')}
-                                loading={processLoading}
-                                icon={<Wallet className="w-4 h-4" />}
-                                className="text-blue-400 hover:text-blue-300"
-                              >
-                                Complete
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedPayout(payout)
-                                setShowPayoutModal(true)
-                              }}
-                              icon={<Eye className="w-4 h-4" />}
-                            >
-                              Details
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Platform Revenue Report Info */}
+              {reportType === 'platform' && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                  <h3 className="text-blue-300 font-medium mb-2">Platform Revenue Report</h3>
+                  <p className="text-gray-300 text-sm mb-3">
+                    Comprehensive report including all revenue transactions, commission breakdowns, and platform earnings.
+                  </p>
+                  <ul className="text-sm text-gray-400 space-y-1">
+                    <li>• Individual booking revenue details</li>
+                    <li>• Platform commission ({((statistics?.commissionRate || 0.03) * 100).toFixed(1)}%) per transaction</li>
+                    <li>• Studio earnings breakdown</li>
+                    <li>• Revenue status tracking</li>
+                    <li>• Date range: {getStartDate} to {getEndDate}</li>
+                  </ul>
+                </div>
+              )}
 
-            {payoutRequests.length === 0 && !payoutLoading && (
-              <div className="text-center py-8 text-gray-400">
-                <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No {payoutStatus} payout requests</p>
+              {/* Studio Performance Report Info */}
+              {reportType === 'studios' && (
+                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                  <h3 className="text-green-300 font-medium mb-2">Studio Performance Report</h3>
+                  <p className="text-gray-300 text-sm mb-3">
+                    Detailed analytics on studio performance, including booking volumes and revenue metrics.
+                  </p>
+                  <ul className="text-sm text-gray-400 space-y-1">
+                    <li>• Total bookings per studio</li>
+                    <li>• Revenue generated by each studio</li>
+                    <li>• Platform commission earned</li>
+                    <li>• Average booking value</li>
+                    <li>• Performance rankings</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* Report Statistics */}
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <h3 className="text-purple-300 font-medium mb-2">Current Period Summary</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Revenue:</span>
+                    <span className="text-white font-medium">LKR {(statistics.totalRevenue || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Platform Commission:</span>
+                    <span className="text-green-400 font-medium">LKR {(statistics.totalCommission || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Bookings:</span>
+                    <span className="text-blue-400 font-medium">{statistics.totalBookings || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Report Format:</span>
+                    <span className="text-purple-400 font-medium">{reportFormat.toUpperCase()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {reportFormat === 'csv' && (
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-300 text-sm">
+                  📁 CSV reports will be automatically downloaded to your computer when generated.
+                </p>
               </div>
             )}
           </Card>
@@ -536,21 +499,6 @@ const AdminRevenueManagement = () => {
           onSubmit={handleUpdateCommission}
           loading={commissionLoading}
           currentRate={statistics.commissionRate || 0.03}
-        />
-      </Modal>
-
-      {/* Payout Details Modal */}
-      <Modal 
-        isOpen={showPayoutModal} 
-        onClose={() => setShowPayoutModal(false)}
-        title="Payout Request Details"
-      >
-        <PayoutDetailsModal
-          isOpen={showPayoutModal}
-          onClose={() => setShowPayoutModal(false)}
-          payout={selectedPayout}
-          onProcess={handleProcessPayout}
-          loading={processLoading}
         />
       </Modal>
     </div>
@@ -613,107 +561,6 @@ const CommissionModal = ({ isOpen, onClose, onSubmit, loading, currentRate }) =>
         </Button>
       </div>
     </form>
-  )
-}
-
-// Payout Details Modal Component
-const PayoutDetailsModal = ({ isOpen, onClose, payout, onProcess, loading }) => {
-  if (!payout) return null
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Studio</label>
-          <p className="text-white">{payout.studio?.name || 'Unknown Studio'}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Amount</label>
-          <p className="text-white font-medium">LKR {payout.amount?.toLocaleString()}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Request Date</label>
-          <p className="text-white">{new Date(payout.requestedAt).toLocaleDateString()}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            payout.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-            payout.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
-            payout.status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' :
-            payout.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-            'bg-yellow-500/20 text-yellow-400'
-          }`}>
-            {payout.status}
-          </span>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">Bank Details</label>
-        <div className="bg-gray-700/30 rounded-lg p-3 space-y-1">
-          <p className="text-white">{payout.bankDetails?.bankName}</p>
-          <p className="text-gray-300">Account: {payout.bankDetails?.accountNumber}</p>
-          <p className="text-gray-300">Holder: {payout.bankDetails?.accountHolder}</p>
-        </div>
-      </div>
-
-      {payout.notes && (
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Notes</label>
-          <p className="text-white bg-gray-700/30 rounded-lg p-3">{payout.notes}</p>
-        </div>
-      )}
-
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-        >
-          Close
-        </Button>
-        {payout.status === 'requested' && (
-          <>
-            <Button
-              onClick={() => {
-                onProcess(payout.revenueId, 0, 'approved')
-                onClose()
-              }}
-              loading={loading}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Approve
-            </Button>
-            <Button
-              onClick={() => {
-                onProcess(payout.revenueId, 0, 'failed', 'Rejected by admin')
-                onClose()
-              }}
-              loading={loading}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Reject
-            </Button>
-          </>
-        )}
-        {payout.status === 'approved' && (
-          <Button
-            onClick={() => {
-              onProcess(payout.revenueId, 0, 'completed')
-              onClose()
-            }}
-            loading={loading}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Mark as Completed
-          </Button>
-        )}
-      </div>
-    </div>
   )
 }
 

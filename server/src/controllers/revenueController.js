@@ -317,6 +317,120 @@ const downloadSpendingReport = catchAsync(async (req, res) => {
   }
 });
 
+/**
+ * Generate admin revenue report (Admin only)
+ */
+const generateAdminReport = catchAsync(async (req, res) => {
+  const { startDate, endDate, format = 'csv', reportType = 'platform' } = req.query;
+
+  // Build filter
+  const filter = {};
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setUTCHours(0, 0, 0, 0);
+      filter.createdAt.$gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setUTCHours(23, 59, 59, 999);
+      filter.createdAt.$lte = end;
+    }
+  }
+
+  let data, filename;
+
+  if (reportType === 'platform') {
+    // Platform revenue report
+    const revenues = await Revenue.find(filter)
+      .populate('studio', 'name email')
+      .populate('client', 'name email')
+      .sort({ createdAt: -1 });
+
+    const stats = await RevenueService.getRevenueStatistics(filter);
+
+    if (format === 'csv') {
+      const csvHeader = 'Date,Studio,Client,Booking Amount,Platform Commission,Studio Earnings,Status\n';
+      const csvRows = revenues.map(revenue => {
+        const date = revenue.createdAt.toISOString().split('T')[0];
+        const studio = revenue.studio?.name || 'Unknown';
+        const client = revenue.client?.name || 'Unknown';
+        const amount = revenue.totalAmount;
+        const commission = revenue.platformCommission;
+        const studioEarnings = revenue.studioEarnings;
+        const status = revenue.status;
+        
+        return `${date},"${studio}","${client}",${amount},${commission},${studioEarnings},${status}`;
+      }).join('\n');
+
+      filename = `platform-revenue-report-${new Date().toISOString().split('T')[0]}.csv`;
+      data = csvHeader + csvRows;
+    } else {
+      data = { revenues, statistics: stats };
+      filename = 'platform-revenue-report.json';
+    }
+  } else if (reportType === 'studios') {
+    // Studio performance report
+    const pipeline = [
+      { $match: filter },
+      {
+        $group: {
+          _id: '$studio',
+          totalBookings: { $sum: 1 },
+          totalRevenue: { $sum: '$totalAmount' },
+          totalCommission: { $sum: '$platformCommission' },
+          totalEarnings: { $sum: '$studioEarnings' },
+          avgBookingValue: { $avg: '$totalAmount' }
+        }
+      },
+      {
+        $lookup: {
+          from: 'studios',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'studio'
+        }
+      },
+      { $unwind: '$studio' },
+      { $sort: { totalRevenue: -1 } }
+    ];
+
+    const studioStats = await Revenue.aggregate(pipeline);
+
+    if (format === 'csv') {
+      const csvHeader = 'Studio Name,Total Bookings,Total Revenue,Platform Commission,Studio Earnings,Avg Booking Value\n';
+      const csvRows = studioStats.map(stat => {
+        const name = stat.studio.name;
+        const bookings = stat.totalBookings;
+        const revenue = stat.totalRevenue;
+        const commission = stat.totalCommission;
+        const earnings = stat.totalEarnings;
+        const avgValue = stat.avgBookingValue.toFixed(2);
+        
+        return `"${name}",${bookings},${revenue},${commission},${earnings},${avgValue}`;
+      }).join('\n');
+
+      filename = `studio-performance-report-${new Date().toISOString().split('T')[0]}.csv`;
+      data = csvHeader + csvRows;
+    } else {
+      data = { studios: studioStats };
+      filename = 'studio-performance-report.json';
+    }
+  }
+
+  if (format === 'csv') {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.send(data);
+  } else {
+    res.json({
+      status: 'success',
+      data
+    });
+  }
+});
+
 // ==================== ADMIN REVENUE ENDPOINTS ====================
 
 /**
@@ -520,6 +634,7 @@ module.exports = {
   getAllPayoutRequests,
   processPayoutRequest,
   updateCommissionRate,
+  generateAdminReport,
   
   // Shared endpoints
   generateInvoice
