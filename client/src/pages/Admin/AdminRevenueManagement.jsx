@@ -12,7 +12,6 @@ import toast from 'react-hot-toast'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
-import Spinner from '../../components/ui/Spinner'
 import { 
   useGetPlatformRevenueQuery,
   useUpdateCommissionRateMutation,
@@ -131,13 +130,18 @@ const AdminRevenueManagement = () => {
   // Show loading state only if no token or initial loading with no data yet  
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="text-white mt-4">Authenticating...</p>
-          <div className="mt-4 text-xs text-gray-400">
-            <p>Token: {token ? 'Present' : 'Missing'}</p>
-            <p>User: {user ? user.name : 'Not loaded'}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-white mt-4">Authenticating...</p>
           </div>
         </div>
       </div>
@@ -147,25 +151,19 @@ const AdminRevenueManagement = () => {
   // If we have token but still loading initial data
   if (platformLoading && !platformData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="text-white mt-4">Loading revenue data...</p>
-          <div className="mt-4 text-xs text-gray-400">
-            <p>Token: Present ({token.substring(0, 20)}...)</p>
-            <p>Platform Loading: {platformLoading.toString()}</p>
-            <p>Platform Success: {platformSuccess.toString()}</p>
-            <p>Platform Fetching: {platformFetching.toString()}</p>
-            <p>Platform Uninitialized: {platformUninitialized.toString()}</p>
-            <p>Platform Data: {platformData ? 'Present' : 'Missing'}</p>
-            <p>Platform Error: {platformError ? JSON.stringify(platformError) : 'None'}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-white mt-4">Loading revenue data...</p>
           </div>
-          <button 
-            onClick={() => refetch()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Manual Refetch
-          </button>
         </div>
       </div>
     )
@@ -174,7 +172,14 @@ const AdminRevenueManagement = () => {
   // Show error state if there are errors
   if (platformError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+        
         <div className="relative z-10 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
@@ -213,67 +218,80 @@ const AdminRevenueManagement = () => {
     )
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-8 -left-8 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -top-8 right-20 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-950 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
       
-      <div className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-        
+      <div className="relative z-10 p-4">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Revenue Management</h1>
-              <p className="text-gray-400">Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission from bookings and generate detailed reports</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <DollarSign className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+                  Revenue Management
+                </h1>
+                <p className="text-gray-400 flex items-center space-x-2 text-sm">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  <span>Monitor {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% platform commission and generate reports</span>
+                </p>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+            <div className="flex items-center space-x-3">
               {/* Timeframe Selector */}
               <select
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
-                className="bg-gray-800 border border-gray-700 text-white px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="bg-white/10 border border-white/20 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
               >
-                <option value="week">Last Week</option>
-                <option value="month">Last Month</option>
-                <option value="quarter">Last Quarter</option>
-                <option value="year">Last Year</option>
+                <option value="week" className="bg-slate-800">Last Week</option>
+                <option value="month" className="bg-slate-800">Last Month</option>
+                <option value="quarter" className="bg-slate-800">Last Quarter</option>
+                <option value="year" className="bg-slate-800">Last Year</option>
               </select>
               
               <Button
                 onClick={() => setShowCommissionModal(true)}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-4 py-2.5 text-sm font-medium"
                 icon={<Settings className="w-4 h-4" />}
               >
                 Commission Settings
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Platform Revenue Statistics - 3% Commission Focus */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Platform Revenue Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Total Platform Revenue (3%)</p>
+                    <p className="text-gray-400 text-sm">Platform Commission</p>
                     <p className="text-2xl font-bold text-white">
                       LKR {(statistics.totalCommission || 0).toLocaleString()}
                     </p>
                     <p className="text-green-400 text-xs mt-1">
-                      +{statistics.revenueGrowth || 0}% from last period
+                      {((statistics?.commissionRate || 0.03) * 100).toFixed(1)}% from all bookings
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-green-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                    <DollarSign className="w-5 h-5 text-green-400" />
                   </div>
                 </div>
               </Card>
@@ -284,7 +302,7 @@ const AdminRevenueManagement = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Total Booking Value</p>
@@ -295,8 +313,8 @@ const AdminRevenueManagement = () => {
                       97% paid to studios
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-blue-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                    <CreditCard className="w-5 h-5 text-blue-400" />
                   </div>
                 </div>
               </Card>
@@ -307,7 +325,7 @@ const AdminRevenueManagement = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Commission Rate</p>
@@ -318,8 +336,8 @@ const AdminRevenueManagement = () => {
                       Platform fee per booking
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                    <PieChart className="w-6 h-6 text-purple-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                    <PieChart className="w-5 h-5 text-purple-400" />
                   </div>
                 </div>
               </Card>
@@ -330,7 +348,7 @@ const AdminRevenueManagement = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Total Bookings</p>
@@ -341,8 +359,8 @@ const AdminRevenueManagement = () => {
                       Revenue generating bookings
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-yellow-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-white/10">
+                    <BarChart3 className="w-5 h-5 text-yellow-400" />
                   </div>
                 </div>
               </Card>
@@ -350,14 +368,14 @@ const AdminRevenueManagement = () => {
           </div>
 
           {/* Report Generation */}
-          <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">Generate Reports</h2>
               <div className="flex items-center space-x-3">
                 <select
                   value={reportType}
                   onChange={(e) => setReportType(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+                  className="bg-white/10 border border-white/20 text-white px-3 py-2 rounded-lg text-sm"
                 >
                   <option value="platform">Platform Revenue</option>
                   <option value="studios">Studio Performance</option>
@@ -365,7 +383,7 @@ const AdminRevenueManagement = () => {
                 <select
                   value={reportFormat}
                   onChange={(e) => setReportFormat(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm"
+                  className="bg-white/10 border border-white/20 text-white px-3 py-2 rounded-lg text-sm"
                 >
                   <option value="csv">CSV Download</option>
                   <option value="json">JSON View</option>
@@ -450,14 +468,14 @@ const AdminRevenueManagement = () => {
           </Card>
 
           {/* Recent Revenue Activity */}
-          <Card className="p-6 bg-gray-800/50 border-gray-700/50">
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
             <h2 className="text-xl font-bold text-white mb-6">Recent Revenue Activity</h2>
             
             <div className="space-y-4">
               {recentRevenues.map((revenue) => (
-                <div key={revenue._id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                <div key={revenue._id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-white/10">
                       <Building2 className="w-5 h-5 text-green-400" />
                     </div>
                     <div>
