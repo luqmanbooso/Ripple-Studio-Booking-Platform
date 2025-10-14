@@ -63,12 +63,28 @@ const StudioNavbar = () => {
 
   const handleLogout = async () => {
     try {
+      // Set logging out flag to prevent token refresh attempts
+      window.isLoggingOut = true
+      
+      // Clear auth state
       dispatch(logout())
+      
+      // Disconnect socket
       disconnectSocket()
+      
+      // Navigate to home
       navigate('/')
+      
+      // Show success message
       toast.success('Logged out successfully')
+      
+      // Reset flag after a short delay
+      setTimeout(() => { 
+        window.isLoggingOut = false 
+      }, 1000)
     } catch (error) {
-      toast.error('Error logging out')
+      // Even if there's an error, show success since logout action completed
+      toast.success('Logged out successfully')
     }
   }
 

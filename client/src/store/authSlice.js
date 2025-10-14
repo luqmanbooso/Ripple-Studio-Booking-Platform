@@ -41,6 +41,10 @@ const authSlice = createSlice({
       
       // Clear localStorage
       localStorage.removeItem('auth')
+      
+      // Signal to axios interceptor that we're logging out
+      window.isLoggingOut = true
+      setTimeout(() => { window.isLoggingOut = false }, 1000) // Reset after 1 second
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload

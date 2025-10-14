@@ -51,6 +51,14 @@ const resendVerificationSchema = {
   })
 };
 
+const completeProfileSchema = {
+  body: z.object({
+    phone: z.string().optional(),
+    country: z.string().min(1, 'Country is required'),
+    city: z.string().min(1, 'City is required')
+  })
+};
+
 // Apply rate limiting to auth routes
 router.use(authLimiter);
 
@@ -70,6 +78,7 @@ router.post('/resend-verification', validate(resendVerificationSchema), authCont
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getMe);
+router.put('/complete-profile', authenticate, validate(completeProfileSchema), authController.completeProfile);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
 

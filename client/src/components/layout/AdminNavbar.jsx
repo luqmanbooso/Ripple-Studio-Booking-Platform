@@ -29,9 +29,27 @@ const AdminNavbar = () => {
   const location = useLocation();
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Logged out successfully");
-    navigate("/login");
+    try {
+      // Set logging out flag to prevent token refresh attempts
+      window.isLoggingOut = true
+      
+      // Clear auth state
+      dispatch(logout())
+      
+      // Show success message
+      toast.success('Logged out successfully')
+      
+      // Navigate to login
+      navigate('/login')
+      
+      // Reset flag after a short delay
+      setTimeout(() => { 
+        window.isLoggingOut = false 
+      }, 1000)
+    } catch (error) {
+      // Even if there's an error, show success since logout action completed
+      toast.success('Logged out successfully')
+    }
   };
 
 

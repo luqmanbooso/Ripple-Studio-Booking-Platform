@@ -63,7 +63,10 @@ const Login = () => {
   // Google Identity Services integration (client-side)
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    if (!clientId) {
+      console.warn('Google Client ID not configured');
+      return;
+    }
 
     const handleCredentialResponse = async (response) => {
       try {
@@ -73,10 +76,14 @@ const Login = () => {
         const res = await api.post('/auth/google', { idToken });
         const { user, accessToken, requiresProfileCompletion } = res.data.data;
         dispatch(setCredentials({ user, token: accessToken }));
-        toast.success(`Welcome, ${user.name}`);
+        toast.success(`Welcome, ${user.name}!`);
         
-        // Always redirect to intended destination or dashboard
-        navigate(from, { replace: true });
+        // Redirect based on profile completion status
+        if (requiresProfileCompletion) {
+          navigate('/complete-profile', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } catch (err) {
         console.error('Google sign-in failed', err);
         toast.error(err.response?.data?.message || 'Google sign-in failed');
@@ -85,15 +92,8 @@ const Login = () => {
       }
     };
 
-    // Load Google script if not present
-    const existing = document.getElementById('google-client-script');
-    if (!existing) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.id = 'google-client-script';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
+    const initializeGoogleSignIn = () => {
+      try {
         if (window.google && window.google.accounts && window.google.accounts.id) {
           window.google.accounts.id.initialize({
             client_id: clientId,
@@ -106,15 +106,36 @@ const Login = () => {
             { theme: 'outline', size: 'large' }
           );
         }
+      } catch (error) {
+        console.error('Failed to initialize Google Sign-In:', error);
+        // Hide the Google sign-in button if initialization fails
+        const googleButton = document.getElementById('g_id_signin');
+        if (googleButton) {
+          googleButton.style.display = 'none';
+        }
+      }
+    };
+
+    // Load Google script if not present
+    const existing = document.getElementById('google-client-script');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.id = 'google-client-script';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogleSignIn;
+      script.onerror = () => {
+        console.error('Failed to load Google Sign-In script');
+        // Hide the Google sign-in button if script fails to load
+        const googleButton = document.getElementById('g_id_signin');
+        if (googleButton) {
+          googleButton.style.display = 'none';
+        }
       };
       document.head.appendChild(script);
-    } else if (window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredentialResponse,
-        ux_mode: 'popup'
-      });
-      window.google.accounts.id.renderButton(document.getElementById('g_id_signin'), { theme: 'outline', size: 'large' });
+    } else {
+      initializeGoogleSignIn();
     }
 
     return () => {
