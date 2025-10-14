@@ -30,6 +30,7 @@ import Feedback from "./pages/Feedback";
 // Auth pages
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import ProfileCompletion from "./pages/Auth/ProfileCompletion";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
@@ -233,6 +234,11 @@ function App() {
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/complete-profile" element={
+              <ProtectedRoute>
+                <ProfileCompletion />
+              </ProtectedRoute>
+            } />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />

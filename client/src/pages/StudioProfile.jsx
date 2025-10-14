@@ -54,10 +54,21 @@ const StudioProfile = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: studioData, isLoading, error } = useGetStudioQuery(id);
-  const { data: reviewsData } = useGetReviewsQuery({
-    targetType: "studio",
+  const { data: reviewsData, isLoading: reviewsLoading, error: reviewsError } = useGetReviewsQuery({
+    targetType: "Studio",
     targetId: id,
   });
+
+  // Debug logging (can be removed in production)
+  useEffect(() => {
+    if (reviewsData) {
+      console.log('Reviews loaded:', reviewsData?.data?.reviews?.length, 'reviews found');
+    }
+  }, [reviewsData]);
+
+  // Get approved reviews
+  const approvedReviews = reviewsData?.data?.reviews || [];
+  const reviewCount = approvedReviews.length;
 
   // Fetch studio media
   useEffect(() => {
@@ -156,7 +167,7 @@ const StudioProfile = () => {
     { id: "gallery", label: "Gallery" },
     {
       id: "reviews",
-      label: `Reviews (${reviewsData?.data?.pagination?.total || 0})`,
+      label: `Reviews (${reviewCount})`,
     },
     { id: "availability", label: "Availability" },
   ];
@@ -754,9 +765,9 @@ const StudioProfile = () => {
                   <h3 className="text-xl font-semibold text-gray-100 mb-4">
                     Reviews
                   </h3>
-                  {reviewsData?.data?.reviews?.length > 0 ? (
+                  {approvedReviews.length > 0 ? (
                     <div className="space-y-4">
-                      {reviewsData.data.reviews.map((review) => (
+                      {approvedReviews.map((review) => (
                         <div
                           key={review._id}
                           className="border-b border-gray-700 pb-4 last:border-b-0"

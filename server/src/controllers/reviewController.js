@@ -4,6 +4,7 @@ const Artist = require('../models/Artist');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const mongoose = require('mongoose');
 
 const createReview = catchAsync(async (req, res) => {
   const { targetType, targetId, booking: bookingId, rating, comment } = req.body;
@@ -63,11 +64,24 @@ const createReview = catchAsync(async (req, res) => {
 const getReviews = catchAsync(async (req, res) => {
   const { targetType, targetId, page = 1, limit = 10 } = req.query;
 
+  console.log('getReviews called with:', { targetType, targetId, page, limit });
+
   const query = { isApproved: true };
   
   if (targetType && targetId) {
     query.targetType = targetType;
-    query.targetId = targetId;
+    // Convert targetId string to ObjectId for proper MongoDB comparison
+    try {
+      // Check if targetId is a valid ObjectId format
+      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        throw new ApiError('Invalid target ID format', 400);
+      }
+      query.targetId = new mongoose.Types.ObjectId(targetId);
+      console.log('Query built:', query);
+    } catch (error) {
+      console.error('ObjectId conversion error:', error);
+      throw new ApiError('Invalid target ID format', 400);
+    }
   }
 
   const reviews = await Review.find(query)
@@ -77,6 +91,9 @@ const getReviews = catchAsync(async (req, res) => {
     .skip((page - 1) * limit);
 
   const total = await Review.countDocuments(query);
+  
+  console.log('Reviews found:', reviews.length);
+  console.log('Total count:', total);
 
   res.json({
     status: 'success',
