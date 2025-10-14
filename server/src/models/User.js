@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isProfileComplete: {
+    type: Boolean,
+    default: false
+  },
   studio: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Studio'
@@ -113,6 +117,25 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 // Check if user is blocked
 userSchema.methods.isUserBlocked = function() {
   return this.isBlocked || (this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Check if user profile is complete
+userSchema.methods.isProfileCompleteCheck = function() {
+  // Basic required fields for all users
+  if (!this.name || !this.email || !this.city) {
+    return false;
+  }
+
+  // Role-specific requirements
+  if (this.role === 'studio') {
+    // Studios need studio information
+    return this.studio && this.studio.name && this.studio.description;
+  } else if (this.role === 'client') {
+    // Clients just need the basic fields
+    return true;
+  }
+
+  return false;
 };
 
 // Get user status

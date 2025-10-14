@@ -71,10 +71,16 @@ const Login = () => {
         if (!idToken) return;
         setIsLoading(true);
         const res = await api.post('/auth/google', { idToken });
-        const { user, accessToken } = res.data.data;
+        const { user, accessToken, requiresProfileCompletion } = res.data.data;
         dispatch(setCredentials({ user, token: accessToken }));
         toast.success(`Welcome, ${user.name}`);
-        navigate(from, { replace: true });
+        
+        // Redirect based on profile completion status
+        if (requiresProfileCompletion) {
+          navigate('/complete-profile', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } catch (err) {
         console.error('Google sign-in failed', err);
         toast.error(err.response?.data?.message || 'Google sign-in failed');
@@ -95,7 +101,8 @@ const Login = () => {
         if (window.google && window.google.accounts && window.google.accounts.id) {
           window.google.accounts.id.initialize({
             client_id: clientId,
-            callback: handleCredentialResponse
+            callback: handleCredentialResponse,
+            ux_mode: 'popup'
           });
           // Render button into container
           window.google.accounts.id.renderButton(
@@ -108,7 +115,8 @@ const Login = () => {
     } else if (window.google && window.google.accounts && window.google.accounts.id) {
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleCredentialResponse
+        callback: handleCredentialResponse,
+        ux_mode: 'popup'
       });
       window.google.accounts.id.renderButton(document.getElementById('g_id_signin'), { theme: 'outline', size: 'large' });
     }

@@ -169,8 +169,10 @@ const Register = () => {
 
   const watchedRole = watch('role')
 
-  // Google Identity Services integration for register
+  // Google Identity Services integration for register - only for clients
   useEffect(() => {
+    if (selectedRole !== 'client') return;
+    
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
@@ -180,10 +182,16 @@ const Register = () => {
         if (!idToken) return;
         setIsLoading(true);
         const res = await api.post('/auth/google', { idToken });
-        const { user, accessToken } = res.data.data;
+        const { user, accessToken, requiresProfileCompletion } = res.data.data;
         dispatch(setCredentials({ user, token: accessToken }));
         toast.success(`Welcome, ${user.name}`);
-        navigate('/dashboard');
+        
+        // Redirect based on profile completion status
+        if (requiresProfileCompletion) {
+          navigate('/complete-profile', { replace: true });
+        } else {
+          navigate('/dashboard');
+        }
       } catch (err) {
         console.error('Google sign-up failed', err);
         toast.error(err.response?.data?.message || 'Google sign-up failed');
@@ -203,7 +211,8 @@ const Register = () => {
         if (window.google && window.google.accounts && window.google.accounts.id) {
           window.google.accounts.id.initialize({
             client_id: clientId,
-            callback: handleCredentialResponse
+            callback: handleCredentialResponse,
+            ux_mode: 'popup'
           });
           const buttonElement = document.getElementById('g_id_signin_register');
           if (buttonElement) {
@@ -215,14 +224,15 @@ const Register = () => {
     } else if (window.google && window.google.accounts && window.google.accounts.id) {
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleCredentialResponse
+        callback: handleCredentialResponse,
+        ux_mode: 'popup'
       });
       const buttonElement = document.getElementById('g_id_signin_register');
       if (buttonElement) {
         window.google.accounts.id.renderButton(buttonElement, { theme: 'outline', size: 'large' });
       }
     }
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, selectedRole]);
 
   const onSubmit = async (data) => {
     console.log('Form data:', data)
@@ -807,17 +817,21 @@ const Register = () => {
               {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
 
-            {/* Google Sign-In Button */}
-            <div className="relative mt-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
-              </div>
-            </div>
+            {/* Google Sign-In Button - Only show for clients */}
+            {selectedRole === 'client' && (
+              <>
+                <div className="relative mt-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-600" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
+                  </div>
+                </div>
 
-            <div id="g_id_signin_register" className="w-full"></div>
+                <div id="g_id_signin_register" className="w-full"></div>
+              </>
+            )}
           </form>
         </motion.div>
 

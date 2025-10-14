@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Studio = require('../models/Studio');
 const ApiError = require('../utils/ApiError');
@@ -134,6 +135,7 @@ const register = catchAsync(async (req, res) => {
 
   // Save refresh token
   user.refreshToken = refreshToken;
+  user.isProfileComplete = user.isProfileCompleteCheck(); // Check if profile is complete
   await user.save();
 
   // Set refresh token cookie
@@ -158,6 +160,7 @@ const register = catchAsync(async (req, res) => {
         email: user.email,
         role: user.role,
         verified: user.verified,
+        isProfileComplete: user.isProfileComplete,
         ...(userRole === 'studio' && { studioApproved: false })
       },
       accessToken
@@ -218,6 +221,7 @@ const login = catchAsync(async (req, res) => {
         role: user.role,
         verified: user.verified,
         avatar: user.avatar,
+        isProfileComplete: user.isProfileComplete,
         ...(user.role === 'studio' && user.studio && { studio: user.studio._id })
       },
       accessToken
@@ -436,6 +440,7 @@ const googleAuth = catchAsync(async (req, res) => {
 
   // Find or create user by email
   let user = await User.findOne({ email });
+  let isNewUser = false;
   if (!user) {
     // Create a new user with role 'client' by default
     user = await User.create({
@@ -446,6 +451,12 @@ const googleAuth = catchAsync(async (req, res) => {
       verified: true,
       avatar: picture || undefined
     });
+    isNewUser = true;
+  }
+
+  // Check if profile is complete for new Google users
+  if (isNewUser) {
+    user.isProfileComplete = user.isProfileCompleteCheck();
   }
 
   // Generate tokens
@@ -469,9 +480,11 @@ const googleAuth = catchAsync(async (req, res) => {
         email: user.email,
         role: user.role,
         verified: user.verified,
-        avatar: user.avatar
+        avatar: user.avatar,
+        isProfileComplete: user.isProfileComplete
       },
-      accessToken
+      accessToken,
+      requiresProfileCompletion: isNewUser && !user.isProfileComplete
     }
   });
 });
@@ -557,12 +570,53 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
+// Complete user profile
+const completeProfile = catchAsync(async (req, res) => {
+  const { phone, country, city } = req.body;
+  const userId = req.user.id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  // Update profile fields
+  if (phone !== undefined) user.phone = phone;
+  if (country) user.country = country;
+  if (city) user.city = city;
+
+  // Check if profile is now complete
+  user.isProfileComplete = user.isProfileCompleteCheck();
+
+  await user.save();
+
+  res.json({
+    status: 'success',
+    message: 'Profile completed successfully',
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: user.verified,
+        avatar: user.avatar,
+        phone: user.phone,
+        country: user.country,
+        city: user.city,
+        isProfileComplete: user.isProfileComplete
+      }
+    }
+  });
+});
+
 module.exports = {
   register,
   login,
   logout,
   refreshToken,
   googleAuth,
+  completeProfile,
   verifyEmail,
   resendVerification,
   forgotPassword,
