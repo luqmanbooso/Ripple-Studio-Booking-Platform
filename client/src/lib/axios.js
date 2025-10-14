@@ -20,9 +20,13 @@ const refreshInstance = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = store.getState().auth.token
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    const { isAuthenticated } = store.getState().auth
+    // Don't add token if user is not authenticated (prevents unnecessary API calls after logout)
+    if (isAuthenticated) {
+      const token = store.getState().auth.token
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
     }
     return config
   },
@@ -35,6 +39,7 @@ api.interceptors.request.use(
 // Refresh lock + queue to prevent multiple refresh calls
 let isRefreshing = false
 let failedQueue = []
+let isLoggingOut = false // Flag to prevent refresh attempts during logout
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
@@ -60,7 +65,7 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !window.isLoggingOut) {
       // mark request for retry
       originalRequest._retry = true
 
@@ -100,10 +105,17 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle other errors
+    // Handle other errors - be less aggressive with toasts
     if (error.response?.status >= 500) {
-      toast.error('Server error. Please try again later.')
-    } else if (error.response?.data?.message) {
+      // Only show server errors if not already showing session expired
+      if (!error.response?.data?.message?.includes('Session expired')) {
+        toast.error('Server error. Please try again later.')
+      }
+    } else if (error.response?.status === 401) {
+      // Don't show additional 401 errors if already handled by refresh logic
+      // The refresh logic already shows appropriate messages
+    } else if (error.response?.data?.message && error.response?.status !== 404) {
+      // Don't show 404 errors as they might be expected (page not found, etc.)
       toast.error(error.response.data.message)
     } else if (error.message === 'Network Error') {
       toast.error('Network error. Please check your connection.')

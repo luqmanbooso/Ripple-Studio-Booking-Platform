@@ -484,7 +484,51 @@ const googleAuth = catchAsync(async (req, res) => {
         isProfileComplete: user.isProfileComplete
       },
       accessToken,
-      requiresProfileCompletion: false
+      requiresProfileCompletion: isNewUser && !user.isProfileComplete
+    }
+  });
+});
+
+// Complete profile for new users (especially Google sign-up)
+const completeProfile = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  const { phone, country, city } = req.body;
+
+  // Update user profile
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { 
+      phone, 
+      country: country || 'Sri Lanka', // Default to Sri Lanka if not provided
+      city 
+    },
+    { new: true, runValidators: true }
+  ).populate('studio');
+
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+
+  // Recalculate profile completion status
+  user.isProfileComplete = user.isProfileCompleteCheck();
+  await user.save();
+
+  res.json({
+    status: 'success',
+    message: 'Profile completed successfully',
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: user.verified,
+        avatar: user.avatar,
+        phone: user.phone,
+        country: user.country,
+        city: user.city,
+        isProfileComplete: user.isProfileComplete
+      }
     }
   });
 });
@@ -577,6 +621,7 @@ module.exports = {
   logout,
   refreshToken,
   googleAuth,
+  completeProfile,
   verifyEmail,
   resendVerification,
   forgotPassword,
