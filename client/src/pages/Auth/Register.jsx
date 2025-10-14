@@ -186,12 +186,8 @@ const Register = () => {
         dispatch(setCredentials({ user, token: accessToken }));
         toast.success(`Welcome, ${user.name}`);
         
-        // Redirect based on profile completion status
-        if (requiresProfileCompletion) {
-          navigate('/complete-profile', { replace: true });
-        } else {
-          navigate('/dashboard');
-        }
+        // Always redirect to dashboard
+        navigate('/dashboard');
       } catch (err) {
         console.error('Google sign-up failed', err);
         toast.error(err.response?.data?.message || 'Google sign-up failed');

@@ -75,12 +75,8 @@ const Login = () => {
         dispatch(setCredentials({ user, token: accessToken }));
         toast.success(`Welcome, ${user.name}`);
         
-        // Redirect based on profile completion status
-        if (requiresProfileCompletion) {
-          navigate('/complete-profile', { replace: true });
-        } else {
-          navigate(from, { replace: true });
-        }
+        // Always redirect to intended destination or dashboard
+        navigate(from, { replace: true });
       } catch (err) {
         console.error('Google sign-in failed', err);
         toast.error(err.response?.data?.message || 'Google sign-in failed');

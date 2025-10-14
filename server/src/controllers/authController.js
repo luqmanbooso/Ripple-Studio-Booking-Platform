@@ -484,7 +484,7 @@ const googleAuth = catchAsync(async (req, res) => {
         isProfileComplete: user.isProfileComplete
       },
       accessToken,
-      requiresProfileCompletion: isNewUser && !user.isProfileComplete
+      requiresProfileCompletion: false
     }
   });
 });
@@ -570,45 +570,6 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
-// Complete user profile
-const completeProfile = catchAsync(async (req, res) => {
-  const { phone, country, city } = req.body;
-  const userId = req.user.id;
-
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new ApiError('User not found', 404);
-  }
-
-  // Update profile fields
-  if (phone !== undefined) user.phone = phone;
-  if (country) user.country = country;
-  if (city) user.city = city;
-
-  // Check if profile is now complete
-  user.isProfileComplete = user.isProfileCompleteCheck();
-
-  await user.save();
-
-  res.json({
-    status: 'success',
-    message: 'Profile completed successfully',
-    data: {
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        verified: user.verified,
-        avatar: user.avatar,
-        phone: user.phone,
-        country: user.country,
-        city: user.city,
-        isProfileComplete: user.isProfileComplete
-      }
-    }
-  });
-});
 
 module.exports = {
   register,
@@ -616,7 +577,6 @@ module.exports = {
   logout,
   refreshToken,
   googleAuth,
-  completeProfile,
   verifyEmail,
   resendVerification,
   forgotPassword,

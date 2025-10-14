@@ -69,7 +69,6 @@ router.post('/resend-verification', validate(resendVerificationSchema), authCont
 
 // Protected routes
 router.post('/logout', authenticate, authController.logout);
-router.put('/complete-profile', authenticate, authController.completeProfile);
 router.get('/me', authenticate, authController.getMe);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);

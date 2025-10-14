@@ -23,10 +23,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/dashboard" replace />
   }
 
-  // Check if profile completion is required (but not on the profile completion page)
-  if (user && !user.isProfileComplete && location.pathname !== '/complete-profile') {
-    return <Navigate to="/complete-profile" replace />
-  }
 
   return children
 }
