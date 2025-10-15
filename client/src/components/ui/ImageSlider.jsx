@@ -205,13 +205,13 @@ const ImageSlider = ({
           {showControls && images.length > 1 && (
             <>
               <button
-                onClick={prevSlide}
+                onClick={goToPrev}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-gradient-to-r from-black/60 to-black/40 hover:from-black/80 hover:to-black/60 rounded-full flex items-center justify-center text-white transition-all duration-300 backdrop-blur-md border border-white/10 hover:border-white/20 shadow-lg hover:shadow-xl hover:scale-105 z-10 group"
               >
                 <ChevronLeft className="w-6 h-6 transition-transform group-hover:-translate-x-0.5" />
               </button>
               <button
-                onClick={nextSlide}
+                onClick={goToNext}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-gradient-to-l from-black/60 to-black/40 hover:from-black/80 hover:to-black/60 rounded-full flex items-center justify-center text-white transition-all duration-300 backdrop-blur-md border border-white/10 hover:border-white/20 shadow-lg hover:shadow-xl hover:scale-105 z-10 group"
               >
                 <ChevronRight className="w-6 h-6 transition-transform group-hover:translate-x-0.5" />

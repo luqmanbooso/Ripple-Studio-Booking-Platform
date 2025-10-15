@@ -66,6 +66,9 @@ const StudioNavbar = () => {
       // Set logging out flag to prevent token refresh attempts
       window.isLoggingOut = true
       
+      // Call logout API to clear server-side refresh token
+      await api.post('/auth/logout')
+      
       // Clear auth state
       dispatch(logout())
       
@@ -83,8 +86,15 @@ const StudioNavbar = () => {
         window.isLoggingOut = false 
       }, 1000)
     } catch (error) {
-      // Even if there's an error, show success since logout action completed
+      // Even if there's an error, clear local state and show success
+      dispatch(logout())
+      disconnectSocket()
+      navigate('/')
       toast.success('Logged out successfully')
+      
+      setTimeout(() => { 
+        window.isLoggingOut = false 
+      }, 1000)
     }
   }
 

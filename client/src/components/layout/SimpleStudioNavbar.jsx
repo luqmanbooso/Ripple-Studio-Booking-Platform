@@ -8,6 +8,7 @@ import {
 import { toast } from 'react-hot-toast'
 import { logout } from '../../store/authSlice'
 import { useGetStudioQuery } from '../../store/studioApi'
+import api from '../../lib/axios'
 
 const SimpleStudioNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -39,10 +40,25 @@ const SimpleStudioNavbar = () => {
     return false
   }
 
-  const handleLogout = () => {
-    dispatch(logout())
-    navigate('/')
-    toast.success('Logged out successfully')
+  const handleLogout = async () => {
+    try {
+      // Call logout API to clear server-side refresh token
+      await api.post('/auth/logout')
+      
+      // Clear auth state
+      dispatch(logout())
+      
+      // Navigate to home
+      navigate('/')
+      
+      // Show success message
+      toast.success('Logged out successfully')
+    } catch (error) {
+      // Even if there's an error, clear local state and show success
+      dispatch(logout())
+      navigate('/')
+      toast.success('Logged out successfully')
+    }
   }
 
   const toggleTheme = () => {
