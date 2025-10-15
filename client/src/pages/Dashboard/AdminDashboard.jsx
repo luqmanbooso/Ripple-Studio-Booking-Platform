@@ -15,7 +15,15 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowUpRight,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Zap,
+  Award,
+  Target,
+  Percent
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
 
@@ -112,64 +120,73 @@ const AdminDashboard = () => {
 
       <div className="relative z-10 p-4">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
+          {/* Enhanced Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0"
+            className="mb-8"
           >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <Activity className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-                  Admin Dashboard
-                </h1>
-                <div className="flex items-center space-x-3 mt-1">
-                  <p className="text-gray-400 flex items-center space-x-2 text-sm">
-                    <Globe className="w-4 h-4 text-blue-400" />
-                    <span>Platform Overview & Management</span>
-                  </p>
-                  <span className="text-gray-600">•</span>
-                  <p className="text-gray-500 text-xs flex items-center space-x-1">
-                    <Activity className={`w-3 h-3 ${isFetching ? 'text-blue-400 animate-pulse' : 'text-green-400'}`} />
-                    <span>
-                      {isFetching ? 'Updating...' : `Updated ${lastUpdated.toLocaleTimeString()}`}
-                    </span>
-                  </p>
+            <Card className="bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-xl border border-white/10 p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                      <Activity className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-950 flex items-center justify-center">
+                      <Zap className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent mb-1">
+                      Admin Command Center
+                    </h1>
+                    <div className="flex items-center space-x-3">
+                      <p className="text-gray-400 flex items-center space-x-2 text-sm">
+                        <Globe className="w-4 h-4 text-blue-400" />
+                        <span>Real-time Platform Analytics</span>
+                      </p>
+                      <span className="text-gray-600">•</span>
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-2 h-2 rounded-full ${isFetching ? 'bg-blue-400 animate-pulse' : 'bg-green-400'}`}></div>
+                        <p className="text-gray-500 text-xs">
+                          {isFetching ? 'Syncing...' : `Live • ${lastUpdated.toLocaleTimeString()}`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeframe Selector & Actions */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-1">
+                    {['week', 'month', 'quarter', 'year'].map((period) => (
+                      <button
+                        key={period}
+                        onClick={() => setTimeframe(period)}
+                        disabled={isFetching}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 capitalize disabled:opacity-50 disabled:cursor-not-allowed ${
+                          timeframe === period
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
+                            : 'text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {period}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isFetching}
+                    className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 border border-white/10 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                    <span>{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Timeframe Selector & Actions */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-1">
-                {['week', 'month', 'quarter', 'year'].map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => setTimeframe(period)}
-                    disabled={isFetching}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 capitalize disabled:opacity-50 disabled:cursor-not-allowed ${
-                      timeframe === period
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
-                        : 'text-gray-400 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {period}
-                  </button>
-                ))}
-              </div>
-              
-              <button
-                onClick={handleRefresh}
-                disabled={isFetching}
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 border border-white/10 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                <span>{isFetching ? 'Refreshing...' : 'Refresh'}</span>
-              </button>
-            </div>
+            </Card>
           </motion.div>
 
           {/* Overview Statistics */}
@@ -298,7 +315,7 @@ const AdminDashboard = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
             className="mb-6"
           >
             <Card className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-xl border border-white/10 p-6">
@@ -608,6 +625,96 @@ const AdminDashboard = () => {
               </Link>
             </motion.div>
           </div>
+
+          {/* Quick Insights & Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          >
+            {/* Platform Overview Card */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center">
+                <Eye className="w-5 h-5 mr-2 text-blue-400" />
+                Platform Overview
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">Active Studios</span>
+                  </div>
+                  <span className="text-white font-semibold">{analytics.studioStats?.active || 0}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">Pending Approval</span>
+                  </div>
+                  <span className="text-yellow-400 font-semibold">{analytics.studioStats?.pending || 0}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                      <Star className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <span className="text-gray-300 text-sm">Total Reviews</span>
+                  </div>
+                  <span className="text-white font-semibold">{analytics.reviewStats?.totalReviews || 0}</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Performance Indicators Card */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 p-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center">
+                <Zap className="w-5 h-5 mr-2 text-yellow-400" />
+                Performance Indicators
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300 text-sm">Platform Commission</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-blue-400 font-semibold">
+                      {revenueStats.commissionRate ? `${(revenueStats.commissionRate * 100).toFixed(1)}%` : '3.0%'}
+                    </span>
+                    <TrendingUp className="w-4 h-4 text-green-400" />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300 text-sm">Avg Transaction Value</span>
+                  <span className="text-white font-semibold">
+                    LKR {revenueStats.totalBookings > 0 
+                      ? Math.round((revenueStats.totalRevenue || 0) / revenueStats.totalBookings).toLocaleString()
+                      : '0'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300 text-sm">User Engagement</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <div 
+                          key={i}
+                          className={`w-1.5 h-6 rounded-full ${i < 4 ? 'bg-green-500' : 'bg-gray-600'}`}
+                        ></div>
+                      ))}
+                    </div>
+                    <span className="text-green-400 font-semibold text-sm">High</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </div>
