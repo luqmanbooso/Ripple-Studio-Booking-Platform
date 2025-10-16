@@ -314,7 +314,7 @@ const ServiceSelectionStep = ({ services, selectedServices, onSelectionChange })
                             <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
                               <div className="flex items-center space-x-1">
                                 <DollarSign className="w-4 h-4" />
-                                <span>${service.price}</span>
+                                <span>LKR {service.price?.toLocaleString()}</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Clock className="w-4 h-4" />
@@ -388,7 +388,7 @@ const BookingReviewStep = ({ bookingData, studio, onNotesChange }) => {
                   <span className="font-medium text-gray-900 dark:text-white">{service.name}</span>
                   <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">({service.durationMins} mins)</span>
                 </div>
-                <span className="font-medium text-gray-900 dark:text-white">${service.price}</span>
+                <span className="font-medium text-gray-900 dark:text-white">LKR {service.price?.toLocaleString()}</span>
               </div>
             ))}
           </div>

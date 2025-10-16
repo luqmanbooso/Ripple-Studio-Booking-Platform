@@ -203,7 +203,7 @@ const CompleteStudioBookings = () => {
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Revenue</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${bookings.reduce((sum, b) => sum + (b.price || 0), 0)}
+                LKR {bookings.reduce((sum, b) => sum + (b.price || 0), 0).toLocaleString()}
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-orange-500" />
@@ -332,7 +332,7 @@ const CompleteStudioBookings = () => {
                 <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
                   <DollarSign className="w-4 h-4 text-green-500" />
                   <span className="font-bold text-green-600 dark:text-green-400 text-lg">
-                    ${booking.price}
+                    LKR {booking.price?.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -514,7 +514,7 @@ const CompleteStudioBookings = () => {
                       <div>
                         <p className="text-sm text-gray-500">Price</p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          ${selectedBooking.price}
+                          LKR {selectedBooking.price?.toLocaleString()}
                         </p>
                       </div>
                     </div>

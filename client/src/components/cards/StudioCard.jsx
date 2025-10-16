@@ -150,8 +150,7 @@ const StudioCard = ({ studio }) => {
               {minPrice && (
                 <div className="flex items-center text-light-accent dark:text-accent-400 font-semibold">
                   <span className="text-xs mr-1">from</span>
-                  <DollarSign className="w-4 h-4" />
-                  <span>{minPrice}</span>
+                  <span>LKR {minPrice?.toLocaleString()}</span>
                 </div>
               )}
             </div>

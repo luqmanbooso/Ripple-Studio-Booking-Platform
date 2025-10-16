@@ -206,7 +206,7 @@ const EquipmentRentalSelector = ({
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            ${pricing.rate}/{pricing.period}
+                            LKR {pricing.rate?.toLocaleString()}/{pricing.period}
                           </span>
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             equipment.condition === 'New' ? 'bg-green-100 text-green-800' :
@@ -222,7 +222,7 @@ const EquipmentRentalSelector = ({
                           <div className="text-sm">
                             <span className="text-gray-600 dark:text-gray-400">Total: </span>
                             <span className="font-medium text-green-600 dark:text-green-400">
-                              ${totalCost.toFixed(2)}
+                              LKR {totalCost?.toLocaleString()}
                             </span>
                           </div>
                         )}
@@ -283,7 +283,7 @@ const EquipmentRentalSelector = ({
                   {item.name} × {item.quantity}
                 </span>
                 <span className="font-medium text-green-600 dark:text-green-400">
-                  ${item.rentalCost?.toFixed(2) || '0.00'}
+                  LKR {item.rentalCost?.toLocaleString() || '0'}
                 </span>
               </div>
             ))}
@@ -291,7 +291,7 @@ const EquipmentRentalSelector = ({
               <div className="flex items-center justify-between font-medium">
                 <span className="text-gray-900 dark:text-white">Total Equipment Cost:</span>
                 <span className="text-green-600 dark:text-green-400 text-lg">
-                  ${selectedEquipment.reduce((sum, item) => sum + (item.rentalCost || 0), 0).toFixed(2)}
+                  LKR {selectedEquipment.reduce((sum, item) => sum + (item.rentalCost || 0), 0).toLocaleString()}
                 </span>
               </div>
             </div>

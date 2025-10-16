@@ -139,7 +139,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
                 {getStatusLabel(booking.status)}
               </span>
               <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                ${booking.price}
+                LKR {booking.price?.toLocaleString()}
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Price:</span>
                 <span className="ml-2 text-gray-900 dark:text-white font-medium">
-                  ${booking.service?.price}
+                  LKR {booking.service?.price?.toLocaleString()}
                 </span>
               </div>
             </div>
