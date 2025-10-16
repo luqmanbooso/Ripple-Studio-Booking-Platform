@@ -14,7 +14,6 @@ import {
   Shield,
   ChevronDown,
   Bell,
-  MessageCircle,
   BookOpen,
   HelpCircle,
   Building,
@@ -270,10 +269,6 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
 
-                {/* Messages */}
-                <button className="relative p-3 text-light-textSecondary dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <MessageCircle className="w-5 h-5 group-hover:animate-bounce" />
-                </button>
 
                 {/* (removed) Top-level Dashboard link - use My Bookings in profile menu instead */}
 

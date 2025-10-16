@@ -9,7 +9,6 @@ import {
   Check, 
   X, 
   Star,
-  MessageCircle,
   Phone,
   Mail
 } from 'lucide-react'
@@ -290,14 +289,6 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
               </Button>
             )}
 
-            {/* Message Button */}
-            <Button
-              variant="ghost"
-              icon={<MessageCircle className="w-4 h-4" />}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              Message
-            </Button>
           </div>
         </div>
 
