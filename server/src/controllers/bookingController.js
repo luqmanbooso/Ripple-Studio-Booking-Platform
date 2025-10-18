@@ -275,7 +275,7 @@ const cancelBooking = catchAsync(async (req, res) => {
     throw new ApiError("You cannot cancel this booking", 403);
   }
 
-  if (!booking.canCancel()) {
+  if (!booking.canCancel(req.user.role)) {
     throw new ApiError("Booking cannot be cancelled at this time", 400);
   }
 

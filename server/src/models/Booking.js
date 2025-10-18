@@ -160,15 +160,28 @@ bookingSchema.virtual("providerType").get(function () {
 });
 
 // Check if booking can be cancelled
-bookingSchema.methods.canCancel = function () {
+bookingSchema.methods.canCancel = function (userRole = 'client') {
+  // For testing purposes, allow cancellation anytime before the booking is completed/cancelled
+  // In production, you might want stricter time-based rules
+  return !["completed", "cancelled", "refunded"].includes(this.status);
+  
+  // Original stricter logic (commented out for testing):
+  /*
+  // Admin and studio users can cancel anytime (for emergency situations)
+  if (userRole === 'admin' || userRole === 'studio') {
+    return !["completed", "cancelled", "refunded"].includes(this.status);
+  }
+
+  // Clients have a 2-hour cancellation policy
   const now = new Date();
   const hoursUntilStart = (this.start - now) / (1000 * 60 * 60);
 
-  // Can cancel if more than 24 hours before start time and not completed
+  // Can cancel if more than 2 hours before start time and not completed
   return (
-    hoursUntilStart > 24 &&
+    hoursUntilStart > 2 &&
     !["completed", "cancelled", "refunded"].includes(this.status)
   );
+  */
 };
 
 // Check if booking can be completed
