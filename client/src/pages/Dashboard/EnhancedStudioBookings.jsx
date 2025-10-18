@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
-import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
 
 const EnhancedStudioBookings = () => {
   const { user } = useSelector(state => state.auth)
@@ -30,6 +30,7 @@ const EnhancedStudioBookings = () => {
 
   const [completeBooking] = useCompleteBookingMutation()
   const [cancelBooking] = useCancelBookingMutation()
+  const [confirmBooking] = useConfirmBookingMutation()
 
   const bookings = bookingsData?.data?.bookings || []
 
@@ -54,6 +55,9 @@ const EnhancedStudioBookings = () => {
       } else if (newStatus === 'cancelled') {
         await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
         toast.success('Booking cancelled successfully')
+      } else if (newStatus === 'confirmed') {
+        await confirmBooking(bookingId).unwrap()
+        toast.success('Booking confirmed successfully')
       } else {
         toast.error('Unsupported status update')
         return

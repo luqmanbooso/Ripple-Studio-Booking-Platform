@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
-import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
 import { useGetStudioQuery } from '../../store/studioApi'
 
 const CompleteStudioBookings = () => {
@@ -28,6 +28,7 @@ const CompleteStudioBookings = () => {
   })
   const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
   const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
+  const [confirmBooking, { isLoading: isConfirming }] = useConfirmBookingMutation()
 
   const bookings = bookingsData?.data?.bookings || []
 
@@ -48,6 +49,9 @@ const CompleteStudioBookings = () => {
       } else if (newStatus === 'cancelled') {
         await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
         toast.success('Booking cancelled!')
+      } else if (newStatus === 'confirmed') {
+        await confirmBooking(bookingId).unwrap()
+        toast.success('Booking confirmed!')
       } else {
         toast.error('Unsupported status update')
         return

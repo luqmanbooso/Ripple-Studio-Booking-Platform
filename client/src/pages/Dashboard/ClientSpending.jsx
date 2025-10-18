@@ -12,8 +12,8 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
 import { 
-  useGetMyPaymentsQuery
-} from '../../store/paymentApi'
+  useGetClientSpendingQuery
+} from '../../store/revenueApi'
 
 const ClientSpending = () => {
   const { user } = useSelector(state => state.auth)
@@ -21,68 +21,39 @@ const ClientSpending = () => {
   const [page, setPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Client payments query
-  const { data: paymentsData, isLoading, refetch } = useGetMyPaymentsQuery({
+  // Client spending query
+  const { data: spendingData, isLoading, refetch } = useGetClientSpendingQuery({
     page,
-    limit: 10,
-    status: '' // Get all payments
+    limit: 50,
+    // Add date filters based on timeframe if needed
   })
 
-  const payments = paymentsData?.data?.payments || []
-  
-  // Calculate statistics from payments
-  const calculateStats = () => {
-    const completedPayments = payments.filter(p => p.status === 'Completed')
-    const totalSpent = completedPayments.reduce((sum, p) => sum + p.amount, 0)
-    const totalBookings = completedPayments.length
-    const averagePerBooking = totalBookings > 0 ? totalSpent / totalBookings : 0
-    
-    // This month's spending
-    const thisMonth = new Date()
-    thisMonth.setDate(1)
-    thisMonth.setHours(0, 0, 0, 0)
-    
-    const thisMonthPayments = completedPayments.filter(p => 
-      new Date(p.completedAt || p.createdAt) >= thisMonth
-    )
-    const thisMonthSpent = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0)
-    
-    return {
-      totalSpent,
-      totalBookings,
-      averagePerBooking,
-      thisMonthSpent
-    }
+  const revenues = spendingData?.data?.revenues || []
+  const statistics = spendingData?.data?.statistics || {
+    totalSpent: 0,
+    averageSpending: 0,
+    totalBookings: 0
   }
 
-  const statistics = calculateStats()
-
-  function getStartDate() {
-    const now = new Date()
-    switch (timeframe) {
-      case 'week':
-        return new Date(now.setDate(now.getDate() - 7)).toISOString()
-      case 'month':
-        return new Date(now.setMonth(now.getMonth() - 1)).toISOString()
-      case 'quarter':
-        return new Date(now.setMonth(now.getMonth() - 3)).toISOString()
-      case 'year':
-        return new Date(now.setFullYear(now.getFullYear() - 1)).toISOString()
-      default:
-        return new Date(now.setMonth(now.getMonth() - 1)).toISOString()
-    }
-  }
+  // Filter revenues based on search
+  const filteredRevenues = revenues.filter(revenue => {
+    if (!searchTerm) return true
+    const studioName = revenue.studio?.name?.toLowerCase() || ''
+    const serviceName = revenue.bookingId?.service?.name?.toLowerCase() || ''
+    return studioName.includes(searchTerm.toLowerCase()) || 
+           serviceName.includes(searchTerm.toLowerCase())
+  })
 
   // Handle report download
   const handleDownloadReport = async (format = 'csv') => {
     try {
-      // Create CSV content from payments
-      const csvContent = payments.map(payment => ({
-        Date: new Date(payment.completedAt || payment.createdAt).toLocaleDateString(),
-        Studio: payment.bookingSnapshot?.studio?.name || 'N/A',
-        Service: payment.bookingSnapshot?.service?.name || 'N/A',
-        Amount: `LKR ${payment.amount}`,
-        Status: payment.status
+      // Create CSV content from revenues
+      const csvContent = revenues.map(revenue => ({
+        Date: new Date(revenue.createdAt).toLocaleDateString(),
+        Studio: revenue.studio?.name || 'N/A',
+        Service: revenue.bookingId?.service?.name || 'N/A',
+        Amount: `LKR ${revenue.totalAmount}`,
+        Status: 'Completed'
       }))
       
       const csvString = [
@@ -103,19 +74,6 @@ const ClientSpending = () => {
       toast.error('Failed to download report')
     }
   }
-
-  // Filter payments based on search
-  const filteredPayments = payments.filter(payment => {
-    if (!searchTerm) return true
-    
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      payment.bookingSnapshot?.studio?.name?.toLowerCase().includes(searchLower) ||
-      payment.bookingSnapshot?.service?.name?.toLowerCase().includes(searchLower) ||
-      payment.payhereOrderId?.toLowerCase().includes(searchLower) ||
-      new Date(payment.completedAt || payment.createdAt).toLocaleDateString().includes(searchLower)
-    )
-  })
 
   if (isLoading) {
     return (
@@ -180,7 +138,7 @@ const ClientSpending = () => {
               <div>
                 <p className="text-green-300 text-sm font-medium">Average Per Booking</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  LKR {Math.round(statistics.averagePerBooking || 0).toLocaleString()}
+                  LKR {Math.round(statistics.averageSpending || 0).toLocaleString()}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-400" />
@@ -204,7 +162,7 @@ const ClientSpending = () => {
               <div>
                 <p className="text-orange-300 text-sm font-medium">This Month</p>
                 <p className="text-2xl font-bold text-white mt-1">
-                  LKR {statistics.thisMonthSpent?.toLocaleString() || '0'}
+                  LKR {(0).toLocaleString()}
                 </p>
               </div>
               <BarChart3 className="w-8 h-8 text-orange-400" />
@@ -245,28 +203,23 @@ const ClientSpending = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredPayments.map((payment) => (
-                  <tr key={payment._id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                {filteredRevenues.map((revenue) => (
+                  <tr key={revenue._id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
                     <td className="py-3 px-4 text-gray-300">
-                      {new Date(payment.completedAt || payment.createdAt).toLocaleDateString()}
+                      {new Date(revenue.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4 text-white">
-                      {payment.bookingSnapshot?.studio?.name || 'Unknown Studio'}
+                      {revenue.studio?.name || 'Unknown Studio'}
                     </td>
                     <td className="py-3 px-4 text-gray-300">
-                      {payment.bookingSnapshot?.service?.name || 'Session'}
+                      {revenue.bookingId?.service?.name || 'Session'}
                     </td>
                     <td className="py-3 px-4 text-white font-medium">
-                      LKR {payment.amount.toLocaleString()}
+                      LKR {revenue.totalAmount?.toLocaleString() || '0'}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        payment.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                        payment.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                        payment.status === 'Failed' ? 'bg-red-500/20 text-red-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {payment.status}
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                        Completed
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -301,7 +254,7 @@ const ClientSpending = () => {
             </table>
           </div>
 
-          {filteredPayments.length === 0 && (
+          {filteredRevenues.length === 0 && (
             <div className="text-center py-8 text-gray-400">
               <PieChart className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No spending records found</p>
@@ -343,15 +296,16 @@ const ClientSpending = () => {
                   acc[studioName].count += 1
                   return acc
                 }, {})
-                ? Object.values(revenues.reduce((acc, revenue) => {
-                    const studioName = revenue.studio?.name || 'Unknown Studio'
-                    if (!acc[studioName]) {
-                      acc[studioName] = { name: studioName, total: 0, count: 0 }
-                    }
-                    acc[studioName].total += revenue.totalAmount
-                    acc[studioName].count += 1
-                    return acc
-                  }, {}))
+                ? Object.values(revenues
+                    .reduce((acc, revenue) => {
+                      const studioName = revenue.studio?.name || 'Unknown Studio'
+                      if (!acc[studioName]) {
+                        acc[studioName] = { name: studioName, total: 0, count: 0 }
+                      }
+                      acc[studioName].total += revenue.totalAmount
+                      acc[studioName].count += 1
+                      return acc
+                    }, {}))
                   .sort((a, b) => b.total - a.total)
                   .slice(0, 5)
                   .map((studio, index) => (
