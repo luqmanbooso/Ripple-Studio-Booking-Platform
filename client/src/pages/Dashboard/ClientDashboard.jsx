@@ -224,7 +224,7 @@ const ClientDashboard = () => {
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative p-4 bg-gradient-to-br from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-xl cursor-pointer overflow-hidden backdrop-blur-sm"
+              className="group relative p-4 bg-gradient-to-br from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-xl cursor-pointer overflow-hidden backdrop-blur-sm h-full"
             >
               {/* Background Pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
