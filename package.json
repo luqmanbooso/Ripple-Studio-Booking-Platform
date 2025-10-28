@@ -46,6 +46,7 @@
   },
   "homepage": "https://musicbooking.io",
   "dependencies": {
+    "mongoose-paginate-v2": "^1.9.1",
     "node-cron": "^4.2.1"
   }
 }

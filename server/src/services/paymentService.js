@@ -52,7 +52,8 @@ const createCheckoutSession = async (booking) => {
   }
 
   try {
-    const orderId = `booking_${booking._id}_${Date.now()}`;
+    // Use the custom order ID from the booking
+    const orderId = booking.orderId || `booking_${booking._id}_${Date.now()}`;
 
     // Prepare payment data according to PayHere API
     const paymentData = {

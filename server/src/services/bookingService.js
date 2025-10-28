@@ -3,6 +3,7 @@ const Payment = require("../models/Payment");
 const Studio = require("../models/Studio");
 const Payout = require("../models/Payout");
 const Notification = require("../models/Notification");
+const Wallet = require("../models/Wallet");
 const paymentService = require("./paymentService");
 const RevenueService = require("./revenueService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
@@ -75,7 +76,7 @@ const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
     // Find associated payment record
     const payment = await Payment.findOne({
       booking: booking._id,
-      status: 'Completed'
+      status: "Completed",
     });
 
     // Process refund if applicable
@@ -84,7 +85,7 @@ const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
         // Update payment record with refund status
         payment.processRefund(
           refundAmount,
-          reason || 'Booking cancelled',
+          reason || "Booking cancelled",
           cancelledBy
         );
         await payment.save();
@@ -94,7 +95,7 @@ const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
           booking.payherePaymentId,
           refundAmount
         );
-        
+
         booking.status = "refunded";
         booking.refundedAt = new Date();
         await booking.save();
@@ -123,7 +124,9 @@ const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
       bookingId: booking._id,
     });
 
-    logger.info(`Booking cancelled: ${booking._id}, Refund: LKR ${refundAmount}`);
+    logger.info(
+      `Booking cancelled: ${booking._id}, Refund: LKR ${refundAmount}`
+    );
     return booking;
   } catch (error) {
     logger.error("Error cancelling booking:", error);
@@ -139,6 +142,14 @@ const cancelBooking = async (booking, reason = "", cancelledBy = null) => {
  */
 const confirmBooking = async (booking, paymentId) => {
   try {
+    // Ensure booking has populated fields
+    if (!booking.client || !booking.client.name) {
+      booking = await Booking.findById(booking._id).populate([
+        { path: "client", select: "name email" },
+        { path: "studio", populate: { path: "user", select: "name email" } },
+      ]);
+    }
+
     booking.status = "confirmed";
     booking.payherePaymentId = paymentId;
     await booking.save();
@@ -147,16 +158,85 @@ const confirmBooking = async (booking, paymentId) => {
     try {
       const paymentDetails = {
         paymentId: paymentId,
-        paymentMethod: 'card', // Default to card, can be enhanced later
+        paymentMethod: "card", // Default to card, can be enhanced later
         paymentDate: new Date(),
-        currency: booking.currency || 'LKR'
+        currency: booking.currency || "LKR",
       };
 
-      const revenue = await RevenueService.createRevenueFromBooking(booking, paymentDetails);
-      logger.info(`Revenue record created for booking: ${booking._id}, revenue: ${revenue._id}`);
+      const revenue = await RevenueService.createRevenueFromBooking(
+        booking,
+        paymentDetails
+      );
+      logger.info(
+        `Revenue record created for booking: ${booking._id}, revenue: ${revenue._id}`
+      );
     } catch (revenueError) {
       logger.error("Error creating revenue record:", revenueError);
       // Don't fail the booking confirmation if revenue creation fails
+    }
+
+    // Credit studio owner's wallet
+    try {
+      let studio = booking.studio;
+
+      // If studio is not populated, fetch it
+      if (!studio.user) {
+        studio = await Studio.findById(booking.studio).populate("user");
+      }
+
+      if (studio && studio.user) {
+        logger.info(
+          `Processing wallet credit for studio owner: ${studio.user._id}`
+        );
+
+        // Get or create wallet for studio owner
+        let wallet = await Wallet.findOne({ user: studio.user._id });
+        if (!wallet) {
+          logger.info(`Creating new wallet for user: ${studio.user._id}`);
+          wallet = await Wallet.createWallet(studio.user._id);
+        }
+
+        // Calculate platform commission (7.1%)
+        const platformCommissionRate = 0.071;
+        const platformCommission = booking.price * platformCommissionRate;
+        const netAmount = booking.price - platformCommission;
+
+        logger.info(
+          `Crediting wallet - Gross: ${booking.price}, Commission: ${platformCommission}, Net: ${netAmount}`
+        );
+
+        // Add credit transaction to wallet
+        await wallet.addTransaction({
+          type: "credit",
+          amount: booking.price,
+          netAmount: netAmount,
+          platformCommission: {
+            rate: platformCommissionRate,
+            amount: platformCommission,
+          },
+          description: `Payment received for booking ${booking.bookingId || booking._id}`,
+          status: "completed",
+          metadata: {
+            bookingId: booking._id,
+            customBookingId: booking.bookingId,
+            clientName: booking.client?.name || "Unknown",
+            paymentId: paymentId,
+            sessionDate: booking.start,
+          },
+        });
+
+        logger.info(
+          `✓ Wallet credited successfully for studio owner ${studio.user._id}: ${netAmount} LKR (gross: ${booking.price} LKR, commission: ${platformCommission} LKR)`
+        );
+      } else {
+        logger.error(
+          `Studio or studio user not found for booking ${booking._id}`
+        );
+      }
+    } catch (walletError) {
+      logger.error("Error crediting wallet:", walletError);
+      logger.error("Wallet error stack:", walletError.stack);
+      // Don't fail the booking confirmation if wallet credit fails
     }
 
     // Create notifications
@@ -200,8 +280,8 @@ const confirmBooking = async (booking, paymentId) => {
  * @param {number} amount - Booking amount
  */
 const updateProviderStats = async (providerType, providerId, amount) => {
-  if (providerType !== 'studio') return;
-  
+  if (providerType !== "studio") return;
+
   await Studio.findByIdAndUpdate(providerId, {
     $inc: {
       completedBookings: 1,

@@ -25,6 +25,7 @@ const equipmentRoutes = require("./routes/equipmentRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const revenueRoutes = require("./routes/revenueRoutes");
+const walletRoutes = require("./routes/walletRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -32,12 +33,16 @@ const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 // Initialize platform settings from database
 const initializePlatformSettings = async () => {
   try {
-    const Settings = require('./models/Settings');
+    const Settings = require("./models/Settings");
     const commissionRate = await Settings.getCommissionRate();
     process.env.PLATFORM_COMMISSION_RATE = commissionRate.toString();
-    console.log(`✅ Platform commission rate loaded: ${(commissionRate * 100).toFixed(1)}%`);
+    console.log(
+      `✅ Platform commission rate loaded: ${(commissionRate * 100).toFixed(1)}%`
+    );
   } catch (error) {
-    console.log(`⚠️  Could not load platform settings, using defaults: ${error.message}`);
+    console.log(
+      `⚠️  Could not load platform settings, using defaults: ${error.message}`
+    );
   }
 };
 const { rateLimiter } = require("./middleware/rateLimit");
@@ -75,7 +80,13 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:", "http://localhost:5000", "http://localhost:5173"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https:",
+          "http://localhost:5000",
+          "http://localhost:5173",
+        ],
         connectSrc: ["'self'", "http://localhost:5000", "ws://localhost:5000"],
       },
     },
@@ -107,13 +118,20 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Serve static files (uploads) with CORS headers
-app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:5173');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static('uploads'));
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    res.header(
+      "Access-Control-Allow-Origin",
+      process.env.CORS_ORIGIN || "http://localhost:5173"
+    );
+    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static("uploads")
+);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -142,6 +160,7 @@ app.use("/api/equipment", equipmentRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/revenue", revenueRoutes);
+app.use("/api/wallet", walletRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
@@ -167,10 +186,10 @@ const connectDB = async (retries = 5) => {
       bufferCommands: false,
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    
+
     // Initialize platform settings
     await initializePlatformSettings();
-    
+
     return conn;
   } catch (error) {
     console.error(
@@ -200,9 +219,53 @@ const startServer = async () => {
     startReservationCleanup();
 
     server.listen(PORT, () => {
+      console.log("\n" + "=".repeat(70));
       console.log(`🚀 Server running on port ${PORT}`);
+      console.log("=".repeat(70));
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+
+      // PayHere webhook diagnostic
+      const serverUrl = process.env.SERVER_URL || `http://localhost:${PORT}`;
+      console.log("\n🔔 PayHere Webhook Configuration:");
+      console.log(`   Webhook URL: ${serverUrl}/api/webhooks/payhere`);
+      console.log(`   Test URL:    ${serverUrl}/api/webhooks/test`);
+
+      // Check critical environment variables
+      const missingVars = [];
+      if (!process.env.PAYHERE_MERCHANT_ID)
+        missingVars.push("PAYHERE_MERCHANT_ID");
+      if (!process.env.PAYHERE_MERCHANT_SECRET)
+        missingVars.push("PAYHERE_MERCHANT_SECRET");
+
+      if (missingVars.length > 0) {
+        console.log(
+          `\n⚠️  WARNING: Missing PayHere configuration: ${missingVars.join(", ")}`
+        );
+        console.log("   Payment processing will not work!");
+      } else {
+        console.log(`   Merchant ID: ${process.env.PAYHERE_MERCHANT_ID}`);
+        console.log(`   Mode: ${process.env.PAYHERE_MODE || "sandbox"}`);
+      }
+
+      // Localhost warning
+      if (serverUrl.includes("localhost")) {
+        console.log("\n⚠️  IMPORTANT: Using localhost URL");
+        console.log("   PayHere webhooks cannot reach localhost!");
+        console.log("   Run diagnostic: node diagnose-webhook.js");
+        console.log("   Or use ngrok: ngrok http " + PORT);
+      } else {
+        console.log(`\n✅ Using public URL: ${serverUrl}`);
+        console.log("   PayHere webhooks should work correctly");
+      }
+
+      console.log("\n📝 Quick Commands:");
+      console.log(
+        `   Test webhook: curl http://localhost:${PORT}/api/webhooks/test`
+      );
+      console.log(`   Diagnose:     node diagnose-webhook.js`);
+      console.log(`   Test server:  node test-webhook-server.js`);
+      console.log("=".repeat(70) + "\n");
     });
   } catch (error) {
     console.error("Failed to start server:", error);

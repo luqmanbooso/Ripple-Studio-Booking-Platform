@@ -167,14 +167,41 @@ const ThankYou = () => {
               <h4 className="text-sm font-semibold text-gray-300 mb-2">
                 Payment Details
               </h4>
-              <div className="text-sm text-gray-400 space-y-1">
-                {paymentId && <p>Payment ID: {paymentId}</p>}
-                {payhereAmount && payhereCurrency && (
-                  <p>
-                    Amount: {payhereCurrency} {payhereAmount}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Order ID</p>
+                  <p className="text-gray-100 font-medium">
+                    {bookingDetails?.orderId || "Processing..."}
                   </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Payment ID</p>
+                  <p className="text-gray-100 font-medium">{paymentId}</p>
+                </div>
+                {payhereAmount && payhereCurrency && (
+                  <>
+                    <div>
+                      <p className="text-gray-500">Amount Paid</p>
+                      <p className="text-green-400 font-semibold text-lg">
+                        {payhereCurrency}{" "}
+                        {parseFloat(payhereAmount).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Payment Date</p>
+                      <p className="text-gray-100 font-medium">
+                        {new Date().toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                          hour12: true,
+                        })}
+                      </p>
+                    </div>
+                  </>
                 )}
-                {orderId && <p>Order ID: {orderId}</p>}
               </div>
             </motion.div>
           )}
@@ -187,17 +214,57 @@ const ThankYou = () => {
               transition={{ delay: 0.47 }}
               className="bg-primary-900/20 rounded-lg p-4 mb-6"
             >
-              <h4 className="text-sm font-semibold text-primary-300 mb-2">
-                Booking Summary
+              <h4 className="text-sm font-semibold text-primary-300 mb-3">
+                Booking Details
               </h4>
-              <div className="text-sm text-gray-300 space-y-1">
-                <p>Booking ID: {bookingDetails._id}</p>
-                <p>
-                  Date:{" "}
-                  {new Date(bookingDetails.scheduledDate).toLocaleDateString()}
-                </p>
-                <p>Duration: {bookingDetails.duration} hours</p>
-                <p>Total: {formatCurrency(bookingDetails.totalAmount)}</p>
+              <div className="space-y-2">
+                {bookingDetails.bookingId && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Booking ID:</span>
+                    <span className="text-gray-100 font-medium">
+                      {bookingDetails.bookingId}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Session Date:</span>
+                  <span className="text-gray-100 font-medium">
+                    {new Date(bookingDetails.start).toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Time:</span>
+                  <span className="text-gray-100 font-medium">
+                    {new Date(bookingDetails.start).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      }
+                    )}{" "}
+                    -{" "}
+                    {new Date(bookingDetails.end).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm pt-2 border-t border-primary-800/30">
+                  <span className="text-gray-400">Total Amount:</span>
+                  <span className="text-primary-300 font-semibold">
+                    {formatCurrency(bookingDetails.price)}
+                  </span>
+                </div>
               </div>
             </motion.div>
           )}
@@ -250,7 +317,7 @@ const ThankYou = () => {
             transition={{ delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/dashboard">
+            <Link to="/dashboard/bookings">
               <Button icon={<Calendar className="w-5 h-5" />}>
                 View My Bookings
               </Button>

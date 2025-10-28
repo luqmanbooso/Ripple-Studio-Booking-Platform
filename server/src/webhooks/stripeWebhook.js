@@ -16,15 +16,25 @@ router.post(
       const payload = req.body;
       const receivedHash = payload.md5sig;
 
+      logger.info("📨 PayHere webhook received", {
+        order_id: payload.order_id,
+        payment_id: payload.payment_id,
+        status_code: payload.status_code,
+        amount: payload.payhere_amount,
+      });
+
       // Verify webhook signature
       if (!paymentService.verifyWebhookSignature(payload, receivedHash)) {
         logger.error("PayHere webhook signature verification failed");
         return res.status(400).send("Invalid signature");
       }
 
+      logger.info("✓ Webhook signature verified");
+
       // Handle different payment statuses
       switch (parseInt(payload.status_code)) {
         case 2: // Success
+          logger.info("Processing successful payment...");
           await handlePaymentSuccess(payload);
           break;
         case 0: // Pending
@@ -57,6 +67,9 @@ router.post(
 const handlePaymentSuccess = async (payload) => {
   try {
     const bookingId = payload.custom_1; // We stored booking ID in custom_1
+
+    logger.info("🎯 Handling payment success for booking:", bookingId);
+
     if (!bookingId) {
       logger.error("No booking ID in PayHere webhook payload");
       return;
@@ -73,17 +86,20 @@ const handlePaymentSuccess = async (payload) => {
       return;
     }
 
+    logger.info("✓ Booking found, confirming and crediting wallet...");
+
     // Store PayHere payment details
     booking.payherePaymentId = payload.payment_id;
     booking.paymentMethod = payload.method;
     booking.paymentCardType = payload.card_type;
 
-    // Confirm the booking
+    // Confirm the booking (this will credit the wallet)
     await bookingService.confirmBooking(booking, payload.payment_id);
 
-    logger.info(`Booking confirmed via PayHere webhook: ${bookingId}`);
+    logger.info(`✓ Booking confirmed via PayHere webhook: ${bookingId}`);
   } catch (error) {
     logger.error("Error handling PayHere payment success:", error);
+    logger.error("Error stack:", error.stack);
   }
 };
 

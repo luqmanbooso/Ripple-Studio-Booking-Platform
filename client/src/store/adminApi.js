@@ -1,206 +1,234 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { setCredentials, logout } from './authSlice'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setCredentials, logout } from "./authSlice";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: '/api/admin',
-  credentials: 'include',
+  baseUrl: "/api/admin",
+  credentials: "include",
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token
-    if (token) headers.set('authorization', `Bearer ${token}`)
-    return headers
-  }
-})
+    const token = getState().auth.token;
+    if (token) headers.set("authorization", `Bearer ${token}`);
+    return headers;
+  },
+});
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions)
+  let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
     try {
-  const refreshRes = await fetch('/api/auth/refresh', { method: 'GET', credentials: 'include' })
+      const refreshRes = await fetch("/api/auth/refresh", {
+        method: "GET",
+        credentials: "include",
+      });
       if (refreshRes.ok) {
-        const refreshData = await refreshRes.json()
-        const newToken = refreshData.data.accessToken
-        const user = api.getState().auth.user
-        api.dispatch(setCredentials({ user, token: newToken }))
-        result = await baseQuery(args, api, extraOptions)
+        const refreshData = await refreshRes.json();
+        const newToken = refreshData.data.accessToken;
+        const user = api.getState().auth.user;
+        api.dispatch(setCredentials({ user, token: newToken }));
+        result = await baseQuery(args, api, extraOptions);
       } else {
-        api.dispatch(logout())
+        api.dispatch(logout());
       }
     } catch (err) {
-      api.dispatch(logout())
+      api.dispatch(logout());
     }
   }
 
-  return result
-}
+  return result;
+};
 
 export const adminApi = createApi({
-  reducerPath: 'adminApi',
+  reducerPath: "adminApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api/admin',
+    baseUrl: "/api/admin",
     prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth.token
+      const token = getState().auth.token;
       if (token) {
-        headers.set('authorization', `Bearer ${token}`)
+        headers.set("authorization", `Bearer ${token}`);
       }
-      return headers
+      return headers;
     },
   }),
-  tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews', 'AdminStudios', 'Revenue'],
+  tagTypes: [
+    "Analytics",
+    "AdminUsers",
+    "AdminBookings",
+    "AdminReviews",
+    "AdminStudios",
+    "Revenue",
+    "Payouts",
+  ],
 
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Analytics', 'AdminUsers', 'AdminBookings', 'AdminReviews'],
+  tagTypes: ["Analytics", "AdminUsers", "AdminBookings", "AdminReviews"],
 
   endpoints: (builder) => ({
     getAnalytics: builder.query({
       query: (params) => ({
-        url: '/analytics',
+        url: "/analytics",
         params,
       }),
-      providesTags: ['Analytics'],
+      providesTags: ["Analytics"],
     }),
     getUsers: builder.query({
       query: (params) => ({
-        url: '/users',
+        url: "/users",
         params,
       }),
-      providesTags: ['AdminUsers'],
+      providesTags: ["AdminUsers"],
     }),
     getUserStats: builder.query({
-      query: () => '/users/stats',
-      providesTags: ['AdminUsers'],
+      query: () => "/users/stats",
+      providesTags: ["AdminUsers"],
     }),
     updateUserRole: builder.mutation({
       query: ({ id, role }) => ({
         url: `/users/${id}/role`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { role },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     verifyUser: builder.mutation({
       query: (id) => ({
         url: `/users/${id}/verify`,
-        method: 'PATCH',
+        method: "PATCH",
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     unverifyUser: builder.mutation({
       query: (id) => ({
         url: `/users/${id}/unverify`,
-        method: 'PATCH',
+        method: "PATCH",
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     blockUser: builder.mutation({
       query: ({ id, reason }) => ({
         url: `/users/${id}/block`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { reason },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     unblockUser: builder.mutation({
       query: (id) => ({
         url: `/users/${id}/unblock`,
-        method: 'PATCH',
+        method: "PATCH",
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     toggleUserStatus: builder.mutation({
       query: ({ id, isActive }) => ({
         url: `/users/${id}/status`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { isActive },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     deleteUser: builder.mutation({
       query: (id) => ({
         url: `/users/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     bulkUserActions: builder.mutation({
       query: ({ userIds, action, reason }) => ({
-        url: '/users/bulk-actions',
-        method: 'POST',
+        url: "/users/bulk-actions",
+        method: "POST",
         body: { userIds, action, reason },
       }),
-      invalidatesTags: ['AdminUsers'],
+      invalidatesTags: ["AdminUsers"],
     }),
     getBookings: builder.query({
       query: (params) => ({
-        url: '/bookings',
+        url: "/bookings",
         params,
       }),
-      providesTags: ['AdminBookings'],
+      providesTags: ["AdminBookings"],
     }),
     getReviews: builder.query({
       query: (params) => ({
-        url: '/reviews',
+        url: "/reviews",
         params,
       }),
-      providesTags: ['AdminReviews'],
+      providesTags: ["AdminReviews"],
     }),
     approveReview: builder.mutation({
       query: (id) => ({
         url: `/reviews/${id}/approve`,
-        method: 'PATCH',
+        method: "PATCH",
       }),
-      invalidatesTags: ['AdminReviews'],
+      invalidatesTags: ["AdminReviews"],
     }),
     // Studio Management
     getStudios: builder.query({
       query: (params) => ({
-        url: '/studios',
+        url: "/studios",
         params,
       }),
-      providesTags: ['AdminStudios'],
+      providesTags: ["AdminStudios"],
     }),
     createStudio: builder.mutation({
       query: (studioData) => ({
-        url: '/studios',
-        method: 'POST',
+        url: "/studios",
+        method: "POST",
         body: studioData,
       }),
-      invalidatesTags: ['AdminStudios'],
+      invalidatesTags: ["AdminStudios"],
     }),
     updateStudio: builder.mutation({
       query: ({ id, ...studioData }) => ({
         url: `/studios/${id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: studioData,
       }),
-      invalidatesTags: ['AdminStudios'],
+      invalidatesTags: ["AdminStudios"],
     }),
     deleteStudio: builder.mutation({
       query: (id) => ({
         url: `/studios/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['AdminStudios'],
+      invalidatesTags: ["AdminStudios"],
     }),
     toggleStudioStatus: builder.mutation({
       query: ({ id, isActive }) => ({
         url: `/studios/${id}/status`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { isActive },
       }),
-      invalidatesTags: ['AdminStudios'],
+      invalidatesTags: ["AdminStudios"],
     }),
     // Revenue Analytics
     getRevenueAnalytics: builder.query({
       query: (params) => ({
-        url: '/revenue',
+        url: "/revenue",
         params,
       }),
-      providesTags: ['Revenue'],
+      providesTags: ["Revenue"],
+    }),
+
+    // Payout Management
+    getWithdrawalRequests: builder.query({
+      query: ({ page = 1, limit = 20, status = "pending" }) => ({
+        url: "/wallet/withdrawals",
+        params: { page, limit, status },
+      }),
+      providesTags: ["Payouts"],
+    }),
+    processWithdrawal: builder.mutation({
+      query: ({ transactionId, status, remarks }) => ({
+        url: `/wallet/withdrawals/${transactionId}/process`,
+        method: "POST",
+        body: { status, remarks },
+      }),
+      invalidatesTags: ["Payouts"],
     }),
   }),
-})
+});
 
 export const {
   useGetAnalyticsQuery,
@@ -226,4 +254,7 @@ export const {
   useToggleStudioStatusMutation,
   // Revenue Analytics
   useGetRevenueAnalyticsQuery,
-} = adminApi
+  // Payout Management
+  useGetWithdrawalRequestsQuery,
+  useProcessWithdrawalMutation,
+} = adminApi;

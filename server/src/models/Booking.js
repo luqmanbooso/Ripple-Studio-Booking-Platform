@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
+    bookingId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow null during creation
+    },
+    orderId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow null during creation
+    },
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -30,27 +40,31 @@ const bookingSchema = new mongoose.Schema(
       description: String,
     },
     // PRD: Multiple services support
-    services: [{
-      name: String,
-      price: Number,
-      description: String,
-      category: String
-    }],
-    // PRD: Equipment rental support
-    equipment: [{
-      equipmentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Equipment'
+    services: [
+      {
+        name: String,
+        price: Number,
+        description: String,
+        category: String,
       },
-      name: String,
-      rentalPrice: Number,
-      rentalDuration: String, // 'session', 'day', 'week', 'month'
-      status: {
-        type: String,
-        enum: ['Reserved', 'In-Use', 'Returned'],
-        default: 'Reserved'
-      }
-    }],
+    ],
+    // PRD: Equipment rental support
+    equipment: [
+      {
+        equipmentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Equipment",
+        },
+        name: String,
+        rentalPrice: Number,
+        rentalDuration: String, // 'session', 'day', 'week', 'month'
+        status: {
+          type: String,
+          enum: ["Reserved", "In-Use", "Returned"],
+          default: "Reserved",
+        },
+      },
+    ],
     start: {
       type: Date,
       required: [true, "Start time is required"],
@@ -119,6 +133,8 @@ const bookingSchema = new mongoose.Schema(
 );
 
 // Indexes
+bookingSchema.index({ bookingId: 1 }, { unique: true, sparse: true });
+bookingSchema.index({ orderId: 1 }, { unique: true, sparse: true });
 bookingSchema.index({ client: 1 });
 bookingSchema.index({ studio: 1 });
 bookingSchema.index({ status: 1 });
@@ -127,6 +143,66 @@ bookingSchema.index({ createdAt: -1 });
 
 // Compound indexes for conflict checking
 bookingSchema.index({ studio: 1, start: 1, end: 1, status: 1 });
+
+// Auto-generate booking ID and order ID before saving
+bookingSchema.pre("save", async function (next) {
+  if (!this.bookingId || !this.orderId) {
+    try {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const datePrefix = `${year}${month}${day}`;
+
+      // Generate booking ID if not exists
+      if (!this.bookingId) {
+        // Find the last booking ID for today
+        const lastBooking = await mongoose
+          .model("Booking")
+          .findOne({
+            bookingId: new RegExp(`^BK-${datePrefix}-`),
+          })
+          .sort({ bookingId: -1 })
+          .select("bookingId");
+
+        let bookingSequence = 1;
+        if (lastBooking && lastBooking.bookingId) {
+          // Extract the sequence number from the last booking ID
+          const lastSequence = parseInt(lastBooking.bookingId.split("-")[2]);
+          bookingSequence = lastSequence + 1;
+        }
+
+        // Generate new booking ID: BK-YYYYMMDD-XXXX
+        this.bookingId = `BK-${datePrefix}-${String(bookingSequence).padStart(4, "0")}`;
+      }
+
+      // Generate order ID if not exists
+      if (!this.orderId) {
+        // Find the last order ID for today
+        const lastOrder = await mongoose
+          .model("Booking")
+          .findOne({
+            orderId: new RegExp(`^ORD-${datePrefix}-`),
+          })
+          .sort({ orderId: -1 })
+          .select("orderId");
+
+        let orderSequence = 1;
+        if (lastOrder && lastOrder.orderId) {
+          // Extract the sequence number from the last order ID
+          const lastSequence = parseInt(lastOrder.orderId.split("-")[2]);
+          orderSequence = lastSequence + 1;
+        }
+
+        // Generate new order ID: ORD-YYYYMMDD-XXXX
+        this.orderId = `ORD-${datePrefix}-${String(orderSequence).padStart(4, "0")}`;
+      }
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
 
 // Validation: end time must be after start time
 bookingSchema.pre("validate", function (next) {
@@ -174,12 +250,12 @@ bookingSchema.methods.canCancel = function () {
 // Check if booking can be completed
 bookingSchema.methods.canComplete = function () {
   const now = new Date();
-  
+
   // Allow completion if booking is confirmed
   // For better UX, allow studios to mark sessions as completed even if they haven't started yet
   // This is useful for walk-ins or early completions
   return this.status === "confirmed";
-  
+
   // Original strict logic (uncomment if you want time-based restrictions):
   // return this.status === "confirmed" && now >= this.start;
 };

@@ -22,7 +22,7 @@ const createCheckoutSession = catchAsync(async (req, res) => {
     throw new ApiError("Access denied", 403);
   }
 
-  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+  if (!["reservation_pending", "payment_pending"].includes(booking.status)) {
     throw new ApiError("Booking is not available for payment", 400);
   }
 
@@ -40,44 +40,44 @@ const createCheckoutSession = catchAsync(async (req, res) => {
 
 // Test endpoint to create a sample payment (development only)
 const createTestPayment = catchAsync(async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== "development") {
     throw new ApiError("Only available in development", 403);
   }
 
   const userId = req.user._id;
-  
+
   // Create a test payment record
   const testPayment = await Payment.create({
-    booking: new require('mongoose').Types.ObjectId(), // Dummy booking ID
+    booking: new require("mongoose").Types.ObjectId(), // Dummy booking ID
     payhereOrderId: `test_${Date.now()}`,
     payherePaymentId: `pay_${Date.now()}`,
-    status: 'Completed',
+    status: "Completed",
     amount: 5000,
-    currency: 'LKR',
+    currency: "LKR",
     bookingSnapshot: {
       client: {
         id: userId,
         name: req.user.name,
         email: req.user.email,
-        phone: req.user.phone || '+94771234567'
+        phone: req.user.phone || "+94771234567",
       },
       studio: {
-        id: new require('mongoose').Types.ObjectId(),
-        name: 'Test Studio',
-        email: 'studio@test.com'
+        id: new require("mongoose").Types.ObjectId(),
+        name: "Test Studio",
+        email: "studio@test.com",
       },
       service: {
-        name: 'Recording Session',
+        name: "Recording Session",
         price: 5000,
         durationMins: 60,
-        description: 'Test recording session'
+        description: "Test recording session",
       },
       start: new Date(),
       end: new Date(Date.now() + 60 * 60 * 1000), // 1 hour later
-      notes: 'Test payment for development'
+      notes: "Test payment for development",
     },
     completedAt: new Date(),
-    initiatedAt: new Date()
+    initiatedAt: new Date(),
   });
 
   logger.info(`Test payment created: ${testPayment._id} for user: ${userId}`);
@@ -88,8 +88,8 @@ const createTestPayment = catchAsync(async (req, res) => {
     data: {
       paymentId: testPayment._id,
       amount: testPayment.amount,
-      status: testPayment.status
-    }
+      status: testPayment.status,
+    },
   });
 });
 
@@ -154,18 +154,29 @@ const verifyPayherePayment = catchAsync(async (req, res) => {
     throw new ApiError("Missing payment parameters", 400);
   }
 
-  // Extract booking ID from order_id (format: booking_ID_timestamp)
-  const orderIdParts = order_id.split("_");
-  const bookingId = orderIdParts[1];
+  let booking;
 
-  if (!bookingId) {
-    throw new ApiError("Invalid order ID format", 400);
+  // Check if order_id is in new format (ORD-YYYYMMDD-XXXX) or old format (booking_ID_timestamp)
+  if (order_id.startsWith("ORD-")) {
+    // New format: find booking by orderId
+    booking = await Booking.findOne({ orderId: order_id }).populate([
+      { path: "client", select: "name email" },
+      { path: "studio", populate: { path: "user", select: "name email" } },
+    ]);
+  } else {
+    // Old format: extract booking ID from order_id (format: booking_ID_timestamp)
+    const orderIdParts = order_id.split("_");
+    const bookingId = orderIdParts[1];
+
+    if (!bookingId) {
+      throw new ApiError("Invalid order ID format", 400);
+    }
+
+    booking = await Booking.findById(bookingId).populate([
+      { path: "client", select: "name email" },
+      { path: "studio", populate: { path: "user", select: "name email" } },
+    ]);
   }
-
-  const booking = await Booking.findById(bookingId).populate([
-    { path: "client", select: "name email" },
-    { path: "studio", populate: { path: "user", select: "name email" } },
-  ]);
 
   if (!booking) {
     throw new ApiError("Booking not found", 404);
@@ -174,16 +185,18 @@ const verifyPayherePayment = catchAsync(async (req, res) => {
   // Check if payment was successful
   if (parseInt(status_code) === 2) {
     // Payment successful - update booking status
-    booking.status = 'confirmed';
+    booking.status = "confirmed";
     booking.payhereOrderId = order_id;
     booking.payherePaymentId = payment_id;
     await booking.save();
-    
+
     res.json({
       success: true,
       message: "Payment verified successfully",
       booking: {
         _id: booking._id,
+        bookingId: booking.bookingId,
+        orderId: booking.orderId,
         start: booking.start,
         end: booking.end,
         price: booking.price,
@@ -192,10 +205,10 @@ const verifyPayherePayment = catchAsync(async (req, res) => {
     });
   } else {
     // Payment failed or cancelled - delete reservation
-    if (booking.status === 'reservation_pending') {
+    if (booking.status === "reservation_pending") {
       await Booking.findByIdAndDelete(bookingId);
     }
-    
+
     res.json({
       success: false,
       message: "Payment verification failed",
@@ -216,7 +229,8 @@ const getBookingPayments = catchAsync(async (req, res) => {
   // Verify access
   const hasAccess =
     booking.client.toString() === req.user._id.toString() ||
-    (req.user.studio && booking.studio.toString() === req.user.studio.toString()) ||
+    (req.user.studio &&
+      booking.studio.toString() === req.user.studio.toString()) ||
     req.user.role === "admin";
 
   if (!hasAccess) {
@@ -249,7 +263,8 @@ const getPayment = catchAsync(async (req, res) => {
   const booking = await Booking.findById(payment.booking);
   const hasAccess =
     booking.client.toString() === req.user._id.toString() ||
-    (req.user.studio && booking.studio.toString() === req.user.studio.toString()) ||
+    (req.user.studio &&
+      booking.studio.toString() === req.user.studio.toString()) ||
     req.user.role === "admin";
 
   if (!hasAccess) {
@@ -413,7 +428,9 @@ const initiateRefund = catchAsync(async (req, res) => {
   booking.cancellationReason = reason;
   await booking.save();
 
-  logger.info(`Refund initiated for payment ${paymentId} by user ${req.user._id}`);
+  logger.info(
+    `Refund initiated for payment ${paymentId} by user ${req.user._id}`
+  );
 
   res.json({
     status: "success",

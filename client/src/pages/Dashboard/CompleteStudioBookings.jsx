@@ -1,95 +1,128 @@
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Calendar, Clock, User, DollarSign, CheckCircle, XCircle, 
-  Eye, Filter, Search, Plus, Phone, Mail, MapPin
-} from 'lucide-react'
-import { toast } from 'react-hot-toast'
-import { useSelector } from 'react-redux'
-import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
-import { useGetStudioQuery } from '../../store/studioApi'
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Calendar,
+  Clock,
+  User,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  Eye,
+  Filter,
+  Search,
+  Plus,
+  Phone,
+  Mail,
+  MapPin,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
+import {
+  useGetMyBookingsQuery,
+  useCompleteBookingMutation,
+  useCancelBookingMutation,
+} from "../../store/bookingApi";
+import { useGetStudioQuery } from "../../store/studioApi";
+import { useGetWalletQuery } from "../../store/walletApi";
 
 const CompleteStudioBookings = () => {
-  const { user } = useSelector(state => state.auth)
-  const studioId = user?.studio?._id || user?.studio
-  
-  const { data: studioData } = useGetStudioQuery(studioId, { skip: !studioId })
-  const studio = studioData?.data?.studio
-  const [viewMode, setViewMode] = useState('list') // list, calendar, timeline
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedBooking, setSelectedBooking] = useState(null)
-  const [showDetails, setShowDetails] = useState(false)
+  const { user } = useSelector((state) => state.auth);
+  const studioId = user?.studio?._id || user?.studio;
 
-  const { data: bookingsData, isLoading, refetch } = useGetMyBookingsQuery({
+  const { data: studioData } = useGetStudioQuery(studioId, { skip: !studioId });
+  const studio = studioData?.data?.studio;
+  const { data: walletData } = useGetWalletQuery();
+  const wallet = walletData?.data?.wallet;
+
+  const [viewMode, setViewMode] = useState("list"); // list, calendar, timeline
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const {
+    data: bookingsData,
+    isLoading,
+    refetch,
+  } = useGetMyBookingsQuery({
     page: 1,
     limit: 50,
-    status: filterStatus !== 'all' ? filterStatus : undefined
-  })
-  const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
-  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
+    status: filterStatus !== "all" ? filterStatus : undefined,
+  });
+  const [completeBooking, { isLoading: isCompleting }] =
+    useCompleteBookingMutation();
+  const [cancelBooking, { isLoading: isCancelling }] =
+    useCancelBookingMutation();
 
-  const bookings = bookingsData?.data?.bookings || []
+  const bookings = bookingsData?.data?.bookings || [];
 
   const statusColors = {
-    reservation_pending: 'bg-orange-100 text-orange-800 border-orange-200',
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    payment_pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    confirmed: 'bg-green-100 text-green-800 border-green-200',
-    cancelled: 'bg-red-100 text-red-800 border-red-200',
-    completed: 'bg-blue-100 text-blue-800 border-blue-200'
-  }
+    reservation_pending: "bg-orange-100 text-orange-800 border-orange-200",
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    payment_pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    confirmed: "bg-green-100 text-green-800 border-green-200",
+    cancelled: "bg-red-100 text-red-800 border-red-200",
+    completed: "bg-blue-100 text-blue-800 border-blue-200",
+  };
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
-      if (newStatus === 'completed') {
-        await completeBooking({ id: bookingId, notes: '' }).unwrap()
-        toast.success('Booking completed!')
-      } else if (newStatus === 'cancelled') {
-        await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
-        toast.success('Booking cancelled!')
+      if (newStatus === "completed") {
+        await completeBooking({ id: bookingId, notes: "" }).unwrap();
+        toast.success("Booking completed!");
+      } else if (newStatus === "cancelled") {
+        await cancelBooking({
+          id: bookingId,
+          reason: "Cancelled by studio",
+        }).unwrap();
+        toast.success("Booking cancelled!");
       } else {
-        toast.error('Unsupported status update')
-        return
+        toast.error("Unsupported status update");
+        return;
       }
-      refetch()
+      refetch();
     } catch (error) {
-      console.error('Booking update error:', error)
-      const errorMessage = error.data?.message || error.message || 'Failed to update booking status'
-      toast.error(errorMessage)
+      console.error("Booking update error:", error);
+      const errorMessage =
+        error.data?.message ||
+        error.message ||
+        "Failed to update booking status";
+      toast.error(errorMessage);
     }
-  }
+  };
 
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.service?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || booking.status === filterStatus
-    return matchesSearch && matchesStatus
-  })
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesSearch =
+      booking.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.service?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === "all" || booking.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   const getUpcomingBookings = () => {
-    const now = new Date()
-    return filteredBookings.filter(booking => new Date(booking.start) > now)
-  }
+    const now = new Date();
+    return filteredBookings.filter((booking) => new Date(booking.start) > now);
+  };
 
   const getTodayBookings = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    
-    return filteredBookings.filter(booking => {
-      const bookingDate = new Date(booking.start)
-      return bookingDate >= today && bookingDate < tomorrow
-    })
-  }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return filteredBookings.filter((booking) => {
+      const bookingDate = new Date(booking.start);
+      return bookingDate >= today && bookingDate < tomorrow;
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -99,17 +132,21 @@ const CompleteStudioBookings = () => {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6 mb-6">
           <div className="flex items-start space-x-4">
             <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-              {studio.name?.charAt(0) || 'S'}
+              {studio.name?.charAt(0) || "S"}
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{studio.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {studio.name}
+              </h2>
               <div className="flex flex-wrap gap-4 mt-3 text-sm">
                 {studio.location && (
                   <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                     <MapPin className="w-4 h-4" />
                     <span>
-                      {typeof studio.location === 'object' 
-                        ? `${studio.location.city || ''}, ${studio.location.country || ''}`.trim().replace(/^,\s*/, '') 
+                      {typeof studio.location === "object"
+                        ? `${studio.location.city || ""}, ${studio.location.country || ""}`
+                            .trim()
+                            .replace(/^,\s*/, "")
                         : studio.location}
                     </span>
                   </div>
@@ -141,22 +178,24 @@ const CompleteStudioBookings = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bookings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Bookings
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Manage your studio bookings and schedule
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-            {['list', 'calendar', 'timeline'].map((mode) => (
+            {["list", "calendar", "timeline"].map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors capitalize ${
                   viewMode === mode
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
                 {mode}
@@ -171,39 +210,64 @@ const CompleteStudioBookings = () => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Bookings</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{bookings.length}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Total Bookings
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {bookings.length}
+              </p>
             </div>
             <Calendar className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Today's Sessions</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{getTodayBookings().length}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Today's Sessions
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {getTodayBookings().length}
+              </p>
             </div>
             <Clock className="w-8 h-8 text-green-500" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Upcoming</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{getUpcomingBookings().length}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Upcoming
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {getUpcomingBookings().length}
+              </p>
             </div>
             <User className="w-8 h-8 text-purple-500" />
           </div>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Revenue</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Wallet Balance
+              </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${bookings.reduce((sum, b) => sum + (b.price || 0), 0)}
+                LKR{" "}
+                {(wallet?.balance?.available || 0).toLocaleString("en-LK", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Total Earnings: LKR{" "}
+                {(wallet?.totalEarnings || 0).toLocaleString("en-LK", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-orange-500" />
@@ -225,7 +289,7 @@ const CompleteStudioBookings = () => {
             />
           </div>
         </div>
-        
+
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -254,39 +318,57 @@ const CompleteStudioBookings = () => {
               {/* Header with Status */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    booking.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900' :
-                    booking.status === 'reservation_pending' ? 'bg-orange-100 dark:bg-orange-900' :
-                    booking.status === 'payment_pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                    booking.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                    booking.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900' :
-                    'bg-red-100 dark:bg-red-900'
-                  }`}>
-                    <User className={`w-6 h-6 ${
-                      booking.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
-                      booking.status === 'reservation_pending' ? 'text-orange-600 dark:text-orange-400' :
-                      booking.status === 'payment_pending' ? 'text-yellow-600 dark:text-yellow-400' :
-                      booking.status === 'pending' ? 'text-yellow-600 dark:text-yellow-400' :
-                      booking.status === 'completed' ? 'text-blue-600 dark:text-blue-400' :
-                      'text-red-600 dark:text-red-400'
-                    }`} />
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      booking.status === "confirmed"
+                        ? "bg-green-100 dark:bg-green-900"
+                        : booking.status === "reservation_pending"
+                          ? "bg-orange-100 dark:bg-orange-900"
+                          : booking.status === "payment_pending"
+                            ? "bg-yellow-100 dark:bg-yellow-900"
+                            : booking.status === "pending"
+                              ? "bg-yellow-100 dark:bg-yellow-900"
+                              : booking.status === "completed"
+                                ? "bg-blue-100 dark:bg-blue-900"
+                                : "bg-red-100 dark:bg-red-900"
+                    }`}
+                  >
+                    <User
+                      className={`w-6 h-6 ${
+                        booking.status === "confirmed"
+                          ? "text-green-600 dark:text-green-400"
+                          : booking.status === "reservation_pending"
+                            ? "text-orange-600 dark:text-orange-400"
+                            : booking.status === "payment_pending"
+                              ? "text-yellow-600 dark:text-yellow-400"
+                              : booking.status === "pending"
+                                ? "text-yellow-600 dark:text-yellow-400"
+                                : booking.status === "completed"
+                                  ? "text-blue-600 dark:text-blue-400"
+                                  : "text-red-600 dark:text-red-400"
+                      }`}
+                    />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                      {booking.client?.name || 'Unknown Client'}
+                      {booking.client?.name || "Unknown Client"}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${statusColors[booking.status]}`}>
-                      {booking.status === 'reservation_pending' ? 'PAYMENT PENDING' : 
-                       booking.status === 'payment_pending' ? 'PAYMENT PENDING' :
-                       booking.status.replace('_', ' ')}
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${statusColors[booking.status]}`}
+                    >
+                      {booking.status === "reservation_pending"
+                        ? "PAYMENT PENDING"
+                        : booking.status === "payment_pending"
+                          ? "PAYMENT PENDING"
+                          : booking.status.replace("_", " ")}
                     </span>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => {
-                    setSelectedBooking(booking)
-                    setShowDetails(true)
+                    setSelectedBooking(booking);
+                    setShowDetails(true);
                   }}
                   className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                 >
@@ -304,7 +386,8 @@ const CompleteStudioBookings = () => {
                     </span>
                   </div>
                   <p className="text-blue-700 dark:text-blue-300 text-xs">
-                    {booking.service.description || 'Professional studio service'}
+                    {booking.service.description ||
+                      "Professional studio service"}
                   </p>
                 </div>
               )}
@@ -314,19 +397,26 @@ const CompleteStudioBookings = () => {
                 <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4 text-purple-500" />
                   <span className="font-medium">
-                    {new Date(booking.start).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(booking.start).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
                   <Clock className="w-4 h-4 text-orange-500" />
                   <span className="font-medium">
-                    {new Date(booking.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                    {new Date(booking.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(booking.start).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    -
+                    {new Date(booking.end).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
@@ -339,17 +429,21 @@ const CompleteStudioBookings = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2">
-                {booking.status === 'pending' && (
+                {booking.status === "pending" && (
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, 'confirmed')}
+                      onClick={() =>
+                        handleStatusUpdate(booking._id, "confirmed")
+                      }
                       className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                     >
                       <CheckCircle className="w-4 h-4" />
                       <span>Confirm</span>
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
+                      onClick={() =>
+                        handleStatusUpdate(booking._id, "cancelled")
+                      }
                       className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                     >
                       <XCircle className="w-4 h-4" />
@@ -357,18 +451,22 @@ const CompleteStudioBookings = () => {
                     </button>
                   </div>
                 )}
-                
-                {booking.status === 'confirmed' && (
+
+                {booking.status === "confirmed" && (
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, 'completed')}
+                      onClick={() =>
+                        handleStatusUpdate(booking._id, "completed")
+                      }
                       className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                     >
                       <CheckCircle className="w-4 h-4" />
                       <span>Complete</span>
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
+                      onClick={() =>
+                        handleStatusUpdate(booking._id, "cancelled")
+                      }
                       className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                     >
                       <XCircle className="w-4 h-4" />
@@ -377,7 +475,7 @@ const CompleteStudioBookings = () => {
                   </div>
                 )}
 
-                {booking.status === 'completed' && (
+                {booking.status === "completed" && (
                   <div className="text-center py-2">
                     <span className="inline-flex items-center space-x-2 text-green-600 dark:text-green-400 font-medium">
                       <CheckCircle className="w-4 h-4" />
@@ -386,7 +484,7 @@ const CompleteStudioBookings = () => {
                   </div>
                 )}
 
-                {booking.status === 'cancelled' && (
+                {booking.status === "cancelled" && (
                   <div className="text-center py-2">
                     <span className="inline-flex items-center space-x-2 text-red-600 dark:text-red-400 font-medium">
                       <XCircle className="w-4 h-4" />
@@ -426,10 +524,9 @@ const CompleteStudioBookings = () => {
             No bookings found
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {searchTerm || filterStatus !== 'all' 
-              ? 'Try adjusting your filters' 
-              : 'Your bookings will appear here once clients start booking your studio'
-            }
+            {searchTerm || filterStatus !== "all"
+              ? "Try adjusting your filters"
+              : "Your bookings will appear here once clients start booking your studio"}
           </p>
         </div>
       )}
@@ -470,16 +567,22 @@ const CompleteStudioBookings = () => {
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-900 dark:text-white">{selectedBooking.client?.name}</span>
+                      <span className="text-gray-900 dark:text-white">
+                        {selectedBooking.client?.name}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-600 dark:text-gray-400">{selectedBooking.client?.email}</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {selectedBooking.client?.email}
+                      </span>
                     </div>
                     {selectedBooking.client?.phone && (
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-600 dark:text-gray-400">{selectedBooking.client.phone}</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {selectedBooking.client.phone}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -501,14 +604,21 @@ const CompleteStudioBookings = () => {
                       <div>
                         <p className="text-sm text-gray-500">Time</p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {new Date(selectedBooking.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                          {new Date(selectedBooking.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(selectedBooking.start).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}{" "}
+                          -
+                          {new Date(selectedBooking.end).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Service</p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {selectedBooking.service?.name || 'N/A'}
+                          {selectedBooking.service?.name || "N/A"}
                         </p>
                       </div>
                       <div>
@@ -518,23 +628,25 @@ const CompleteStudioBookings = () => {
                         </p>
                       </div>
                     </div>
-                    
+
                     {selectedBooking.notes && (
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Notes</p>
-                        <p className="text-gray-900 dark:text-white">{selectedBooking.notes}</p>
+                        <p className="text-gray-900 dark:text-white">
+                          {selectedBooking.notes}
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Status Actions */}
-                {selectedBooking.status === 'pending' && (
+                {selectedBooking.status === "pending" && (
                   <div className="flex space-x-3">
                     <button
                       onClick={() => {
-                        handleStatusUpdate(selectedBooking._id, 'confirmed')
-                        setShowDetails(false)
+                        handleStatusUpdate(selectedBooking._id, "confirmed");
+                        setShowDetails(false);
                       }}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors"
                     >
@@ -542,8 +654,8 @@ const CompleteStudioBookings = () => {
                     </button>
                     <button
                       onClick={() => {
-                        handleStatusUpdate(selectedBooking._id, 'cancelled')
-                        setShowDetails(false)
+                        handleStatusUpdate(selectedBooking._id, "cancelled");
+                        setShowDetails(false);
                       }}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors"
                     >
@@ -557,7 +669,7 @@ const CompleteStudioBookings = () => {
         )}
       </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export default CompleteStudioBookings
+export default CompleteStudioBookings;

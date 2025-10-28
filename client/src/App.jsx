@@ -44,6 +44,7 @@ import AdminRevenue from "./pages/Admin/AdminRevenue";
 import AdminRevenueManagement from "./pages/Admin/AdminRevenueManagement";
 import AdminReviews from "./pages/Admin/AdminReviews";
 import AdminPayments from "./pages/Admin/AdminPayments";
+import AdminPayouts from "./pages/Admin/AdminPayouts";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import StudioDashboard from "./pages/Dashboard/StudioDashboard";
 import AdminFeedback from "./pages/Admin/AdminFeedback";
@@ -74,6 +75,10 @@ import UnifiedBookingsHub from "./pages/Dashboard/UnifiedBookingsHub";
 import UnifiedStudioProfile from "./pages/Dashboard/UnifiedStudioProfile";
 import UnifiedBookingsPage from "./pages/Dashboard/UnifiedBookingsPage";
 import NotificationsPage from "./pages/Dashboard/NotificationsPage";
+import Wallet from "./pages/Dashboard/Wallet";
+import WalletTransactions from "./pages/Dashboard/WalletTransactions";
+import WithdrawalRequest from "./pages/Dashboard/WithdrawalRequest";
+import WalletSettings from "./pages/Dashboard/WalletSettings";
 
 // Settings pages
 import Settings from "./pages/Settings/Settings";
@@ -106,7 +111,7 @@ function App() {
   const isAdminRoute =
     location.pathname.startsWith("/admin") ||
     (location.pathname === "/dashboard" && user?.role === "admin");
-    
+
   // Check if we're on studio routes or studio user logged in
   const isStudioRoute = user?.role === "studio" && !isAdminRoute;
 
@@ -196,249 +201,283 @@ function App() {
   return (
     <ErrorBoundary>
       <NotificationProvider>
-      <div
-        className={`App min-h-screen bg-dark-950 text-gray-100 relative overflow-x-hidden ${
-          mode === "dark" ? "bg-dark-950 text-white" : "bg-white text-gray-900"
-        }`}
-      >
-      {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
-      {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
-      
-      {/* Conditional Navbar */}
-      {isAdminRoute ? (
-        <AdminNavbar />
-      ) : isStudioRoute ? (
-        <StudioNavbar />
-      ) : (
-        <Navbar />
-      )}
+        <div
+          className={`App min-h-screen bg-dark-950 text-gray-100 relative overflow-x-hidden ${
+            mode === "dark"
+              ? "bg-dark-950 text-white"
+              : "bg-white text-gray-900"
+          }`}
+        >
+          {/* Particle Background - Only show on non-admin/non-studio dashboard pages */}
+          {!isAdminRoute && !isStudioRoute && <ParticleBackground />}
 
-      <main className="flex-1 relative">
-        <AnimatePresence mode="wait">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/studios/:id" element={<StudioProfile />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/genres" element={<Search />} />
-            <Route path="/featured" element={<Search />} />
-            <Route path="/tools" element={<Blog />} />
-            <Route path="/help" element={<Blog />} />
+          {/* Conditional Navbar */}
+          {isAdminRoute ? (
+            <AdminNavbar />
+          ) : isStudioRoute ? (
+            <StudioNavbar />
+          ) : (
+            <Navbar />
+          )}
 
-            {/* Auth routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route 
-              path="/complete-profile" 
-              element={
-                <ProtectedRoute>
-                  <ProfileCompletion />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+          <main className="flex-1 relative">
+            <AnimatePresence mode="wait">
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/studios/:id" element={<StudioProfile />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/genres" element={<Search />} />
+                <Route path="/featured" element={<Search />} />
+                <Route path="/tools" element={<Blog />} />
+                <Route path="/help" element={<Blog />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/booking/new"
-              element={
-                <ProtectedRoute>
-                  <NewBooking />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/booking/checkout"
-              element={
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/booking/success"
-              element={
-                <ProtectedRoute>
-                  <BookingSuccess />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment-success"
-              element={
-                <ProtectedRoute>
-                  <PaymentSuccess />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment-cancel"
-              element={
-                <ProtectedRoute>
-                  <PaymentCancel />
-                </ProtectedRoute>
-              }
-            />
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route
+                  path="/complete-profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfileCompletion />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Dashboard routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardRouter />
-                </ProtectedRoute>
-              }
-            />
+                {/* Protected routes */}
+                <Route
+                  path="/booking/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewBooking />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/booking/checkout"
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/booking/success"
+                  element={
+                    <ProtectedRoute>
+                      <BookingSuccess />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payment-success"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentSuccess />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payment-cancel"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentCancel />
+                    </ProtectedRoute>
+                  }
+                />
 
-            {/* Settings routes */}
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings/security"
-              element={
-                <ProtectedRoute>
-                  <Security />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/bookings"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <UnifiedBookingsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/services"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <CompleteStudioServices />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <SimpleStudioDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/availability"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <CompleteAvailabilityManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/media"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <CompleteStudioMedia />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/equipment"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioEquipmentManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/profile"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <UnifiedStudioProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/analytics"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioAnalytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/revenue"
-              element={
-                <ProtectedRoute allowedRoles={["studio"]}>
-                  <StudioRevenue />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/spending"
-              element={
-                <ProtectedRoute allowedRoles={["client"]}>
-                  <ClientSpending />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/spending-history"
-              element={
-                <ProtectedRoute allowedRoles={["client"]}>
-                  <PaymentHistory />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/notifications"
-              element={
-                <ProtectedRoute allowedRoles={["studio", "client"]}>
-                  <NotificationsPage />
-                </ProtectedRoute>
-              }
-            />
+                {/* Dashboard routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardRouter />
+                    </ProtectedRoute>
+                  }
+                />
 
-            {/* Admin routes */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminRoutes />
-                </ProtectedRoute>
-              }
-            />
+                {/* Settings routes */}
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings/security"
+                  element={
+                    <ProtectedRoute>
+                      <Security />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/bookings"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <UnifiedBookingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/services"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <CompleteStudioServices />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <SimpleStudioDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/availability"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <CompleteAvailabilityManager />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/media"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <CompleteStudioMedia />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/equipment"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <StudioEquipmentManager />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/profile"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <UnifiedStudioProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/analytics"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <StudioAnalytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/revenue"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <StudioRevenue />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/spending"
+                  element={
+                    <ProtectedRoute allowedRoles={["client"]}>
+                      <ClientSpending />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/spending-history"
+                  element={
+                    <ProtectedRoute allowedRoles={["client"]}>
+                      <PaymentHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/notifications"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio", "client"]}>
+                      <NotificationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wallet"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <Wallet />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wallet/transactions"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <WalletTransactions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wallet/withdraw"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <WithdrawalRequest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wallet/settings"
+                  element={
+                    <ProtectedRoute allowedRoles={["studio"]}>
+                      <WalletSettings />
+                    </ProtectedRoute>
+                  }
+                />
 
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AnimatePresence>
-      </main>
+                {/* Admin routes */}
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <AdminRoutes />
+                    </ProtectedRoute>
+                  }
+                />
 
-      {/* Footer - Only show on non-admin/non-studio dashboard pages */}
-      {!isAdminRoute && !isStudioRoute && <Footer />}
-      </div>
+                {/* Catch all route */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AnimatePresence>
+          </main>
+
+          {/* Footer - Only show on non-admin/non-studio dashboard pages */}
+          {!isAdminRoute && !isStudioRoute && <Footer />}
+        </div>
       </NotificationProvider>
     </ErrorBoundary>
   );
@@ -475,6 +514,7 @@ function AdminRoutes() {
       <Route path="analytics" element={<AdminAnalytics />} />
       <Route path="reviews" element={<AdminReviews />} />
       <Route path="payments" element={<AdminPayments />} />
+      <Route path="payouts" element={<AdminPayouts />} />
       <Route path="notifications" element={<AdminNotifications />} />
       <Route path="feedback" element={<AdminFeedback />} />
       <Route path="media" element={<AdminMediaManager />} />

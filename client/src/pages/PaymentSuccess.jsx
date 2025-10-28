@@ -1,60 +1,80 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { CheckCircle, Download, Calendar, ArrowRight, Home } from 'lucide-react';
-import { useGetBookingPaymentsQuery } from '../store/paymentApi';
-import { useGetBookingQuery } from '../store/bookingApi';
-import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import {
+  CheckCircle,
+  Download,
+  Calendar,
+  ArrowRight,
+  Home,
+} from "lucide-react";
+import { useGetBookingPaymentsQuery } from "../store/paymentApi";
+import { useGetBookingQuery } from "../store/bookingApi";
+import { format } from "date-fns";
+import { toast } from "react-hot-toast";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(true);
 
-  const orderId = searchParams.get('order_id');
-  const bookingId = searchParams.get('booking_id');
-  const paymentId = searchParams.get('payment_id');
+  const orderId = searchParams.get("order_id");
+  const bookingId = searchParams.get("booking_id");
+  const paymentId = searchParams.get("payment_id");
 
   // Fetch booking details
-  const { data: bookingData, isLoading: bookingLoading, refetch: refetchBooking } = useGetBookingQuery(bookingId, {
-    skip: !bookingId
+  const {
+    data: bookingData,
+    isLoading: bookingLoading,
+    refetch: refetchBooking,
+  } = useGetBookingQuery(bookingId, {
+    skip: !bookingId,
   });
 
   // Fetch payment details
-  const { data: paymentsData, isLoading: paymentsLoading, refetch: refetchPayments } = useGetBookingPaymentsQuery(bookingId, {
-    skip: !bookingId
+  const {
+    data: paymentsData,
+    isLoading: paymentsLoading,
+    refetch: refetchPayments,
+  } = useGetBookingPaymentsQuery(bookingId, {
+    skip: !bookingId,
   });
 
   const booking = bookingData?.data;
   const payments = paymentsData?.data?.payments || [];
-  const completedPayment = payments.find(p => p.status === 'Completed') || 
-                          payments.find(p => p.payhereOrderId === orderId);
+  const completedPayment =
+    payments.find((p) => p.status === "Completed") ||
+    payments.find((p) => p.payhereOrderId === orderId);
 
   useEffect(() => {
     let retryCount = 0;
     const maxRetries = 3;
-    
+
     const verifyPayment = async () => {
-      if (orderId && bookingId && !completedPayment && retryCount < maxRetries) {
+      if (
+        orderId &&
+        bookingId &&
+        !completedPayment &&
+        retryCount < maxRetries
+      ) {
         retryCount++;
         console.log(`Payment verification attempt ${retryCount}/${maxRetries}`);
-        
+
         // Refetch data to check for updated payment status
         await Promise.all([refetchBooking(), refetchPayments()]);
-        
+
         // If still no payment found, retry after delay
         if (!completedPayment && retryCount < maxRetries) {
           setTimeout(verifyPayment, 2000);
         } else {
           setIsVerifying(false);
           if (completedPayment) {
-            toast.success('Payment verified successfully!');
+            toast.success("Payment verified successfully!");
           }
         }
       } else {
         setIsVerifying(false);
         if (completedPayment) {
-          toast.success('Payment verified successfully!');
+          toast.success("Payment verified successfully!");
         }
       }
     };
@@ -64,42 +84,44 @@ const PaymentSuccess = () => {
   }, [orderId, bookingId, completedPayment, refetchBooking, refetchPayments]);
 
   const generateCalendarLink = () => {
-    if (!booking || !booking.start || !booking.end) return '';
-    
+    if (!booking || !booking.start || !booking.end) return "";
+
     const startDate = new Date(booking.start);
     const endDate = new Date(booking.end);
-    
+
     // Check if dates are valid
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return '';
+      return "";
     }
-    
+
     const formatDate = (date) => {
       try {
-        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
       } catch (error) {
-        console.error('Date formatting error:', error);
-        return '';
+        console.error("Date formatting error:", error);
+        return "";
       }
     };
 
-    const title = encodeURIComponent(`Studio Booking - ${booking.studio?.name || 'Studio'}`);
+    const title = encodeURIComponent(
+      `Studio Booking - ${booking.studio?.name || "Studio"}`
+    );
     const details = encodeURIComponent(
-      `Booking at ${booking.studio?.name || 'Studio'}\n` +
-      `Service: ${booking.service?.name || 'Studio Session'}\n` +
-      `Duration: ${Math.round((endDate - startDate) / (1000 * 60))} minutes\n` +
-      `Payment ID: ${completedPayment?.payherePaymentId || 'N/A'}`
+      `Booking at ${booking.studio?.name || "Studio"}\n` +
+        `Service: ${booking.service?.name || "Studio Session"}\n` +
+        `Duration: ${Math.round((endDate - startDate) / (1000 * 60))} minutes\n` +
+        `Payment ID: ${completedPayment?.payherePaymentId || "N/A"}`
     );
 
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    
+
     if (!formattedStartDate || !formattedEndDate) {
-      return '';
+      return "";
     }
 
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formattedStartDate}/${formattedEndDate}&details=${details}`;
-    
+
     return googleCalendarUrl;
   };
 
@@ -112,23 +134,24 @@ const PaymentSuccess = () => {
       amount: completedPayment.amount,
       currency: completedPayment.currency,
       date: completedPayment.completedAt || completedPayment.createdAt,
-      service: booking.service?.name || 'Studio Session',
-      studio: booking.studio?.name || 'Studio',
-      duration: booking.start && booking.end 
-        ? (() => {
-            try {
-              const startDate = new Date(booking.start);
-              const endDate = new Date(booking.end);
-              if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                return 'Not available';
+      service: booking.service?.name || "Studio Session",
+      studio: booking.studio?.name || "Studio",
+      duration:
+        booking.start && booking.end
+          ? (() => {
+              try {
+                const startDate = new Date(booking.start);
+                const endDate = new Date(booking.end);
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                  return "Not available";
+                }
+                return `${format(startDate, "PPp")} - ${format(endDate, "p")}`;
+              } catch (error) {
+                console.error("Date formatting error in receipt:", error);
+                return "Not available";
               }
-              return `${format(startDate, 'PPp')} - ${format(endDate, 'p')}`;
-            } catch (error) {
-              console.error('Date formatting error in receipt:', error);
-              return 'Not available';
-            }
-          })()
-        : 'Not available',
+            })()
+          : "Not available",
     };
 
     const receiptContent = `
@@ -140,7 +163,7 @@ PAYMENT RECEIPT
 
 Order ID: ${receiptData.orderId}
 Payment ID: ${receiptData.paymentId}
-Date: ${format(new Date(receiptData.date), 'PPP p')}
+Date: ${format(new Date(receiptData.date), "PPP p")}
 
 SERVICE DETAILS
 ---------------
@@ -158,9 +181,9 @@ Thank you for booking with Ripple!
 Visit: https://ripple.lk
     `.trim();
 
-    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const blob = new Blob([receiptContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `receipt-${receiptData.orderId}.txt`;
     document.body.appendChild(a);
@@ -168,7 +191,7 @@ Visit: https://ripple.lk
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success('Receipt downloaded!');
+    toast.success("Receipt downloaded!");
   };
 
   if (bookingLoading || paymentsLoading || isVerifying) {
@@ -177,9 +200,11 @@ Visit: https://ripple.lk
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            {isVerifying ? 'Verifying Payment...' : 'Loading...'}
+            {isVerifying ? "Verifying Payment..." : "Loading..."}
           </h2>
-          <p className="text-gray-600">Please wait while we confirm your payment</p>
+          <p className="text-gray-600">
+            Please wait while we confirm your payment
+          </p>
         </div>
       </div>
     );
@@ -192,9 +217,12 @@ Visit: https://ripple.lk
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Payment Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Payment Not Found
+          </h2>
           <p className="text-gray-600 mb-6">
-            We couldn't find your payment details. Please check your email for confirmation or contact support.
+            We couldn't find your payment details. Please check your email for
+            confirmation or contact support.
           </p>
           <Link
             to="/dashboard"
@@ -217,63 +245,94 @@ Visit: https://ripple.lk
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Payment Successful!</h1>
-            <p className="text-lg text-gray-600">Your booking has been confirmed</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Payment Successful!
+            </h1>
+            <p className="text-lg text-gray-600">
+              Your booking has been confirmed
+            </p>
           </div>
 
           {/* Payment Details Card */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Details</h2>
-            
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Payment Details
+            </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-sm font-medium text-gray-500">Order ID</label>
-                <p className="text-gray-800 font-mono">{completedPayment.payhereOrderId}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Payment ID</label>
-                <p className="text-gray-800 font-mono">{completedPayment.payherePaymentId}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Amount Paid</label>
-                <p className="text-2xl font-bold text-green-600">
-                  {completedPayment.currency} {completedPayment.amount.toLocaleString()}
+                <label className="text-sm font-medium text-gray-500">
+                  Order ID
+                </label>
+                <p className="text-gray-800 font-mono">
+                  {completedPayment.payhereOrderId}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Payment Date</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Payment ID
+                </label>
+                <p className="text-gray-800 font-mono">
+                  {completedPayment.payherePaymentId}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Amount Paid
+                </label>
+                <p className="text-2xl font-bold text-green-600">
+                  {completedPayment.currency}{" "}
+                  {completedPayment.amount.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Payment Date
+                </label>
                 <p className="text-gray-800">
-                  {format(new Date(completedPayment.completedAt || completedPayment.createdAt), 'PPP p')}
+                  {format(
+                    new Date(
+                      completedPayment.completedAt || completedPayment.createdAt
+                    ),
+                    "PPP p"
+                  )}
                 </p>
               </div>
             </div>
 
             {/* Booking Details */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Booking Details</h3>
-              
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Booking Details
+              </h3>
+
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Studio:</span>
-                  <span className="font-medium text-gray-800">{booking.studio?.name}</span>
+                  <span className="font-medium text-gray-800">
+                    {booking.studio?.name}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Service:</span>
-                  <span className="font-medium text-gray-800">{booking.service?.name || 'Studio Session'}</span>
+                  <span className="font-medium text-gray-800">
+                    {booking.service?.name || "Studio Session"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date & Time:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.start ? format(new Date(booking.start), 'PPP') : 'Not available'}
+                    {booking.start
+                      ? format(new Date(booking.start), "PPP")
+                      : "Not available"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.start && booking.end 
-                      ? `${format(new Date(booking.start), 'p')} - ${format(new Date(booking.end), 'p')}`
-                      : 'Not available'
-                    }
+                    {booking.start && booking.end
+                      ? `${format(new Date(booking.start), "p")} - ${format(new Date(booking.end), "p")}`
+                      : "Not available"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -296,7 +355,7 @@ Visit: https://ripple.lk
               <Download className="w-5 h-5" />
               Download Receipt
             </button>
-            
+
             <a
               href={generateCalendarLink()}
               target="_blank"
@@ -306,9 +365,9 @@ Visit: https://ripple.lk
               <Calendar className="w-5 h-5" />
               Add to Calendar
             </a>
-            
+
             <Link
-              to={`/bookings/${bookingId}`}
+              to="/dashboard/bookings"
               className="flex items-center justify-center gap-2 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
             >
               View Booking
@@ -318,7 +377,9 @@ Visit: https://ripple.lk
 
           {/* Next Steps */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">What's Next?</h3>
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">
+              What's Next?
+            </h3>
             <ul className="space-y-2 text-blue-700">
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -326,11 +387,16 @@ Visit: https://ripple.lk
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                <span>The studio will contact you if any additional information is needed</span>
+                <span>
+                  The studio will contact you if any additional information is
+                  needed
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                <span>You can view and manage your booking from your dashboard</span>
+                <span>
+                  You can view and manage your booking from your dashboard
+                </span>
               </li>
             </ul>
           </div>

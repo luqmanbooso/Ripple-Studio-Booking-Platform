@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Menu, 
-  X, 
-  User, 
-  LogOut, 
-  Music, 
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Music,
   Search,
   Calendar,
   ChevronDown,
@@ -21,123 +21,132 @@ import {
   Building2,
   DollarSign,
   Users,
-  Clock
-} from 'lucide-react'
-import { logout } from '../../store/authSlice'
-import UniversalNotificationBell from '../common/UniversalNotificationBell'
-import { disconnectSocket } from '../../lib/socket'
-import toast from 'react-hot-toast'
-import ThemeToggle from '../ui/ThemeToggle'
+  Clock,
+  Wallet,
+} from "lucide-react";
+import { logout } from "../../store/authSlice";
+import UniversalNotificationBell from "../common/UniversalNotificationBell";
+import { disconnectSocket } from "../../lib/socket";
+import toast from "react-hot-toast";
+import ThemeToggle from "../ui/ThemeToggle";
 
 const StudioNavbar = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState(null)
-  const { user, isAuthenticated } = useSelector((state) => state.auth)
-  const dispatch = useDispatch()
-  const location = useLocation()
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const location = useLocation();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const isClickInsideDropdown = event.target.closest('[data-studio-dropdown]') || 
-                                   event.target.closest('[data-studio-profile-menu]') ||
-                                   event.target.closest('button[data-studio-dropdown-trigger]') ||
-                                   event.target.closest('button[data-studio-profile-trigger]') ||
-                                   event.target.closest('[data-notifications-panel]')
-      
+      const isClickInsideDropdown =
+        event.target.closest("[data-studio-dropdown]") ||
+        event.target.closest("[data-studio-profile-menu]") ||
+        event.target.closest("button[data-studio-dropdown-trigger]") ||
+        event.target.closest("button[data-studio-profile-trigger]") ||
+        event.target.closest("[data-notifications-panel]");
+
       if (!isClickInsideDropdown) {
-        setActiveDropdown(null)
-        setIsProfileOpen(false)
+        setActiveDropdown(null);
+        setIsProfileOpen(false);
       }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleNavigation = (href) => {
-    navigate(href)
-    setIsMobileMenuOpen(false)
-  }
+    navigate(href);
+    setIsMobileMenuOpen(false);
+  };
 
   const handleLogout = async () => {
     try {
       // Set logging out flag to prevent token refresh attempts
-      window.isLoggingOut = true
-      
+      window.isLoggingOut = true;
+
       // Call logout API to clear server-side refresh token
-      await api.post('/auth/logout')
-      
+      await api.post("/auth/logout");
+
       // Clear auth state
-      dispatch(logout())
-      
+      dispatch(logout());
+
       // Disconnect socket
-      disconnectSocket()
-      
+      disconnectSocket();
+
       // Navigate to home
-      navigate('/')
-      
+      navigate("/");
+
       // Show success message
-      toast.success('Logged out successfully')
-      
+      toast.success("Logged out successfully");
+
       // Reset flag after a short delay
-      setTimeout(() => { 
-        window.isLoggingOut = false 
-      }, 1000)
+      setTimeout(() => {
+        window.isLoggingOut = false;
+      }, 1000);
     } catch (error) {
       // Even if there's an error, clear local state and show success
-      dispatch(logout())
-      disconnectSocket()
-      navigate('/')
-      toast.success('Logged out successfully')
-      
-      setTimeout(() => { 
-        window.isLoggingOut = false 
-      }, 1000)
+      dispatch(logout());
+      disconnectSocket();
+      navigate("/");
+      toast.success("Logged out successfully");
+
+      setTimeout(() => {
+        window.isLoggingOut = false;
+      }, 1000);
     }
-  }
+  };
 
   const navigation = [
-    { 
-      name: 'Dashboard', 
-      href: '/dashboard', 
-      icon: Home 
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
     },
     {
-      name: 'Bookings',
-      href: '/dashboard/bookings',
-      icon: Calendar
+      name: "Bookings",
+      href: "/dashboard/bookings",
+      icon: Calendar,
     },
     {
-      name: 'Studio Profile',
-      href: '/dashboard/profile',
-      icon: Building2
+      name: "Studio Profile",
+      href: "/dashboard/profile",
+      icon: Building2,
     },
     {
-      name: 'Revenue',
-      href: '/dashboard/revenue',
-      icon: DollarSign
-    }
-  ]
+      name: "Wallet",
+      href: "/dashboard/wallet",
+      icon: Wallet,
+    },
+    {
+      name: "Revenue",
+      href: "/dashboard/revenue",
+      icon: DollarSign,
+    },
+  ];
 
   const isActive = (path) => {
-    if (path === '/dashboard' && location.pathname === '/dashboard') return true
-    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true
-    return false
-  }
+    if (path === "/dashboard" && location.pathname === "/dashboard")
+      return true;
+    if (path !== "/dashboard" && location.pathname.startsWith(path))
+      return true;
+    return false;
+  };
 
   const toggleDropdown = (dropdownId, event) => {
-    event.stopPropagation()
-    setActiveDropdown(activeDropdown === dropdownId ? null : dropdownId)
-    setIsProfileOpen(false)
-  }
+    event.stopPropagation();
+    setActiveDropdown(activeDropdown === dropdownId ? null : dropdownId);
+    setIsProfileOpen(false);
+  };
 
   const toggleProfile = (event) => {
-    event.stopPropagation()
-    setIsProfileOpen(!isProfileOpen)
-    setActiveDropdown(null)
-  }
+    event.stopPropagation();
+    setIsProfileOpen(!isProfileOpen);
+    setActiveDropdown(null);
+  };
 
   return (
     <>
@@ -146,14 +155,17 @@ const StudioNavbar = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo Section */}
             <div className="flex items-center">
-              <Link to="/dashboard" className="flex items-center space-x-3 group">
-                <img 
-                  src="/logo.png" 
-                  alt="Ripple Studio" 
+              <Link
+                to="/dashboard"
+                className="flex items-center space-x-3 group"
+              >
+                <img
+                  src="/logo.png"
+                  alt="Ripple Studio"
                   className="w-20 h-20 object-contain transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
                   }}
                 />
                 <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 hidden">
@@ -166,26 +178,38 @@ const StudioNavbar = () => {
             <div className="hidden xl:flex items-center justify-center flex-1 max-w-4xl mx-4">
               <div className="flex items-center space-x-1 bg-gray-100/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-full px-3 py-2 border border-gray-200/60 dark:border-slate-700/60">
                 {navigation.map((item) => {
-                  const Icon = item.icon
-                  
+                  const Icon = item.icon;
+
                   if (item.isDropdown) {
-                    const isOpen = activeDropdown === item.dropdownId
-                    const isActive = item.items.some(subItem => location.pathname.startsWith(subItem.href))
-                    
+                    const isOpen = activeDropdown === item.dropdownId;
+                    const isActive = item.items.some((subItem) =>
+                      location.pathname.startsWith(subItem.href)
+                    );
+
                     return (
-                      <div key={item.name} className="relative" data-studio-dropdown>
+                      <div
+                        key={item.name}
+                        className="relative"
+                        data-studio-dropdown
+                      >
                         <button
                           onClick={(e) => toggleDropdown(item.dropdownId, e)}
                           data-studio-dropdown-trigger
                           className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${
-                            isOpen || isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
+                            isOpen || isActive
+                              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+                              : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80"
                           }`}
                         >
-                          <Icon className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'animate-bounce' : 'group-hover:scale-110'}`} />
+                          <Icon
+                            className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "animate-bounce" : "group-hover:scale-110"}`}
+                          />
                           <span>{item.name}</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 animate-pulse' : 'group-hover:animate-bounce'}`} />
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180 animate-pulse" : "group-hover:animate-bounce"}`}
+                          />
                         </button>
-                        
+
                         <AnimatePresence>
                           {isOpen && (
                             <motion.div
@@ -198,7 +222,7 @@ const StudioNavbar = () => {
                               onClick={(e) => e.stopPropagation()}
                             >
                               {item.items.map((dropdownItem, index) => {
-                                const DropdownIcon = dropdownItem.icon
+                                const DropdownIcon = dropdownItem.icon;
                                 return (
                                   <motion.div
                                     key={dropdownItem.name}
@@ -224,13 +248,13 @@ const StudioNavbar = () => {
                                       </div>
                                     </Link>
                                   </motion.div>
-                                )
+                                );
                               })}
                             </motion.div>
                           )}
                         </AnimatePresence>
                       </div>
-                    )
+                    );
                   }
 
                   return (
@@ -239,14 +263,16 @@ const StudioNavbar = () => {
                       to={item.href}
                       className={`flex items-center space-x-1 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 relative group ${
                         isActive(item.href)
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                          : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80'
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+                          : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/80"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? 'animate-pulse' : 'group-hover:scale-110 group-hover:animate-bounce'}`} />
+                      <Icon
+                        className={`w-4 h-4 transition-transform duration-200 ${isActive(item.href) ? "animate-pulse" : "group-hover:scale-110 group-hover:animate-bounce"}`}
+                      />
                       <span>{item.name}</span>
                     </Link>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -274,8 +300,8 @@ const StudioNavbar = () => {
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-light-primary to-light-accent dark:from-primary-500 dark:to-accent-500 rounded-xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-light-primary/30 dark:group-hover:ring-primary-500/30 transition-all duration-200 animate-pulse-glow">
                       {user?.avatar?.url ? (
-                        <img 
-                          src={user.avatar.url} 
+                        <img
+                          src={user.avatar.url}
                           alt={user.name}
                           className="w-10 h-10 rounded-xl object-cover"
                         />
@@ -292,7 +318,9 @@ const StudioNavbar = () => {
                       </div>
                     </div>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-light-textSecondary dark:text-gray-400 transition-transform duration-200 group-hover:animate-bounce ${isProfileOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 text-light-textSecondary dark:text-gray-400 transition-transform duration-200 group-hover:animate-bounce ${isProfileOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 <AnimatePresence>
@@ -307,10 +335,14 @@ const StudioNavbar = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="px-4 py-3 border-b border-light-border/30 dark:border-gray-700/30">
-                        <div className="text-sm font-medium text-light-text dark:text-gray-100">{user?.name}</div>
-                        <div className="text-xs text-light-textMuted dark:text-gray-400">{user?.email}</div>
+                        <div className="text-sm font-medium text-light-text dark:text-gray-100">
+                          {user?.name}
+                        </div>
+                        <div className="text-xs text-light-textMuted dark:text-gray-400">
+                          {user?.email}
+                        </div>
                       </div>
-                      
+
                       <div className="py-2">
                         <Link
                           to="/dashboard/profile"
@@ -320,8 +352,7 @@ const StudioNavbar = () => {
                           <Building2 className="w-4 h-4 group-hover:animate-spin-slow" />
                           <span>Studio Profile</span>
                         </Link>
-                        
-                        
+
                         <button
                           onClick={handleLogout}
                           className="flex items-center space-x-3 px-4 py-3 w-full text-left text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
@@ -356,66 +387,72 @@ const StudioNavbar = () => {
             {isOpen && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
                 className="lg:hidden border-t border-light-border/30 dark:border-gray-700/30"
               >
                 <div className="px-4 pt-4 pb-6 space-y-2 bg-white/50 dark:bg-dark-900/50 backdrop-blur-sm rounded-2xl">
                   {navigation.map((item) => {
-                    const Icon = item.icon
-                    
+                    const Icon = item.icon;
+
                     if (item.isDropdown) {
-                      const isOpen = activeDropdown === item.dropdownId
-                      
+                      const isOpen = activeDropdown === item.dropdownId;
+
                       return (
                         <div key={item.name} data-studio-dropdown>
                           <button
                             onClick={(e) => toggleDropdown(item.dropdownId, e)}
                             data-studio-dropdown-trigger
                             className={`flex items-center justify-between w-full px-4 py-3 text-left text-sm font-medium transition-all duration-200 rounded-xl ${
-                              isOpen ? 'bg-light-primary text-white dark:bg-primary-500' : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
+                              isOpen
+                                ? "bg-light-primary text-white dark:bg-primary-500"
+                                : "text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50"
                             }`}
                           >
                             <div className="flex items-center space-x-3">
                               <Icon className="w-4 h-4" />
                               <span>{item.name}</span>
                             </div>
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown
+                              className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                            />
                           </button>
-                          
+
                           <AnimatePresence>
                             {isOpen && (
                               <motion.div
                                 initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
+                                animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
                                 className="ml-4 mt-2 space-y-1"
                                 data-studio-dropdown
                               >
                                 {item.items.map((dropdownItem) => {
-                                  const DropdownIcon = dropdownItem.icon
+                                  const DropdownIcon = dropdownItem.icon;
                                   return (
                                     <Link
                                       key={dropdownItem.name}
                                       to={dropdownItem.href}
                                       className="flex items-center space-x-3 px-4 py-2 text-light-textMuted dark:text-gray-400 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/30 dark:hover:bg-gray-700/30 rounded-lg transition-all duration-200"
                                       onClick={() => {
-                                        setActiveDropdown(null)
-                                        setIsOpen(false)
+                                        setActiveDropdown(null);
+                                        setIsOpen(false);
                                       }}
                                     >
                                       <DropdownIcon className="w-4 h-4" />
-                                      <span className="text-sm">{dropdownItem.name}</span>
+                                      <span className="text-sm">
+                                        {dropdownItem.name}
+                                      </span>
                                     </Link>
-                                  )
+                                  );
                                 })}
                               </motion.div>
                             )}
                           </AnimatePresence>
                         </div>
-                      )
+                      );
                     }
 
                     return (
@@ -424,15 +461,15 @@ const StudioNavbar = () => {
                         to={item.href}
                         className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-xl ${
                           isActive(item.href)
-                            ? 'bg-light-primary text-white dark:bg-primary-500'
-                            : 'text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50'
+                            ? "bg-light-primary text-white dark:bg-primary-500"
+                            : "text-light-textSecondary dark:text-gray-300 hover:text-light-text dark:hover:text-gray-100 hover:bg-light-card/50 dark:hover:bg-gray-700/50"
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.name}</span>
                       </Link>
-                    )
+                    );
                   })}
                 </div>
               </motion.div>
@@ -440,9 +477,8 @@ const StudioNavbar = () => {
           </AnimatePresence>
         </div>
       </nav>
-
     </>
-  )
-}
+  );
+};
 
-export default StudioNavbar
+export default StudioNavbar;

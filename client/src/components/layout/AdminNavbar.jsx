@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   LogOut,
   User,
@@ -13,12 +13,13 @@ import {
   DollarSign,
   Star,
   Home,
-} from "lucide-react"
-import toast from "react-hot-toast"
+  Wallet,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-import Button from '../ui/Button'
-import UniversalNotificationBell from '../common/UniversalNotificationBell'
-import { logout } from '../../store/authSlice'
+import Button from "../ui/Button";
+import UniversalNotificationBell from "../common/UniversalNotificationBell";
+import { logout } from "../../store/authSlice";
 
 const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,36 +32,35 @@ const AdminNavbar = () => {
   const handleLogout = async () => {
     try {
       // Set logging out flag to prevent token refresh attempts
-      window.isLoggingOut = true
-      
+      window.isLoggingOut = true;
+
       // Call logout API to clear server-side refresh token
-      await api.post('/auth/logout')
-      
+      await api.post("/auth/logout");
+
       // Clear auth state
-      dispatch(logout())
-      
+      dispatch(logout());
+
       // Show success message
-      toast.success('Logged out successfully')
-      
+      toast.success("Logged out successfully");
+
       // Navigate to login
-      navigate('/login')
-      
+      navigate("/login");
+
       // Reset flag after a short delay
-      setTimeout(() => { 
-        window.isLoggingOut = false 
-      }, 1000)
+      setTimeout(() => {
+        window.isLoggingOut = false;
+      }, 1000);
     } catch (error) {
       // Even if there's an error, clear local state and show success
-      dispatch(logout())
-      navigate('/login')
-      toast.success('Logged out successfully')
-      
-      setTimeout(() => { 
-        window.isLoggingOut = false 
-      }, 1000)
+      dispatch(logout());
+      navigate("/login");
+      toast.success("Logged out successfully");
+
+      setTimeout(() => {
+        window.isLoggingOut = false;
+      }, 1000);
     }
   };
-
 
   const adminNavItems = [
     { name: "Dashboard", href: "/admin", icon: Home },
@@ -68,6 +68,7 @@ const AdminNavbar = () => {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
     { name: "Revenue", href: "/admin/revenue", icon: DollarSign },
+    { name: "Payouts", href: "/admin/payouts", icon: Wallet },
     { name: "Reviews", href: "/admin/reviews", icon: Star },
   ];
 
@@ -91,7 +92,7 @@ const AdminNavbar = () => {
             {adminNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-              
+
               return (
                 <Link
                   key={item.name}
