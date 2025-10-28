@@ -806,14 +806,14 @@ const NewBooking = () => {
                     </span>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary-400">
-                        ${calculateTotalCost()}
+                        {formatCurrency(calculateTotalCost())}
                       </div>
                       <div className="text-xs text-gray-400 space-y-1">
                         {selectedTimes.length > 0 && (
                           <div>Services: {formatCurrency(calculatePrice() * selectedTimes.length)}</div>
                         )}
                         {selectedEquipment.length > 0 && (
-                          <div>Equipment: ${calculateEquipmentCost()}</div>
+                          <div>Equipment: {formatCurrency(calculateEquipmentCost())}</div>
                         )}
                       </div>
                     </div>

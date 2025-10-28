@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
-import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
 
 const EnhancedStudioBookings = () => {
   const { user } = useSelector(state => state.auth)
@@ -30,6 +30,7 @@ const EnhancedStudioBookings = () => {
 
   const [completeBooking] = useCompleteBookingMutation()
   const [cancelBooking] = useCancelBookingMutation()
+  const [confirmBooking] = useConfirmBookingMutation()
 
   const bookings = bookingsData?.data?.bookings || []
 
@@ -54,6 +55,9 @@ const EnhancedStudioBookings = () => {
       } else if (newStatus === 'cancelled') {
         await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
         toast.success('Booking cancelled successfully')
+      } else if (newStatus === 'confirmed') {
+        await confirmBooking(bookingId).unwrap()
+        toast.success('Booking confirmed successfully')
       } else {
         toast.error('Unsupported status update')
         return
@@ -268,7 +272,7 @@ const EnhancedStudioBookings = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400">{booking.service?.name}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                         <span>{booking.service?.durationMins}min</span>
-                        <span>${booking.price}</span>
+                        <span>LKR {booking.price?.toLocaleString()}</span>
                       </div>
                     </div>
                   ) : (
@@ -347,7 +351,7 @@ const EnhancedStudioBookings = () => {
                       <span>{new Date(booking.start).toLocaleDateString()}</span>
                       <span>{new Date(booking.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       <span>{booking.service?.durationMins}min</span>
-                      <span>${booking.price}</span>
+                      <span>LKR {booking.price?.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -436,7 +440,7 @@ const EnhancedStudioBookings = () => {
                   </div>
                   <div className="flex items-center space-x-3">
                     <DollarSign className="w-4 h-4 text-gray-400" />
-                    <span>${selectedBooking.price}</span>
+                    <span>LKR {selectedBooking.price?.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -451,7 +455,7 @@ const EnhancedStudioBookings = () => {
                 </p>
                 <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
                   <span>Duration: {selectedBooking.service?.durationMins} minutes</span>
-                  <span>Price: ${selectedBooking.service?.price}</span>
+                  <span>Price: LKR {selectedBooking.service?.price?.toLocaleString()}</span>
                 </div>
               </div>
             </div>

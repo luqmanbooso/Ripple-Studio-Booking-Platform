@@ -1,0 +1,3 @@
+[2025-10-27T16:54:11.775Z] INFO: PayHere payment data: {"merchant_id":"your_merchant_id","order_id":"booking_68ffa3b3fe27d4ba03d524b1_1761584051773","amount":"250.00","currency":"LKR","hash":"5092430A07FA14075072D31252077348"}
+[2025-10-27T16:54:12.232Z] INFO: Payment record created for booking: 68ffa3b3fe27d4ba03d524b1 {}
+[2025-10-27T16:54:12.233Z] INFO: PayHere checkout session created: booking_68ffa3b3fe27d4ba03d524b1_1761584051773 for booking: 68ffa3b3fe27d4ba03d524b1 {}

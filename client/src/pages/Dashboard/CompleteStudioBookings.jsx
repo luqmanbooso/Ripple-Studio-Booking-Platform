@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,6 +25,18 @@ import {
 } from "../../store/bookingApi";
 import { useGetStudioQuery } from "../../store/studioApi";
 import { useGetWalletQuery } from "../../store/walletApi";
+=======
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Calendar, Clock, User, DollarSign, CheckCircle, XCircle, 
+  Eye, Filter, Search, Plus, Phone, Mail, MapPin
+} from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import { useSelector } from 'react-redux'
+import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
+import { useGetStudioQuery } from '../../store/studioApi'
+>>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
 
 const CompleteStudioBookings = () => {
   const { user } = useSelector((state) => state.auth);
@@ -47,12 +60,20 @@ const CompleteStudioBookings = () => {
   } = useGetMyBookingsQuery({
     page: 1,
     limit: 50,
+<<<<<<< HEAD
     status: filterStatus !== "all" ? filterStatus : undefined,
   });
   const [completeBooking, { isLoading: isCompleting }] =
     useCompleteBookingMutation();
   const [cancelBooking, { isLoading: isCancelling }] =
     useCancelBookingMutation();
+=======
+    status: filterStatus !== 'all' ? filterStatus : undefined
+  })
+  const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
+  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
+  const [confirmBooking, { isLoading: isConfirming }] = useConfirmBookingMutation()
+>>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
 
   const bookings = bookingsData?.data?.bookings || [];
 
@@ -67,6 +88,7 @@ const CompleteStudioBookings = () => {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
+<<<<<<< HEAD
       if (newStatus === "completed") {
         await completeBooking({ id: bookingId, notes: "" }).unwrap();
         toast.success("Booking completed!");
@@ -76,6 +98,17 @@ const CompleteStudioBookings = () => {
           reason: "Cancelled by studio",
         }).unwrap();
         toast.success("Booking cancelled!");
+=======
+      if (newStatus === 'completed') {
+        await completeBooking({ id: bookingId, notes: '' }).unwrap()
+        toast.success('Booking completed!')
+      } else if (newStatus === 'cancelled') {
+        await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
+        toast.success('Booking cancelled!')
+      } else if (newStatus === 'confirmed') {
+        await confirmBooking(bookingId).unwrap()
+        toast.success('Booking confirmed!')
+>>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
       } else {
         toast.error("Unsupported status update");
         return;
@@ -256,6 +289,7 @@ const CompleteStudioBookings = () => {
                 Wallet Balance
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
+<<<<<<< HEAD
                 LKR{" "}
                 {(wallet?.balance?.available || 0).toLocaleString("en-LK", {
                   minimumFractionDigits: 2,
@@ -268,6 +302,9 @@ const CompleteStudioBookings = () => {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
+=======
+                LKR {bookings.reduce((sum, b) => sum + (b.price || 0), 0).toLocaleString()}
+>>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-orange-500" />
@@ -422,7 +459,7 @@ const CompleteStudioBookings = () => {
                 <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400">
                   <DollarSign className="w-4 h-4 text-green-500" />
                   <span className="font-bold text-green-600 dark:text-green-400 text-lg">
-                    ${booking.price}
+                    LKR {booking.price?.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -624,7 +661,7 @@ const CompleteStudioBookings = () => {
                       <div>
                         <p className="text-sm text-gray-500">Price</p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          ${selectedBooking.price}
+                          LKR {selectedBooking.price?.toLocaleString()}
                         </p>
                       </div>
                     </div>

@@ -194,7 +194,7 @@ const EquipmentSelector = ({
                       <div className="flex items-center space-x-1">
                         <DollarSign className="w-3 h-3 text-green-400" />
                         <span className="text-sm font-semibold text-green-400">
-                          ${rentalPrice}
+                          LKR {rentalPrice?.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
@@ -215,7 +215,7 @@ const EquipmentSelector = ({
                 <div className="flex items-center space-x-2">
                   <DollarSign className="w-4 h-4 text-green-400" />
                   <span className="text-lg font-bold text-green-400">
-                    ${getTotalRentalCost()}
+                    LKR {getTotalRentalCost()?.toLocaleString()}
                   </span>
                   <span className="text-sm text-gray-400">total</span>
                 </div>
@@ -225,7 +225,7 @@ const EquipmentSelector = ({
                 {selectedItems.map((item) => (
                   <div key={item.equipmentId} className="flex items-center justify-between text-sm">
                     <span className="text-gray-300">{item.name}</span>
-                    <span className="text-green-400">${item.rentalPrice}</span>
+                    <span className="text-green-400">LKR {item.rentalPrice?.toLocaleString()}</span>
                   </div>
                 ))}
               </div>

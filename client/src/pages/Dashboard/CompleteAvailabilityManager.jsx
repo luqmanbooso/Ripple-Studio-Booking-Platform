@@ -221,14 +221,22 @@ const CompleteAvailabilityManager = () => {
     
     return availability.find(slot => {
       if (slot.isRecurring) {
+        // Recurring slot
         if (!slot.daysOfWeek?.includes(dayOfWeek)) return false
         const slotStart = new Date(slot.start)
         const slotEnd = new Date(slot.end)
-        const slotStartMinutes = slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes()
-        const slotEndMinutes = slotEnd.getUTCHours() * 60 + slotEnd.getUTCMinutes()
+        const slotStartMinutes = slotStart.getHours() * 60 + slotStart.getMinutes()
+        const slotEndMinutes = slotEnd.getHours() * 60 + slotEnd.getMinutes()
         return timeInMinutes >= slotStartMinutes && timeInMinutes < slotEndMinutes
+      } else {
+        // Non-recurring slot
+        const slotDate = slot.date
+        const currentDateStr = date.toISOString().split('T')[0]
+        
+        if (currentDateStr !== slotDate) return false
+        
+        return timeInMinutes >= slot.startTime && timeInMinutes < slot.endTime
       }
-      return false
     })
   }
 

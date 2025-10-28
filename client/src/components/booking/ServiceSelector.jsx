@@ -125,7 +125,7 @@ const ServiceSelector = ({
                       <div className="flex items-center space-x-1">
                         <DollarSign className="w-4 h-4 text-green-400" />
                         <span className="font-semibold text-green-400">
-                          ${service.price}
+                          LKR {service.price?.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
@@ -161,7 +161,7 @@ const ServiceSelector = ({
                   <div className="flex items-center space-x-1">
                     <DollarSign className="w-4 h-4 text-green-400" />
                     <span className="text-lg font-bold text-green-400">
-                      ${getTotalServiceCost()}
+                      LKR {getTotalServiceCost()?.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -174,7 +174,7 @@ const ServiceSelector = ({
                       <span className="text-gray-300">{service.name}</span>
                       <span className="text-xs text-gray-500">({service.durationMins}m)</span>
                     </div>
-                    <span className="text-green-400">${service.price}</span>
+                    <span className="text-green-400">LKR {service.price?.toLocaleString()}</span>
                   </div>
                 ))}
               </div>

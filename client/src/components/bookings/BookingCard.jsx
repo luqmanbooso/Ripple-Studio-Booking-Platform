@@ -9,19 +9,18 @@ import {
   Check, 
   X, 
   Star,
-  MessageCircle,
   Phone,
   Mail
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import Button from '../ui/Button'
-import { useUpdateBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
+import { useConfirmBookingMutation, useCancelBookingMutation } from '../../store/bookingApi'
 import ReviewModal from '../reviews/ReviewModal'
 
 const BookingCard = ({ booking, userRole, onUpdate }) => {
-  const [updateBooking, { isLoading }] = useUpdateBookingMutation()
   const [confirmBooking, { isLoading: confirmLoading }] = useConfirmBookingMutation()
+  const [cancelBooking, { isLoading: cancelLoading }] = useCancelBookingMutation()
   const [showReviewModal, setShowReviewModal] = useState(false)
 
   const formatDate = (date) => {
@@ -43,12 +42,20 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      await updateBooking({
-        id: booking._id,
-        status: newStatus
-      }).unwrap()
+      if (newStatus === 'cancelled') {
+        await cancelBooking({
+          id: booking._id,
+          reason: 'Cancelled by user'
+        }).unwrap()
+        toast.success('Booking cancelled successfully')
+      } else {
+        // For other status updates, we should use specific mutations
+        // This is a fallback that shouldn't be used in normal flow
+        console.warn('Generic status update not supported:', newStatus)
+        toast.error('Status update not supported')
+        return
+      }
       
-      toast.success(`Booking ${newStatus === 'confirmed' ? 'confirmed' : 'cancelled'} successfully`)
       onUpdate?.()
     } catch (error) {
       toast.error(error.data?.message || 'Failed to update booking')
@@ -140,7 +147,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
                 {getStatusLabel(booking.status)}
               </span>
               <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                ${booking.price}
+                LKR {booking.price?.toLocaleString()}
               </div>
             </div>
           </div>
@@ -223,7 +230,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
               <div>
                 <span className="text-gray-500 dark:text-gray-400">Price:</span>
                 <span className="ml-2 text-gray-900 dark:text-white font-medium">
-                  ${booking.service?.price}
+                  LKR {booking.service?.price?.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -270,7 +277,7 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
             {canCancel && (
               <Button
                 onClick={() => handleStatusUpdate('cancelled')}
-                loading={isLoading}
+                loading={cancelLoading}
                 icon={<X className="w-4 h-4" />}
                 variant="outline"
                 className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20"
@@ -290,14 +297,6 @@ const BookingCard = ({ booking, userRole, onUpdate }) => {
               </Button>
             )}
 
-            {/* Message Button */}
-            <Button
-              variant="ghost"
-              icon={<MessageCircle className="w-4 h-4" />}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              Message
-            </Button>
           </div>
         </div>
 

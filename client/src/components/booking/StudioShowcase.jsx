@@ -320,7 +320,7 @@ const StudioShowcase = ({ studio }) => {
                     <p className="text-gray-400 text-sm">{service.durationMins} minutes</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-green-400 font-bold">${service.price}</div>
+                    <div className="text-green-400 font-bold">LKR {service.price?.toLocaleString()}</div>
                   </div>
                 </motion.div>
               ))}

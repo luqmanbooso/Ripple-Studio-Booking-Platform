@@ -371,13 +371,6 @@ cd client && npm test
 
 ## 📦 Deployment
 
-### 🐳 Docker (Recommended)
-
-```bash
-# Build and run with docker-compose
-docker-compose up --build
-```
-
 ### ☁️ Manual Deployment
 
 1. Build frontend: `cd client && npm run build`
@@ -423,4 +416,4 @@ For support, email support@ripple.io or join our Discord community.
 
 ---
 
-**Made with ❤️ by the Ripple Team**
+**Made with ❤️ by the Team Pebbles**
