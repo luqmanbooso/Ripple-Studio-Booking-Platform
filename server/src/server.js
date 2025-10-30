@@ -212,13 +212,13 @@ const connectDB = async (retries = 5) => {
   try {
     console.log("Attempting MongoDB connection...");
     
-    // For serverless environments, enable buffering and use shorter timeouts
+    // For serverless environments, use optimized settings
     const connectionOptions = {
       serverSelectionTimeoutMS: 5000, // 5 second timeout for serverless
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       bufferCommands: true, // Enable buffering for serverless
-      bufferMaxEntries: 0, // Disable mongoose buffering, use driver's buffering
+      // Note: bufferMaxEntries is not a valid option in current Mongoose versions
     };
 
     const conn = await mongoose.connect(process.env.MONGO_URI, connectionOptions);
