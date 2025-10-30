@@ -9,24 +9,48 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
 
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const artistRoutes = require("./routes/artistRoutes");
-const studioRoutes = require("./routes/studioRoutes");
-const bookingRoutes = require("./routes/bookingRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const webhookRoutes = require("./webhooks/payhereWebhook");
-const mediaRoutes = require("./routes/mediaRoutes");
-const equipmentRoutes = require("./routes/equipmentRoutes");
-const serviceRoutes = require("./routes/serviceRoutes");
-const ticketRoutes = require("./routes/ticketRoutes");
-const revenueRoutes = require("./routes/revenueRoutes");
-const walletRoutes = require("./routes/walletRoutes");
+// Environment validation
+const requiredEnvVars = ['MONGO_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error("❌ Missing required environment variables:", missingEnvVars.join(', '));
+  console.error("Please set these variables in your Vercel project settings.");
+  process.exit(1);
+}
+
+console.log("✅ All required environment variables are present");
+
+// Import routes with error handling
+let authRoutes, userRoutes, artistRoutes, studioRoutes, bookingRoutes, reviewRoutes;
+let paymentRoutes, uploadRoutes, adminRoutes, notificationRoutes, webhookRoutes;
+let mediaRoutes, equipmentRoutes, serviceRoutes, ticketRoutes, revenueRoutes, walletRoutes;
+
+try {
+  console.log("Loading route modules...");
+  authRoutes = require("./routes/authRoutes");
+  userRoutes = require("./routes/userRoutes");
+  artistRoutes = require("./routes/artistRoutes");
+  studioRoutes = require("./routes/studioRoutes");
+  bookingRoutes = require("./routes/bookingRoutes");
+  reviewRoutes = require("./routes/reviewRoutes");
+  paymentRoutes = require("./routes/paymentRoutes");
+  uploadRoutes = require("./routes/uploadRoutes");
+  adminRoutes = require("./routes/adminRoutes");
+  notificationRoutes = require("./routes/notificationRoutes");
+  webhookRoutes = require("./webhooks/payhereWebhook");
+  mediaRoutes = require("./routes/mediaRoutes");
+  equipmentRoutes = require("./routes/equipmentRoutes");
+  serviceRoutes = require("./routes/serviceRoutes");
+  ticketRoutes = require("./routes/ticketRoutes");
+  revenueRoutes = require("./routes/revenueRoutes");
+  walletRoutes = require("./routes/walletRoutes");
+  console.log("✅ All route modules loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading route modules:", error.message);
+  console.error("Stack trace:", error.stack);
+  process.exit(1);
+}
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -141,6 +165,18 @@ app.get("/health", (req, res) => {
     message: "Server is running!",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasJwtSecret: !!process.env.JWT_ACCESS_SECRET,
+  });
+});
+
+// Simple test endpoint that doesn't require database
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Ripple Studio API is running!",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -291,6 +327,10 @@ process.on("SIGINT", () => {
   });
 });
 
-startServer();
+startServer().catch((error) => {
+  console.error("❌ Fatal server startup error:", error);
+  console.error("Stack trace:", error.stack);
+  process.exit(1);
+});
 
 module.exports = app;
