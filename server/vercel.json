@@ -1,15 +1,16 @@
 {
     "version": 2,
     "name": "ripple-backend",
-
     "builds": [
       {
-        "src": "server.js",
+        "src": "src/server.js",
         "use": "@vercel/node"
       }
     ],
     "routes": [
-      { "src": "/(.*)", 
-      "dest": "/server.js" }
+      { 
+        "src": "/(.*)", 
+        "dest": "/src/server.js" 
+      }
     ]
 }

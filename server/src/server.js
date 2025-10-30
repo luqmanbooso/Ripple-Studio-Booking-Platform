@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
+const path = require("path");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
