@@ -199,38 +199,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// API routes with database connection middleware
-app.use("/api/auth", ensureDBConnection, authRoutes);
-app.use("/api/users", ensureDBConnection, userRoutes);
-app.use("/api/artists", ensureDBConnection, artistRoutes);
-app.use("/api/studios", ensureDBConnection, studioRoutes);
-app.use("/api/bookings", ensureDBConnection, bookingRoutes);
-app.use("/api/reviews", ensureDBConnection, reviewRoutes);
-app.use("/api/payments", ensureDBConnection, paymentRoutes);
-app.use("/api/upload", ensureDBConnection, uploadRoutes);
-app.use("/api/admin", ensureDBConnection, adminRoutes);
-app.use("/api/notifications", ensureDBConnection, notificationRoutes);
-app.use("/api/webhooks", ensureDBConnection, webhookRoutes);
-app.use("/api/media", ensureDBConnection, mediaRoutes);
-app.use("/api/equipment", ensureDBConnection, equipmentRoutes);
-app.use("/api/services", ensureDBConnection, serviceRoutes);
-app.use("/api/tickets", ensureDBConnection, ticketRoutes);
-app.use("/api/revenue", ensureDBConnection, revenueRoutes);
-app.use("/api/wallet", ensureDBConnection, walletRoutes);
-
-// Serve static files in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../client/dist")));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
-  });
-}
-
-// Error handling middleware
-app.use(notFound);
-app.use(errorHandler);
-
 // Database connection with serverless optimization
 let isConnected = false;
 
@@ -313,6 +281,38 @@ const ensureDBConnection = async (req, res, next) => {
     });
   }
 };
+
+// API routes with database connection middleware
+app.use("/api/auth", ensureDBConnection, authRoutes);
+app.use("/api/users", ensureDBConnection, userRoutes);
+app.use("/api/artists", ensureDBConnection, artistRoutes);
+app.use("/api/studios", ensureDBConnection, studioRoutes);
+app.use("/api/bookings", ensureDBConnection, bookingRoutes);
+app.use("/api/reviews", ensureDBConnection, reviewRoutes);
+app.use("/api/payments", ensureDBConnection, paymentRoutes);
+app.use("/api/upload", ensureDBConnection, uploadRoutes);
+app.use("/api/admin", ensureDBConnection, adminRoutes);
+app.use("/api/notifications", ensureDBConnection, notificationRoutes);
+app.use("/api/webhooks", ensureDBConnection, webhookRoutes);
+app.use("/api/media", ensureDBConnection, mediaRoutes);
+app.use("/api/equipment", ensureDBConnection, equipmentRoutes);
+app.use("/api/services", ensureDBConnection, serviceRoutes);
+app.use("/api/tickets", ensureDBConnection, ticketRoutes);
+app.use("/api/revenue", ensureDBConnection, revenueRoutes);
+app.use("/api/wallet", ensureDBConnection, walletRoutes);
+
+// Serve static files in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../../client/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+  });
+}
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
