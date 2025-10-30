@@ -86,19 +86,33 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://ripple-studio-booking-platform-eight.vercel.app",
   "https://ripple-studio-booking-platform-ten.vercel.app",
+  "https://ripple-studio-booking-platform-adq9.vercel.app", // Current deployment
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
-// Socket.IO setup
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-  },
-});
+// Socket.IO setup - disabled in serverless environment
+let io;
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  // Only setup Socket.IO in non-serverless environments
+  io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+    },
+  });
 
-// Setup socket handlers
-setupSocket(io);
+  // Setup socket handlers
+  setupSocket(io);
+  console.log("✅ Socket.IO enabled for non-serverless environment");
+} else {
+  console.log("⚠️ Socket.IO disabled in serverless environment");
+  // Create a mock io object for serverless
+  io = {
+    emit: () => {},
+    to: () => ({ emit: () => {} }),
+    sockets: { emit: () => {} }
+  };
+}
 
 // Make io available throughout the app
 app.set("io", io);
@@ -197,6 +211,15 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     timestamp: new Date().toISOString()
   });
+});
+
+// Handle favicon requests to prevent 404 errors
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+app.get("/favicon.png", (req, res) => {
+  res.status(204).end(); // No content
 });
 
 // Database connection with serverless optimization
