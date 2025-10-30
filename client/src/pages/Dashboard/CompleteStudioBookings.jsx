@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,21 +21,10 @@ import {
   useGetMyBookingsQuery,
   useCompleteBookingMutation,
   useCancelBookingMutation,
+  useConfirmBookingMutation,
 } from "../../store/bookingApi";
 import { useGetStudioQuery } from "../../store/studioApi";
 import { useGetWalletQuery } from "../../store/walletApi";
-=======
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Calendar, Clock, User, DollarSign, CheckCircle, XCircle, 
-  Eye, Filter, Search, Plus, Phone, Mail, MapPin
-} from 'lucide-react'
-import { toast } from 'react-hot-toast'
-import { useSelector } from 'react-redux'
-import { useGetMyBookingsQuery, useCompleteBookingMutation, useCancelBookingMutation, useConfirmBookingMutation } from '../../store/bookingApi'
-import { useGetStudioQuery } from '../../store/studioApi'
->>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
 
 const CompleteStudioBookings = () => {
   const { user } = useSelector((state) => state.auth);
@@ -60,20 +48,14 @@ const CompleteStudioBookings = () => {
   } = useGetMyBookingsQuery({
     page: 1,
     limit: 50,
-<<<<<<< HEAD
     status: filterStatus !== "all" ? filterStatus : undefined,
   });
   const [completeBooking, { isLoading: isCompleting }] =
     useCompleteBookingMutation();
   const [cancelBooking, { isLoading: isCancelling }] =
     useCancelBookingMutation();
-=======
-    status: filterStatus !== 'all' ? filterStatus : undefined
-  })
-  const [completeBooking, { isLoading: isCompleting }] = useCompleteBookingMutation()
-  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation()
-  const [confirmBooking, { isLoading: isConfirming }] = useConfirmBookingMutation()
->>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
+  const [confirmBooking, { isLoading: isConfirming }] =
+    useConfirmBookingMutation();
 
   const bookings = bookingsData?.data?.bookings || [];
 
@@ -88,7 +70,6 @@ const CompleteStudioBookings = () => {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
-<<<<<<< HEAD
       if (newStatus === "completed") {
         await completeBooking({ id: bookingId, notes: "" }).unwrap();
         toast.success("Booking completed!");
@@ -98,17 +79,9 @@ const CompleteStudioBookings = () => {
           reason: "Cancelled by studio",
         }).unwrap();
         toast.success("Booking cancelled!");
-=======
-      if (newStatus === 'completed') {
-        await completeBooking({ id: bookingId, notes: '' }).unwrap()
-        toast.success('Booking completed!')
-      } else if (newStatus === 'cancelled') {
-        await cancelBooking({ id: bookingId, reason: 'Cancelled by studio' }).unwrap()
-        toast.success('Booking cancelled!')
-      } else if (newStatus === 'confirmed') {
-        await confirmBooking(bookingId).unwrap()
-        toast.success('Booking confirmed!')
->>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
+      } else if (newStatus === "confirmed") {
+        await confirmBooking(bookingId).unwrap();
+        toast.success("Booking confirmed!");
       } else {
         toast.error("Unsupported status update");
         return;
@@ -289,7 +262,6 @@ const CompleteStudioBookings = () => {
                 Wallet Balance
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-<<<<<<< HEAD
                 LKR{" "}
                 {(wallet?.balance?.available || 0).toLocaleString("en-LK", {
                   minimumFractionDigits: 2,
@@ -302,9 +274,6 @@ const CompleteStudioBookings = () => {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-=======
-                LKR {bookings.reduce((sum, b) => sum + (b.price || 0), 0).toLocaleString()}
->>>>>>> 05a0103135c2f32e6f1e2b8607690a3dd9a8fafa
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-orange-500" />
