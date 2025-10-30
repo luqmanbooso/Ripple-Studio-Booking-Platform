@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite"
+    "lint": "eslint . --ext .js,.jsx"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.1",
