@@ -1,20 +1,12 @@
 {
   "name": "ripple-studio-booking-platform",
-  "version": "1.0.0",
-  "description": "Studio booking platform",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "concurrently \"npm -w server run dev\" \"npm -w client run dev\"",
-    "build": "npm -w client run build",
-    "preview": "npm -w client run preview",
-    "lint": "npm -w client run lint"
-  },
   "workspaces": [
     "server",
     "client"
   ],
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+  "scripts": {
+    "build": "npm -w client run build",
+    "dev": "npm -w client run dev"
   }
 }
