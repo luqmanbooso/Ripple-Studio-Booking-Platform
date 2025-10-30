@@ -199,24 +199,24 @@ app.get("/", (req, res) => {
   });
 });
 
-// API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/artists", artistRoutes);
-app.use("/api/studios", studioRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/webhooks", webhookRoutes);
-app.use("/api/media", mediaRoutes);
-app.use("/api/equipment", equipmentRoutes);
-app.use("/api/services", serviceRoutes);
-app.use("/api/tickets", ticketRoutes);
-app.use("/api/revenue", revenueRoutes);
-app.use("/api/wallet", walletRoutes);
+// API routes with database connection middleware
+app.use("/api/auth", ensureDBConnection, authRoutes);
+app.use("/api/users", ensureDBConnection, userRoutes);
+app.use("/api/artists", ensureDBConnection, artistRoutes);
+app.use("/api/studios", ensureDBConnection, studioRoutes);
+app.use("/api/bookings", ensureDBConnection, bookingRoutes);
+app.use("/api/reviews", ensureDBConnection, reviewRoutes);
+app.use("/api/payments", ensureDBConnection, paymentRoutes);
+app.use("/api/upload", ensureDBConnection, uploadRoutes);
+app.use("/api/admin", ensureDBConnection, adminRoutes);
+app.use("/api/notifications", ensureDBConnection, notificationRoutes);
+app.use("/api/webhooks", ensureDBConnection, webhookRoutes);
+app.use("/api/media", ensureDBConnection, mediaRoutes);
+app.use("/api/equipment", ensureDBConnection, equipmentRoutes);
+app.use("/api/services", ensureDBConnection, serviceRoutes);
+app.use("/api/tickets", ensureDBConnection, ticketRoutes);
+app.use("/api/revenue", ensureDBConnection, revenueRoutes);
+app.use("/api/wallet", ensureDBConnection, walletRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
@@ -231,17 +231,43 @@ if (process.env.NODE_ENV === "production") {
 app.use(notFound);
 app.use(errorHandler);
 
-// Database connection
+// Database connection with serverless optimization
+let isConnected = false;
+
 const connectDB = async (retries = 5) => {
+  // If already connected, return existing connection
+  if (isConnected && mongoose.connection.readyState === 1) {
+    console.log("✅ Using existing MongoDB connection");
+    return mongoose.connection;
+  }
+
   try {
     console.log("Attempting MongoDB connection...");
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000, // 10 second timeout
-      socketTimeoutMS: 45000, // 45 second socket timeout
+    
+    // For serverless environments, enable buffering and use shorter timeouts
+    const connectionOptions = {
+      serverSelectionTimeoutMS: 5000, // 5 second timeout for serverless
+      socketTimeoutMS: 45000,
       maxPoolSize: 10,
-      bufferCommands: false,
-    });
+      bufferCommands: true, // Enable buffering for serverless
+      bufferMaxEntries: 0, // Disable mongoose buffering, use driver's buffering
+    };
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, connectionOptions);
+    
+    isConnected = true;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+
+    // Handle connection events
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB disconnected');
+      isConnected = false;
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
+      isConnected = false;
+    });
 
     // Initialize platform settings
     await initializePlatformSettings();
@@ -259,8 +285,32 @@ const connectDB = async (retries = 5) => {
       return connectDB(retries - 1);
     } else {
       console.error("💀 All MongoDB connection attempts failed");
-      process.exit(1);
+      
+      // In serverless environment, don't exit process, just throw error
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        throw new Error("Failed to connect to MongoDB");
+      } else {
+        process.exit(1);
+      }
     }
+  }
+};
+
+// Middleware to ensure database connection before handling requests
+const ensureDBConnection = async (req, res, next) => {
+  try {
+    if (!isConnected || mongoose.connection.readyState !== 1) {
+      console.log("Database not connected, establishing connection...");
+      await connectDB();
+    }
+    next();
+  } catch (error) {
+    console.error("Failed to establish database connection:", error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 

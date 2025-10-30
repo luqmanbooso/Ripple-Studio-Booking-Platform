@@ -171,62 +171,84 @@ const register = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
-  // Find user and include password for comparison, populate studio if exists
-  const user = await User.findOne({ email }).select('+password').populate('studio');
-  if (!user) {
-    throw new ApiError('Invalid credentials', 401);
-  }
+  console.log('[DEBUG][login] Login attempt for email:', email);
 
-  // Check if user is active
-  if (!user.isActive) {
-    throw new ApiError('Account has been deactivated', 401);
-  }
-
-  // Check if studio account is approved (for studio role)
-  if (user.role === 'studio') {
-    if (!user.studio) {
-      throw new ApiError('Studio profile not found. Please contact support.', 401);
-    }
+  try {
+    // Find user and include password for comparison, populate studio if exists
+    const user = await User.findOne({ email }).select('+password').populate('studio');
+    console.log('[DEBUG][login] User found:', !!user);
     
-    if (!user.studio.isApproved) {
-      throw new ApiError('Your studio is pending admin approval. You will be notified once approved.', 403);
+    if (!user) {
+      console.log('[DEBUG][login] No user found with email:', email);
+      throw new ApiError('Invalid credentials', 401);
     }
-  }
 
-  // Verify password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new ApiError('Invalid credentials', 401);
-  }
-
-  // Generate tokens
-  const { accessToken, refreshToken } = generateTokens(user._id);
-
-  // Save refresh token
-  user.refreshToken = refreshToken;
-  user.lastLogin = new Date();
-  await user.save();
-
-  // Set refresh token cookie
-  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
-
-  res.json({
-    status: 'success',
-    message: 'Login successful',
-    data: {
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        verified: user.verified,
-        avatar: user.avatar,
-        isProfileComplete: user.isProfileComplete,
-        ...(user.role === 'studio' && user.studio && { studio: user.studio._id })
-      },
-      accessToken
+    // Check if user is active
+    if (!user.isActive) {
+      console.log('[DEBUG][login] User account deactivated:', email);
+      throw new ApiError('Account has been deactivated', 401);
     }
-  });
+
+    // Check if studio account is approved (for studio role)
+    if (user.role === 'studio') {
+      console.log('[DEBUG][login] Studio user login, checking approval status');
+      if (!user.studio) {
+        console.log('[DEBUG][login] Studio profile not found for user:', email);
+        throw new ApiError('Studio profile not found. Please contact support.', 401);
+      }
+      
+      if (!user.studio.isApproved) {
+        console.log('[DEBUG][login] Studio not approved for user:', email);
+        throw new ApiError('Your studio is pending admin approval. You will be notified once approved.', 403);
+      }
+    }
+
+    // Verify password
+    console.log('[DEBUG][login] Verifying password for user:', email);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('[DEBUG][login] Password valid:', isPasswordValid);
+    
+    if (!isPasswordValid) {
+      console.log('[DEBUG][login] Invalid password for user:', email);
+      throw new ApiError('Invalid credentials', 401);
+    }
+
+    // Generate tokens
+    console.log('[DEBUG][login] Generating tokens for user:', user._id);
+    const { accessToken, refreshToken } = generateTokens(user._id);
+
+    // Save refresh token
+    user.refreshToken = refreshToken;
+    user.lastLogin = new Date();
+    await user.save();
+    console.log('[DEBUG][login] User updated with refresh token and last login');
+
+    // Set refresh token cookie
+    res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
+
+    console.log('[DEBUG][login] Login successful for user:', email);
+    res.json({
+      status: 'success',
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          verified: user.verified,
+          avatar: user.avatar,
+          isProfileComplete: user.isProfileComplete,
+          ...(user.role === 'studio' && user.studio && { studio: user.studio._id })
+        },
+        accessToken
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR][login] Login error for email:', email, 'Error:', error.message);
+    console.error('[ERROR][login] Stack trace:', error.stack);
+    throw error;
+  }
 });
 
 const logout = catchAsync(async (req, res) => {
