@@ -81,10 +81,18 @@ const { startReservationCleanup } = require("./services/reservationService");
 const app = express();
 const server = createServer(app);
 
+// CORS origins configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ripple-studio-booking-platform-eight.vercel.app",
+  "https://ripple-studio-booking-platform-ten.vercel.app",
+  process.env.CORS_ORIGIN
+].filter(Boolean);
+
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
@@ -118,10 +126,21 @@ app.use(
   })
 );
 
-// CORS setup
+// CORS setup - handle multiple origins
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Log the rejected origin for debugging
+      console.log(`CORS rejected origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
@@ -146,10 +165,10 @@ if (process.env.NODE_ENV !== "production") {
 app.use(
   "/uploads",
   (req, res, next) => {
-    res.header(
-      "Access-Control-Allow-Origin",
-      process.env.CORS_ORIGIN || "http://localhost:5173"
-    );
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
+    }
     res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.header("Cross-Origin-Resource-Policy", "cross-origin");
