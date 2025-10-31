@@ -1,13 +1,18 @@
 {
-  "name": "ripple",
+  "name": "ripple-studio-booking-platform",
   "version": "1.0.0",
   "description": "Ripple - Music Booking Platform",
   "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm run dev",
-    "build": "cd client && npm run build",
+    "build": "npm -w client run build",
     "start": "cd server && npm start",
     "seed": "cd server && npm run seed",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
@@ -48,5 +53,8 @@
   "dependencies": {
     "mongoose-paginate-v2": "^1.9.1",
     "node-cron": "^4.2.1"
+  },
+  "overrides": {
+    "@types/jest": "^29.5.14"
   }
 }

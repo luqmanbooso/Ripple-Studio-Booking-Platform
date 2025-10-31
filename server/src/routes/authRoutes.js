@@ -62,6 +62,33 @@ const completeProfileSchema = {
 // Apply rate limiting to auth routes
 router.use(authLimiter);
 
+// Root auth endpoint - provides information about available auth endpoints
+router.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Authentication API endpoints',
+    endpoints: {
+      public: {
+        'POST /api/auth/register': 'Register a new user',
+        'POST /api/auth/login': 'Login with email and password',
+        'POST /api/auth/google': 'Login with Google OAuth',
+        'POST /api/auth/refresh': 'Refresh access token',
+        'GET /api/auth/refresh': 'Refresh access token (GET)',
+        'GET /api/auth/verify-email': 'Verify email address',
+        'POST /api/auth/resend-verification': 'Resend verification email',
+        'POST /api/auth/forgot-password': 'Request password reset',
+        'POST /api/auth/reset-password': 'Reset password with token'
+      },
+      protected: {
+        'POST /api/auth/logout': 'Logout (requires authentication)',
+        'GET /api/auth/me': 'Get current user info (requires authentication)',
+        'PUT /api/auth/complete-profile': 'Complete user profile (requires authentication)'
+      }
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Public routes
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);

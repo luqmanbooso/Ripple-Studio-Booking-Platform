@@ -9,24 +9,48 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
 
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const artistRoutes = require("./routes/artistRoutes");
-const studioRoutes = require("./routes/studioRoutes");
-const bookingRoutes = require("./routes/bookingRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const webhookRoutes = require("./webhooks/payhereWebhook");
-const mediaRoutes = require("./routes/mediaRoutes");
-const equipmentRoutes = require("./routes/equipmentRoutes");
-const serviceRoutes = require("./routes/serviceRoutes");
-const ticketRoutes = require("./routes/ticketRoutes");
-const revenueRoutes = require("./routes/revenueRoutes");
-const walletRoutes = require("./routes/walletRoutes");
+// Environment validation
+const requiredEnvVars = ['MONGO_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error("❌ Missing required environment variables:", missingEnvVars.join(', '));
+  console.error("Please set these variables in your Vercel project settings.");
+  process.exit(1);
+}
+
+console.log("✅ All required environment variables are present");
+
+// Import routes with error handling
+let authRoutes, userRoutes, artistRoutes, studioRoutes, bookingRoutes, reviewRoutes;
+let paymentRoutes, uploadRoutes, adminRoutes, notificationRoutes, webhookRoutes;
+let mediaRoutes, equipmentRoutes, serviceRoutes, ticketRoutes, revenueRoutes, walletRoutes;
+
+try {
+  console.log("Loading route modules...");
+  authRoutes = require("./routes/authRoutes");
+  userRoutes = require("./routes/userRoutes");
+  artistRoutes = require("./routes/artistRoutes");
+  studioRoutes = require("./routes/studioRoutes");
+  bookingRoutes = require("./routes/bookingRoutes");
+  reviewRoutes = require("./routes/reviewRoutes");
+  paymentRoutes = require("./routes/paymentRoutes");
+  uploadRoutes = require("./routes/uploadRoutes");
+  adminRoutes = require("./routes/adminRoutes");
+  notificationRoutes = require("./routes/notificationRoutes");
+  webhookRoutes = require("./webhooks/payhereWebhook");
+  mediaRoutes = require("./routes/mediaRoutes");
+  equipmentRoutes = require("./routes/equipmentRoutes");
+  serviceRoutes = require("./routes/serviceRoutes");
+  ticketRoutes = require("./routes/ticketRoutes");
+  revenueRoutes = require("./routes/revenueRoutes");
+  walletRoutes = require("./routes/walletRoutes");
+  console.log("✅ All route modules loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading route modules:", error.message);
+  console.error("Stack trace:", error.stack);
+  process.exit(1);
+}
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -57,16 +81,38 @@ const { startReservationCleanup } = require("./services/reservationService");
 const app = express();
 const server = createServer(app);
 
-// Socket.IO setup
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-    methods: ["GET", "POST"],
-  },
-});
+// CORS origins configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ripple-studio-booking-platform-eight.vercel.app",
+  "https://ripple-studio-booking-platform-ten.vercel.app",
+  "https://ripple-studio-booking-platform-adq9.vercel.app", // Current deployment
+  process.env.CORS_ORIGIN
+].filter(Boolean);
 
-// Setup socket handlers
-setupSocket(io);
+// Socket.IO setup - disabled in serverless environment
+let io;
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  // Only setup Socket.IO in non-serverless environments
+  io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+    },
+  });
+
+  // Setup socket handlers
+  setupSocket(io);
+  console.log("✅ Socket.IO enabled for non-serverless environment");
+} else {
+  console.log("⚠️ Socket.IO disabled in serverless environment");
+  // Create a mock io object for serverless
+  io = {
+    emit: () => {},
+    to: () => ({ emit: () => {} }),
+    sockets: { emit: () => {} }
+  };
+}
 
 // Make io available throughout the app
 app.set("io", io);
@@ -94,10 +140,21 @@ app.use(
   })
 );
 
-// CORS setup
+// CORS setup - handle multiple origins
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Log the rejected origin for debugging
+      console.log(`CORS rejected origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
@@ -122,10 +179,10 @@ if (process.env.NODE_ENV !== "production") {
 app.use(
   "/uploads",
   (req, res, next) => {
-    res.header(
-      "Access-Control-Allow-Origin",
-      process.env.CORS_ORIGIN || "http://localhost:5173"
-    );
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
+    }
     res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.header("Cross-Origin-Resource-Policy", "cross-origin");
@@ -141,52 +198,67 @@ app.get("/health", (req, res) => {
     message: "Server is running!",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasJwtSecret: !!process.env.JWT_ACCESS_SECRET,
   });
 });
 
-// API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/artists", artistRoutes);
-app.use("/api/studios", studioRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/webhooks", webhookRoutes);
-app.use("/api/media", mediaRoutes);
-app.use("/api/equipment", equipmentRoutes);
-app.use("/api/services", serviceRoutes);
-app.use("/api/tickets", ticketRoutes);
-app.use("/api/revenue", revenueRoutes);
-app.use("/api/wallet", walletRoutes);
-
-// Serve static files in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../client/dist")));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+// Simple test endpoint that doesn't require database
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Ripple Studio API is running!",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
   });
-}
+});
 
-// Error handling middleware
-app.use(notFound);
-app.use(errorHandler);
+// Handle favicon requests to prevent 404 errors
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end(); // No content
+});
 
-// Database connection
+app.get("/favicon.png", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+// Database connection with serverless optimization
+let isConnected = false;
+
 const connectDB = async (retries = 5) => {
+  // If already connected, return existing connection
+  if (isConnected && mongoose.connection.readyState === 1) {
+    console.log("✅ Using existing MongoDB connection");
+    return mongoose.connection;
+  }
+
   try {
     console.log("Attempting MongoDB connection...");
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000, // 10 second timeout
-      socketTimeoutMS: 45000, // 45 second socket timeout
+    
+    // For serverless environments, use optimized settings
+    const connectionOptions = {
+      serverSelectionTimeoutMS: 5000, // 5 second timeout for serverless
+      socketTimeoutMS: 45000,
       maxPoolSize: 10,
-      bufferCommands: false,
-    });
+      bufferCommands: true, // Enable buffering for serverless
+      // Note: bufferMaxEntries is not a valid option in current Mongoose versions
+    };
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, connectionOptions);
+    
+    isConnected = true;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+
+    // Handle connection events
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB disconnected');
+      isConnected = false;
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
+      isConnected = false;
+    });
 
     // Initialize platform settings
     await initializePlatformSettings();
@@ -204,10 +276,66 @@ const connectDB = async (retries = 5) => {
       return connectDB(retries - 1);
     } else {
       console.error("💀 All MongoDB connection attempts failed");
-      process.exit(1);
+      
+      // In serverless environment, don't exit process, just throw error
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        throw new Error("Failed to connect to MongoDB");
+      } else {
+        process.exit(1);
+      }
     }
   }
 };
+
+// Middleware to ensure database connection before handling requests
+const ensureDBConnection = async (req, res, next) => {
+  try {
+    if (!isConnected || mongoose.connection.readyState !== 1) {
+      console.log("Database not connected, establishing connection...");
+      await connectDB();
+    }
+    next();
+  } catch (error) {
+    console.error("Failed to establish database connection:", error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// API routes with database connection middleware
+app.use("/api/auth", ensureDBConnection, authRoutes);
+app.use("/api/users", ensureDBConnection, userRoutes);
+app.use("/api/artists", ensureDBConnection, artistRoutes);
+app.use("/api/studios", ensureDBConnection, studioRoutes);
+app.use("/api/bookings", ensureDBConnection, bookingRoutes);
+app.use("/api/reviews", ensureDBConnection, reviewRoutes);
+app.use("/api/payments", ensureDBConnection, paymentRoutes);
+app.use("/api/upload", ensureDBConnection, uploadRoutes);
+app.use("/api/admin", ensureDBConnection, adminRoutes);
+app.use("/api/notifications", ensureDBConnection, notificationRoutes);
+app.use("/api/webhooks", ensureDBConnection, webhookRoutes);
+app.use("/api/media", ensureDBConnection, mediaRoutes);
+app.use("/api/equipment", ensureDBConnection, equipmentRoutes);
+app.use("/api/services", ensureDBConnection, serviceRoutes);
+app.use("/api/tickets", ensureDBConnection, ticketRoutes);
+app.use("/api/revenue", ensureDBConnection, revenueRoutes);
+app.use("/api/wallet", ensureDBConnection, walletRoutes);
+
+// Serve static files in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../../client/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+  });
+}
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
@@ -291,6 +419,10 @@ process.on("SIGINT", () => {
   });
 });
 
-startServer();
+startServer().catch((error) => {
+  console.error("❌ Fatal server startup error:", error);
+  console.error("Stack trace:", error.stack);
+  process.exit(1);
+});
 
 module.exports = app;

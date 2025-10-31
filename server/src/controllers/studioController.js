@@ -55,6 +55,8 @@ const createStudio = catchAsync(async (req, res) => {
 });
 
 const getStudios = catchAsync(async (req, res) => {
+  console.log('[DEBUG][getStudios] Request received with query:', req.query);
+  
   const {
     page = 1,
     limit = 12,
@@ -66,6 +68,7 @@ const getStudios = catchAsync(async (req, res) => {
   } = req.query;
 
   const query = { isActive: true, isApproved: true }; // Only show approved studios to public
+  console.log('[DEBUG][getStudios] Base query:', query);
 
   // Text search
   if (q) {
@@ -85,6 +88,8 @@ const getStudios = catchAsync(async (req, res) => {
     query['services.name'] = new RegExp(service, 'i');
   }
 
+  console.log('[DEBUG][getStudios] Final query:', query);
+  
   const studios = await Studio.find(query)
     .populate('user', 'name email avatar phone')
     .sort(sort)
@@ -93,6 +98,8 @@ const getStudios = catchAsync(async (req, res) => {
     .lean();
 
   const total = await Studio.countDocuments(query);
+  
+  console.log('[DEBUG][getStudios] Found studios:', studios.length, 'Total:', total);
 
   res.json({
     status: 'success',

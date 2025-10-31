@@ -1,44 +1,27 @@
-const fs = require('fs');
-const path = require('path');
+// Serverless-compatible logger implementation
+// In serverless environments like Vercel, we can't write to filesystem
+// All logs go to console and are captured by the platform
 
-// Create logs directory if it doesn't exist
-const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
-
-// Simple logger implementation
 const logger = {
   info: (message, meta = {}) => {
     const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] INFO: ${message} ${JSON.stringify(meta)}\n`;
-    
-    console.log(`INFO: ${message}`, meta);
-    
-    if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(path.join(logsDir, 'app.log'), logEntry);
-    }
+    console.log(`[${timestamp}] INFO: ${message}`, meta);
   },
 
   error: (message, error = {}) => {
     const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] ERROR: ${message} ${JSON.stringify(error)}\n`;
-    
-    console.error(`ERROR: ${message}`, error);
-    
-    if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(path.join(logsDir, 'error.log'), logEntry);
-    }
+    console.error(`[${timestamp}] ERROR: ${message}`, error);
   },
 
   warn: (message, meta = {}) => {
     const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] WARN: ${message} ${JSON.stringify(meta)}\n`;
-    
-    console.warn(`WARN: ${message}`, meta);
-    
-    if (process.env.NODE_ENV === 'production') {
-      fs.appendFileSync(path.join(logsDir, 'app.log'), logEntry);
+    console.warn(`[${timestamp}] WARN: ${message}`, meta);
+  },
+
+  debug: (message, meta = {}) => {
+    const timestamp = new Date().toISOString();
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug(`[${timestamp}] DEBUG: ${message}`, meta);
     }
   }
 };
