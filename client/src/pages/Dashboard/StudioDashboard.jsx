@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -56,11 +56,14 @@ const StudioDashboard = () => {
   const [timeframe, setTimeframe] = useState("month");
   const [selectedChart, setSelectedChart] = useState("revenue");
 
-  const { data: bookingsData, isLoading: bookingsLoading } =
-    useGetMyBookingsQuery({
-      page: 1,
-      limit: 50,
-    });
+  const {
+    data: bookingsData,
+    isLoading: bookingsLoading,
+    refetch: refetchBookings,
+  } = useGetMyBookingsQuery({
+    page: 1,
+    limit: 50,
+  });
 
   const { data: revenueData, isLoading: revenueLoading } =
     useGetStudioRevenueQuery({
@@ -71,6 +74,22 @@ const StudioDashboard = () => {
   const navigate = useNavigate();
 
   const isLoading = bookingsLoading || revenueLoading;
+
+  // Listen for socket events to refetch bookings
+  useEffect(() => {
+    const handleRefetchBookings = () => {
+      console.log(
+        "StudioDashboard: Refetching bookings due to socket event..."
+      );
+      refetchBookings();
+    };
+
+    window.addEventListener("refetch-bookings", handleRefetchBookings);
+
+    return () => {
+      window.removeEventListener("refetch-bookings", handleRefetchBookings);
+    };
+  }, [refetchBookings]);
 
   // Calculate enhanced stats and analytics
   const bookings = bookingsData?.data?.bookings || [];

@@ -41,9 +41,9 @@ const WithdrawalRequest = () => {
   const [updateBankDetails, { isLoading: bankUpdateLoading }] =
     useUpdateBankDetailsMutation();
 
-  const wallet = walletData?.data;
+  const wallet = walletData?.data?.wallet;
   const minWithdrawal = 1000; // LKR 1000 minimum
-  const maxWithdrawal = wallet?.availableBalance || 0;
+  const maxWithdrawal = wallet?.balance?.available || 0;
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-LK", {
@@ -154,7 +154,7 @@ const WithdrawalRequest = () => {
               </h3>
               <div className="text-center py-6">
                 <div className="text-3xl font-bold text-primary-400 mb-2">
-                  {formatCurrency(wallet?.availableBalance || 0)}
+                  {formatCurrency(wallet?.balance?.available || 0)}
                 </div>
                 <p className="text-gray-400 text-sm">Ready for withdrawal</p>
               </div>
@@ -169,13 +169,13 @@ const WithdrawalRequest = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Total Withdrawn</span>
                   <span className="text-gray-100">
-                    {formatCurrency(wallet?.totalWithdrawn || 0)}
+                    {formatCurrency(wallet?.totalWithdrawals || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Pending Withdrawals</span>
                   <span className="text-yellow-400">
-                    {formatCurrency(wallet?.pendingWithdrawals || 0)}
+                    {formatCurrency(wallet?.balance?.pending || 0)}
                   </span>
                 </div>
               </div>

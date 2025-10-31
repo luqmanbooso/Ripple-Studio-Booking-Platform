@@ -1,108 +1,110 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { setCredentials, logout } from './authSlice'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setCredentials, logout } from "./authSlice";
 
 // Custom baseQuery that attempts refresh when a 401 is returned
 const baseQuery = fetchBaseQuery({
-  baseUrl: '/api/bookings',
-  credentials: 'include',
+  baseUrl: "/api/bookings",
+  credentials: "include",
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token
-    if (token) headers.set('authorization', `Bearer ${token}`)
-    return headers
-  }
-})
+    const token = getState().auth.token;
+    if (token) headers.set("authorization", `Bearer ${token}`);
+    return headers;
+  },
+});
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions)
+  let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
     // Try refresh
     try {
-      const refreshRes = await fetch('/api/auth/refresh', {
-        method: 'GET',
-        credentials: 'include'
-      })
+      const refreshRes = await fetch("/api/auth/refresh", {
+        method: "GET",
+        credentials: "include",
+      });
 
       if (refreshRes.ok) {
-        const refreshData = await refreshRes.json()
-        const newToken = refreshData.data.accessToken
+        const refreshData = await refreshRes.json();
+        const newToken = refreshData.data.accessToken;
 
-  // Update store via api context to avoid circular imports
-  const user = api.getState().auth.user
-  api.dispatch(setCredentials({ user, token: newToken }))
+        // Update store via api context to avoid circular imports
+        const user = api.getState().auth.user;
+        api.dispatch(setCredentials({ user, token: newToken }));
 
         // Retry original request with new token
-        result = await baseQuery(args, api, extraOptions)
+        result = await baseQuery(args, api, extraOptions);
       } else {
-  // Refresh failed - logout
-  api.dispatch(logout())
+        // Refresh failed - logout
+        api.dispatch(logout());
       }
     } catch (err) {
-      api.dispatch(logout())
+      api.dispatch(logout());
     }
   }
 
-  return result
-}
+  return result;
+};
 
 export const bookingApi = createApi({
-  reducerPath: 'bookingApi',
+  reducerPath: "bookingApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Booking', 'Bookings'],
+  tagTypes: ["Booking", "Bookings"],
   endpoints: (builder) => ({
     createBooking: builder.mutation({
       query: (data) => ({
-        url: '',
-        method: 'POST',
+        url: "",
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Bookings'],
+      invalidatesTags: ["Bookings"],
     }),
     getMyBookings: builder.query({
       query: (params) => ({
-        url: '/my',
+        url: "/my",
         params,
       }),
-      providesTags: ['Bookings'],
+      providesTags: ["Bookings"],
+      // Force refetch on focus and reconnect to ensure fresh data
+      keepUnusedDataFor: 0,
     }),
     getBooking: builder.query({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Booking', id }],
+      providesTags: (result, error, id) => [{ type: "Booking", id }],
     }),
     cancelBooking: builder.mutation({
       query: ({ id, reason }) => ({
         url: `/${id}/cancel`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { reason },
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'Booking', id },
-        'Bookings',
+        { type: "Booking", id },
+        "Bookings",
       ],
     }),
     completeBooking: builder.mutation({
       query: ({ id, notes }) => ({
         url: `/${id}/complete`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { notes },
       }),
       invalidatesTags: (result, error, id) => [
-        { type: 'Booking', id },
-        'Bookings',
+        { type: "Booking", id },
+        "Bookings",
       ],
     }),
     confirmBooking: builder.mutation({
       query: (id) => ({
         url: `/${id}/confirm`,
-        method: 'PATCH',
+        method: "PATCH",
       }),
       invalidatesTags: (result, error, id) => [
-        { type: 'Booking', id },
-        'Bookings',
+        { type: "Booking", id },
+        "Bookings",
       ],
     }),
   }),
-})
+});
 
 export const {
   useCreateBookingMutation,
@@ -111,4 +113,4 @@ export const {
   useCancelBookingMutation,
   useCompleteBookingMutation,
   useConfirmBookingMutation,
-} = bookingApi
+} = bookingApi;

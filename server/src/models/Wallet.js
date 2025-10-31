@@ -308,12 +308,13 @@ walletSchema.statics.creditFromBooking = async function (
 
   // Calculate platform commission (default 7.1%)
   const commissionRate = process.env.PLATFORM_COMMISSION_RATE || 0.071;
-  const commissionAmount = booking.totalAmount * commissionRate;
-  const netAmount = booking.totalAmount - commissionAmount;
+  const bookingAmount = booking.totalAmount || booking.price; // Support both field names
+  const commissionAmount = bookingAmount * commissionRate;
+  const netAmount = bookingAmount - commissionAmount;
 
   const transactionData = {
     type: "credit",
-    amount: booking.totalAmount,
+    amount: bookingAmount,
     netAmount: netAmount,
     description: `Payment received for booking ${booking._id}`,
     booking: booking._id,

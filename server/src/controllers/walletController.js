@@ -425,9 +425,29 @@ const processWithdrawal = catchAsync(async (req, res) => {
   if (status === "failed") {
     const wallet = await Wallet.findOne({ user: transaction.user });
     if (wallet) {
+      // Update wallet balance
       wallet.balance.available += transaction.amount;
       wallet.balance.total += transaction.amount;
       await wallet.save();
+
+      // Create a credit transaction record for audit trail
+      const creditTransaction = await WalletTransaction.create({
+        wallet: wallet._id,
+        user: transaction.user,
+        type: "credit",
+        amount: transaction.amount,
+        status: "completed",
+        description: `Refund for rejected withdrawal request. Reason: ${remarks || "Withdrawal rejected by admin"}`,
+        metadata: {
+          rejectedWithdrawalId: transaction._id,
+          processedBy: req.user._id,
+          originalWithdrawalDate: transaction.createdAt,
+        },
+      });
+
+      logger.info(
+        `Credited back ${transaction.amount} to wallet for rejected withdrawal ${transactionId}, credit transaction: ${creditTransaction._id}`
+      );
     }
   }
 

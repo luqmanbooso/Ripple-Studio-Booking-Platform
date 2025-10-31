@@ -39,11 +39,25 @@ const PaymentSuccess = () => {
     skip: !bookingId,
   });
 
-  const booking = bookingData?.data;
+  const booking = bookingData?.data?.booking;
   const payments = paymentsData?.data?.payments || [];
   const completedPayment =
     payments.find((p) => p.status === "Completed") ||
     payments.find((p) => p.payhereOrderId === orderId);
+
+  // Debug: Log booking data to check structure
+  useEffect(() => {
+    if (bookingData) {
+      console.log("=== PAYMENT SUCCESS BOOKING DATA DEBUG ===");
+      console.log("Full bookingData:", bookingData);
+      console.log("bookingData.data:", bookingData.data);
+      console.log("booking object:", booking);
+      console.log("booking.start:", booking?.start);
+      console.log("booking.end:", booking?.end);
+      console.log("booking.price:", booking?.price);
+      console.log("========================================");
+    }
+  }, [bookingData, booking]);
 
   useEffect(() => {
     let retryCount = 0;
@@ -103,14 +117,15 @@ const PaymentSuccess = () => {
       }
     };
 
-    const title = encodeURIComponent(
-      `Studio Booking - ${booking.studio?.name || "Studio"}`
-    );
+    const studioName =
+      booking.studio?.name || booking.studio?.studioName || "Studio";
+    const title = encodeURIComponent(`Studio Booking - ${studioName}`);
     const details = encodeURIComponent(
-      `Booking at ${booking.studio?.name || "Studio"}\n` +
+      `Booking at ${studioName}\n` +
         `Service: ${booking.service?.name || "Studio Session"}\n` +
         `Duration: ${Math.round((endDate - startDate) / (1000 * 60))} minutes\n` +
-        `Payment ID: ${completedPayment?.payherePaymentId || "N/A"}`
+        `Amount: ${completedPayment?.currency || "LKR"} ${completedPayment?.amount?.toLocaleString() || "0"}\n` +
+        `Payment ID: ${completedPayment?.payherePaymentId || booking?.payherePaymentId || paymentId || "N/A"}`
     );
 
     const formattedStartDate = formatDate(startDate);
@@ -130,12 +145,23 @@ const PaymentSuccess = () => {
 
     const receiptData = {
       orderId: completedPayment.payhereOrderId,
-      paymentId: completedPayment.payherePaymentId,
+      paymentId:
+        completedPayment.payherePaymentId ||
+        booking.payherePaymentId ||
+        paymentId ||
+        "N/A",
       amount: completedPayment.amount,
       currency: completedPayment.currency,
       date: completedPayment.completedAt || completedPayment.createdAt,
       service: booking.service?.name || "Studio Session",
-      studio: booking.studio?.name || "Studio",
+      studio: booking.studio?.name || booking.studio?.studioName || "Studio",
+      bookingDate: booking.start
+        ? format(new Date(booking.start), "PPP")
+        : "Not available",
+      bookingTime:
+        booking.start && booking.end
+          ? `${format(new Date(booking.start), "p")} - ${format(new Date(booking.end), "p")}`
+          : "Not available",
       duration:
         booking.start && booking.end
           ? (() => {
@@ -145,7 +171,10 @@ const PaymentSuccess = () => {
                 if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                   return "Not available";
                 }
-                return `${format(startDate, "PPp")} - ${format(endDate, "p")}`;
+                const durationMins = Math.round(
+                  (endDate - startDate) / (1000 * 60)
+                );
+                return `${durationMins} minutes`;
               } catch (error) {
                 console.error("Date formatting error in receipt:", error);
                 return "Not available";
@@ -163,22 +192,24 @@ PAYMENT RECEIPT
 
 Order ID: ${receiptData.orderId}
 Payment ID: ${receiptData.paymentId}
-Date: ${format(new Date(receiptData.date), "PPP p")}
+Payment Date: ${format(new Date(receiptData.date), "PPP p")}
 
-SERVICE DETAILS
+BOOKING DETAILS
 ---------------
 Studio: ${receiptData.studio}
 Service: ${receiptData.service}
-Session Time: ${receiptData.duration}
+Booking Date: ${receiptData.bookingDate}
+Session Time: ${receiptData.bookingTime}
+Duration: ${receiptData.duration}
 
 PAYMENT DETAILS
 ---------------
-Amount: ${receiptData.currency} ${receiptData.amount.toLocaleString()}
+Amount Paid: ${receiptData.currency} ${receiptData.amount.toLocaleString()}
 Status: COMPLETED
 Payment Method: Card
 
 Thank you for booking with Ripple!
-Visit: https://ripple.lk
+For support, visit: https://ripple.lk
     `.trim();
 
     const blob = new Blob([receiptContent], { type: "text/plain" });
@@ -273,7 +304,10 @@ Visit: https://ripple.lk
                   Payment ID
                 </label>
                 <p className="text-gray-800 font-mono">
-                  {completedPayment.payherePaymentId}
+                  {completedPayment.payherePaymentId ||
+                    booking.payherePaymentId ||
+                    paymentId ||
+                    "N/A"}
                 </p>
               </div>
               <div>
@@ -310,28 +344,44 @@ Visit: https://ripple.lk
                 <div className="flex justify-between">
                   <span className="text-gray-600">Studio:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.studio?.name}
+                    {booking?.studio?.name ||
+                      booking?.studio?.studioName ||
+                      "Studio"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Service:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.service?.name || "Studio Session"}
+                    {booking?.service?.name || "Studio Session"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date & Time:</span>
+                  <span className="text-gray-600">Date:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.start
+                    {booking?.start
                       ? format(new Date(booking.start), "PPP")
+                      : "Not available"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Time:</span>
+                  <span className="font-medium text-gray-800">
+                    {booking?.start && booking?.end
+                      ? `${format(new Date(booking.start), "p")} - ${format(new Date(booking.end), "p")}`
                       : "Not available"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration:</span>
                   <span className="font-medium text-gray-800">
-                    {booking.start && booking.end
-                      ? `${format(new Date(booking.start), "p")} - ${format(new Date(booking.end), "p")}`
+                    {booking?.start && booking?.end
+                      ? (() => {
+                          const duration = Math.round(
+                            (new Date(booking.end) - new Date(booking.start)) /
+                              (1000 * 60)
+                          );
+                          return `${duration} minutes`;
+                        })()
                       : "Not available"}
                   </span>
                 </div>

@@ -59,6 +59,20 @@ const BookingSuccess = () => {
 
   const booking = bookingData?.data?.booking;
 
+  // Debug: Log booking data to check structure
+  useEffect(() => {
+    if (booking) {
+      console.log("=== BOOKING DATA DEBUG ===");
+      console.log("Full booking object:", booking);
+      console.log("booking.start:", booking.start);
+      console.log("booking.end:", booking.end);
+      console.log("booking.price:", booking.price);
+      console.log("booking.service:", booking.service);
+      console.log("booking.studio:", booking.studio);
+      console.log("========================");
+    }
+  }, [booking]);
+
   // Auto-confirmation function (defined after refetch is available)
   const triggerWebhookConfirmation = async (bookingId) => {
     try {
@@ -158,20 +172,32 @@ const BookingSuccess = () => {
   }, [searchParams, user, token]);
 
   const formatDate = (date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(new Date(date));
+    if (!date) return "Not available";
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date(date));
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Not available";
+    }
   };
 
   const formatTime = (date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(new Date(date));
+    if (!date) return "Not available";
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date(date));
+    } catch (error) {
+      console.error("Time formatting error:", error);
+      return "Not available";
+    }
   };
 
   // Update payment status based on booking status
@@ -603,7 +629,9 @@ const BookingSuccess = () => {
                         <Calendar className="w-5 h-5 text-purple-400" />
                         <div>
                           <p className="text-white font-medium">
-                            {formatDate(booking.start)}
+                            {booking?.start
+                              ? formatDate(booking.start)
+                              : "Not available"}
                           </p>
                           <p className="text-gray-400 text-sm">Session Date</p>
                         </div>
@@ -613,8 +641,9 @@ const BookingSuccess = () => {
                         <Clock className="w-5 h-5 text-purple-400" />
                         <div>
                           <p className="text-white font-medium">
-                            {formatTime(booking.start)} -{" "}
-                            {formatTime(booking.end)}
+                            {booking?.start && booking?.end
+                              ? `${formatTime(booking.start)} - ${formatTime(booking.end)}`
+                              : "Not available"}
                           </p>
                           <p className="text-gray-400 text-sm">Session Time</p>
                         </div>
@@ -626,7 +655,7 @@ const BookingSuccess = () => {
                         <User className="w-5 h-5 text-purple-400" />
                         <div>
                           <p className="text-white font-medium">
-                            {booking.service?.name || "Recording Session"}
+                            {booking?.service?.name || "Recording Session"}
                           </p>
                           <p className="text-gray-400 text-sm">Service Type</p>
                         </div>
@@ -636,8 +665,8 @@ const BookingSuccess = () => {
                         <DollarSign className="w-5 h-5 text-purple-400" />
                         <div>
                           <p className="text-white font-medium">
-                            {booking.currency?.toUpperCase() || "LKR"}{" "}
-                            {booking.price}
+                            {booking?.currency?.toUpperCase() || "LKR"}{" "}
+                            {booking?.price?.toLocaleString() || "0"}
                           </p>
                           <p className="text-gray-400 text-sm">Total Paid</p>
                         </div>

@@ -3,7 +3,7 @@ const Payment = require("../models/Payment");
 const Studio = require("../models/Studio");
 const Payout = require("../models/Payout");
 const Notification = require("../models/Notification");
-const Wallet = require("../models/Wallet");
+const { Wallet } = require("../models/Wallet");
 const paymentService = require("./paymentService");
 const RevenueService = require("./revenueService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
@@ -175,69 +175,13 @@ const confirmBooking = async (booking, paymentId) => {
       // Don't fail the booking confirmation if revenue creation fails
     }
 
-    // Credit studio owner's wallet
-    try {
-      let studio = booking.studio;
+    // NOTE: Wallet crediting is handled by the webhook handler (payhereWebhook.js)
+    // to avoid double-crediting. The webhook calls Wallet.creditFromBooking()
+    // after confirming the booking.
 
-      // If studio is not populated, fetch it
-      if (!studio.user) {
-        studio = await Studio.findById(booking.studio).populate("user");
-      }
-
-      if (studio && studio.user) {
-        logger.info(
-          `Processing wallet credit for studio owner: ${studio.user._id}`
-        );
-
-        // Get or create wallet for studio owner
-        let wallet = await Wallet.findOne({ user: studio.user._id });
-        if (!wallet) {
-          logger.info(`Creating new wallet for user: ${studio.user._id}`);
-          wallet = await Wallet.createWallet(studio.user._id);
-        }
-
-        // Calculate platform commission (7.1%)
-        const platformCommissionRate = 0.071;
-        const platformCommission = booking.price * platformCommissionRate;
-        const netAmount = booking.price - platformCommission;
-
-        logger.info(
-          `Crediting wallet - Gross: ${booking.price}, Commission: ${platformCommission}, Net: ${netAmount}`
-        );
-
-        // Add credit transaction to wallet
-        await wallet.addTransaction({
-          type: "credit",
-          amount: booking.price,
-          netAmount: netAmount,
-          platformCommission: {
-            rate: platformCommissionRate,
-            amount: platformCommission,
-          },
-          description: `Payment received for booking ${booking.bookingId || booking._id}`,
-          status: "completed",
-          metadata: {
-            bookingId: booking._id,
-            customBookingId: booking.bookingId,
-            clientName: booking.client?.name || "Unknown",
-            paymentId: paymentId,
-            sessionDate: booking.start,
-          },
-        });
-
-        logger.info(
-          `✓ Wallet credited successfully for studio owner ${studio.user._id}: ${netAmount} LKR (gross: ${booking.price} LKR, commission: ${platformCommission} LKR)`
-        );
-      } else {
-        logger.error(
-          `Studio or studio user not found for booking ${booking._id}`
-        );
-      }
-    } catch (walletError) {
-      logger.error("Error crediting wallet:", walletError);
-      logger.error("Wallet error stack:", walletError.stack);
-      // Don't fail the booking confirmation if wallet credit fails
-    }
+    logger.info(
+      `✓ Booking confirmed successfully: ${booking._id} (wallet will be credited by webhook handler)`
+    );
 
     // Create notifications
     const providerType = booking.artist ? "artist" : "studio";

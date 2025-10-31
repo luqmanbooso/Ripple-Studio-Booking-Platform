@@ -9,12 +9,23 @@ const NotificationService = require("../services/notificationService");
 const { emitToUser, emitToProvider } = require("../utils/sockets");
 
 const createBooking = catchAsync(async (req, res) => {
-  const { studioId, service, services = [], equipment = [], start, end, notes } = req.body;
+  const {
+    studioId,
+    service,
+    services = [],
+    equipment = [],
+    start,
+    end,
+    notes,
+  } = req.body;
   const clientId = req.user._id;
 
   // Check if client is verified
   if (!req.user.verified) {
-    throw new ApiError("Please verify your email address before making bookings", 403);
+    throw new ApiError(
+      "Please verify your email address before making bookings",
+      403
+    );
   }
 
   // Get the provider (studio only)
@@ -37,7 +48,7 @@ const createBooking = catchAsync(async (req, res) => {
   // PRD: Validate services (legacy single + new multiple)
   let validatedServices = [];
   let totalServicePrice = 0;
-  
+
   // Handle legacy single service
   if (service && service.name) {
     const studioService = provider.getService(service.name);
@@ -48,24 +59,27 @@ const createBooking = catchAsync(async (req, res) => {
     service.durationMins = studioService.durationMins;
     totalServicePrice += service.price;
   }
-  
+
   // Handle multiple services
   if (services && services.length > 0) {
     for (const svc of services) {
       const studioService = provider.getService(svc.name);
       if (!studioService) {
-        throw new ApiError(`Service "${svc.name}" not available at this studio`, 400);
+        throw new ApiError(
+          `Service "${svc.name}" not available at this studio`,
+          400
+        );
       }
       validatedServices.push({
         name: svc.name,
         price: studioService.price,
         description: studioService.description,
-        category: studioService.category
+        category: studioService.category,
       });
       totalServicePrice += studioService.price;
     }
   }
-  
+
   // Ensure at least one service is selected
   if (!service?.name && validatedServices.length === 0) {
     throw new ApiError("At least one service must be selected", 400);
@@ -86,32 +100,38 @@ const createBooking = catchAsync(async (req, res) => {
   // PRD: Validate equipment rentals
   let validatedEquipment = [];
   let totalEquipmentPrice = 0;
-  
+
   if (equipment && equipment.length > 0) {
-    const Equipment = require('../models/Equipment');
-    
+    const Equipment = require("../models/Equipment");
+
     for (const eqp of equipment) {
       const equipmentItem = await Equipment.findById(eqp.equipmentId);
       if (!equipmentItem) {
         throw new ApiError(`Equipment "${eqp.name}" not found`, 400);
       }
-      
+
       if (equipmentItem.studio.toString() !== studioId) {
-        throw new ApiError(`Equipment "${eqp.name}" does not belong to this studio`, 400);
+        throw new ApiError(
+          `Equipment "${eqp.name}" does not belong to this studio`,
+          400
+        );
       }
-      
-      if (equipmentItem.status !== 'Available') {
-        throw new ApiError(`Equipment "${eqp.name}" is not available (${equipmentItem.status})`, 400);
+
+      if (equipmentItem.status !== "Available") {
+        throw new ApiError(
+          `Equipment "${eqp.name}" is not available (${equipmentItem.status})`,
+          400
+        );
       }
-      
+
       validatedEquipment.push({
         equipmentId: equipmentItem._id,
         name: equipmentItem.name,
         rentalPrice: eqp.rentalPrice || 0,
-        rentalDuration: eqp.rentalDuration || 'session',
-        status: 'Reserved'
+        rentalDuration: eqp.rentalDuration || "session",
+        status: "Reserved",
       });
-      totalEquipmentPrice += (eqp.rentalPrice || 0);
+      totalEquipmentPrice += eqp.rentalPrice || 0;
     }
   }
 
@@ -122,7 +142,8 @@ const createBooking = catchAsync(async (req, res) => {
   const booking = await Booking.create({
     client: clientId,
     [providerType]: provider._id,
-    service: service || (validatedServices.length > 0 ? validatedServices[0] : null),
+    service:
+      service || (validatedServices.length > 0 ? validatedServices[0] : null),
     services: validatedServices,
     equipment: validatedEquipment,
     start: new Date(start),
@@ -138,6 +159,21 @@ const createBooking = catchAsync(async (req, res) => {
     { path: providerType, populate: { path: "user", select: "name email" } },
   ]);
 
+  // Credit wallet immediately when booking is created
+  try {
+    const { Wallet } = require("../models/Wallet");
+    await Wallet.creditFromBooking(booking, {
+      description: `Booking payment received for ${booking.service?.name || "service"}`,
+      paymentId: `BOOKING_${booking._id}`,
+    });
+    console.log(
+      `✅ Wallet credited for booking: ${booking._id}, amount: ${totalPrice}`
+    );
+  } catch (walletError) {
+    console.error("❌ Failed to credit wallet:", walletError);
+    // Don't fail the booking creation if wallet credit fails
+  }
+
   // Create Stripe checkout session
   const checkoutSession = await paymentService.createCheckoutSession(booking);
 
@@ -151,9 +187,11 @@ const createBooking = catchAsync(async (req, res) => {
   });
 
   // Send notification to admin about new booking (async)
-  NotificationService.notifyBookingCreated(booking, req.user, provider).catch(error => {
-    console.error('Failed to send booking notification:', error);
-  });
+  NotificationService.notifyBookingCreated(booking, req.user, provider).catch(
+    (error) => {
+      console.error("Failed to send booking notification:", error);
+    }
+  );
 
   res.status(201).json({
     status: "success",
@@ -242,6 +280,16 @@ const getBooking = catchAsync(async (req, res) => {
     throw new ApiError("Access denied", 403);
   }
 
+  // Debug: Log booking data being returned
+  console.log("=== BOOKING RESPONSE DEBUG ===");
+  console.log("Booking ID:", booking._id);
+  console.log("Booking start:", booking.start);
+  console.log("Booking end:", booking.end);
+  console.log("Booking price:", booking.price);
+  console.log("Has service:", !!booking.service);
+  console.log("Has studio:", !!booking.studio);
+  console.log("==============================");
+
   res.json({
     status: "success",
     data: {
@@ -326,8 +374,7 @@ const completeBooking = catchAsync(async (req, res) => {
 
   // Only provider can mark booking as complete
   const isProvider =
-    (booking.studio &&
-      booking.studio.user._id.toString() === userId.toString());
+    booking.studio && booking.studio.user._id.toString() === userId.toString();
 
   if (!isProvider && req.user.role !== "admin") {
     throw new ApiError("Only the provider can mark booking as complete", 403);
@@ -356,10 +403,10 @@ const completeBooking = catchAsync(async (req, res) => {
 // Get booked slots for a studio on a specific date
 const getBookedSlots = catchAsync(async (req, res) => {
   const { studioId, providerId, date } = req.query;
-  
+
   // Handle both studioId and providerId for backward compatibility
   const actualStudioId = studioId || providerId;
-  
+
   if (!actualStudioId) {
     throw new ApiError("studioId or providerId is required", 400);
   }
@@ -374,7 +421,7 @@ const getBookedSlots = catchAsync(async (req, res) => {
   const query = {
     studio: actualStudioId,
     start: { $gte: startOfDay, $lte: endOfDay },
-    status: { $in: ['confirmed', 'payment_pending'] }, // Exclude reservation_pending
+    status: { $in: ["confirmed", "payment_pending"] }, // Exclude reservation_pending
   };
 
   const bookings = await Booking.find(query).select("start end status");
@@ -404,21 +451,25 @@ const confirmBooking = catchAsync(async (req, res) => {
   }
 
   // Check if user is the studio owner OR the client who made the booking
-  const isStudioOwner = booking.studio.user._id.toString() === userId.toString();
+  const isStudioOwner =
+    booking.studio.user._id.toString() === userId.toString();
   const isBookingClient = booking.client._id.toString() === userId.toString();
-  
+
   if (!isStudioOwner && !isBookingClient) {
     throw new ApiError("Not authorized to confirm this booking", 403);
   }
 
   // Check if booking can be confirmed
-  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+  if (!["reservation_pending", "payment_pending"].includes(booking.status)) {
     throw new ApiError("Booking cannot be confirmed in its current state", 400);
   }
 
   // Use booking service to confirm
-  const bookingService = require('../services/bookingService');
-  const confirmedBooking = await bookingService.confirmBooking(booking, booking.payherePaymentId || 'manual_confirmation');
+  const bookingService = require("../services/bookingService");
+  const confirmedBooking = await bookingService.confirmBooking(
+    booking,
+    booking.payherePaymentId || "manual_confirmation"
+  );
 
   res.json({
     status: "success",
@@ -449,13 +500,16 @@ const confirmPayment = catchAsync(async (req, res) => {
   }
 
   // Check if booking can be confirmed
-  if (!['reservation_pending', 'payment_pending'].includes(booking.status)) {
+  if (!["reservation_pending", "payment_pending"].includes(booking.status)) {
     throw new ApiError("Booking cannot be confirmed in its current state", 400);
   }
 
   // Use booking service to confirm
-  const bookingService = require('../services/bookingService');
-  const confirmedBooking = await bookingService.confirmBooking(booking, 'client_confirmation');
+  const bookingService = require("../services/bookingService");
+  const confirmedBooking = await bookingService.confirmBooking(
+    booking,
+    "client_confirmation"
+  );
 
   res.json({
     status: "success",

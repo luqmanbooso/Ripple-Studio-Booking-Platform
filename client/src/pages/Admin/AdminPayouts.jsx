@@ -487,17 +487,23 @@ const AdminPayouts = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Remarks{" "}
                   {processStatus === "failed" && (
-                    <span className="text-red-500">*</span>
+                    <span className="text-red-500">* Required</span>
                   )}
                 </label>
                 <textarea
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  placeholder={`Add remarks for ${processStatus === "completed" ? "approval" : "rejection"}...`}
+                  placeholder={`${processStatus === "failed" ? "Please provide a reason for rejection (required)" : "Add remarks for approval (optional)"}...`}
                   rows={3}
                   className="w-full p-3 bg-dark-700 border border-dark-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                   required={processStatus === "failed"}
+                  autoFocus={processStatus === "failed"}
                 />
+                {processStatus === "failed" && !remarks.trim() && (
+                  <p className="text-xs text-red-400 mt-1">
+                    You must provide a reason to reject this withdrawal
+                  </p>
+                )}
               </div>
 
               {processStatus === "failed" && (
@@ -529,7 +535,11 @@ const AdminPayouts = () => {
                   isProcessing ||
                   (processStatus === "failed" && !remarks.trim())
                 }
-                className="flex-1"
+                className={`flex-1 ${
+                  processStatus === "completed"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
                 icon={
                   processStatus === "completed" ? (
                     <CheckCircle className="w-4 h-4" />

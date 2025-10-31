@@ -221,8 +221,8 @@ export const adminApi = createApi({
     }),
     processWithdrawal: builder.mutation({
       query: ({ transactionId, status, remarks }) => ({
-        url: `/wallet/withdrawals/${transactionId}/process`,
-        method: "POST",
+        url: `/wallet/withdrawals/${transactionId}`,
+        method: "PUT",
         body: { status, remarks },
       }),
       invalidatesTags: ["Payouts"],

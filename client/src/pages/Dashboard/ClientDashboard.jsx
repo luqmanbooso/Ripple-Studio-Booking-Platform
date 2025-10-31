@@ -1,71 +1,92 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Calendar, 
-  Clock, 
-  Star, 
-  Search, 
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Calendar,
+  Clock,
+  Star,
+  Search,
   TrendingUp,
   Sparkles,
   CreditCard,
   BarChart3,
   Building,
-  Music
-} from 'lucide-react'
+  Music,
+} from "lucide-react";
 
-import Button from '../../components/ui/Button'
-import Card from '../../components/ui/Card'
-import Spinner from '../../components/ui/Spinner'
-import BookingCard from '../../components/bookings/BookingCard'
-import VerificationBanner from '../../components/common/VerificationBanner'
-import { useGetMyBookingsQuery } from '../../store/bookingApi'
-import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+import Spinner from "../../components/ui/Spinner";
+import BookingCard from "../../components/bookings/BookingCard";
+import VerificationBanner from "../../components/common/VerificationBanner";
+import { useGetMyBookingsQuery } from "../../store/bookingApi";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const ClientDashboard = () => {
-  const { user } = useSelector(state => state.auth)
-  const [filter, setFilter] = useState('all')
-  const navigate = useNavigate()
-  
-  const { data: bookingsData, isLoading } = useGetMyBookingsQuery({
+  const { user } = useSelector((state) => state.auth);
+  const [filter, setFilter] = useState("all");
+  const navigate = useNavigate();
+
+  const {
+    data: bookingsData,
+    isLoading,
+    refetch,
+  } = useGetMyBookingsQuery({
     page: 1,
     limit: 10,
-    ...(filter !== 'all' && { status: filter })
-  })
+    ...(filter !== "all" && { status: filter }),
+  });
+
+  // Listen for socket events to refetch bookings
+  useEffect(() => {
+    const handleRefetchBookings = () => {
+      console.log(
+        "ClientDashboard: Refetching bookings due to socket event..."
+      );
+      refetch();
+    };
+
+    window.addEventListener("refetch-bookings", handleRefetchBookings);
+
+    return () => {
+      window.removeEventListener("refetch-bookings", handleRefetchBookings);
+    };
+  }, [refetch]);
 
   const stats = [
     {
-      label: 'Total Bookings',
+      label: "Total Bookings",
       value: bookingsData?.data?.pagination?.total || 0,
       icon: Calendar,
-      color: 'text-primary-400'
+      color: "text-primary-400",
     },
     {
-      label: 'Upcoming',
-      value: bookingsData?.data?.bookings?.filter(b => 
-        new Date(b.start) > new Date() && b.status === 'confirmed'
-      ).length || 0,
+      label: "Upcoming",
+      value:
+        bookingsData?.data?.bookings?.filter(
+          (b) => new Date(b.start) > new Date() && b.status === "confirmed"
+        ).length || 0,
       icon: Clock,
-      color: 'text-accent-400'
+      color: "text-accent-400",
     },
     {
-      label: 'Completed',
-      value: bookingsData?.data?.bookings?.filter(b => 
-        b.status === 'completed'
-      ).length || 0,
+      label: "Completed",
+      value:
+        bookingsData?.data?.bookings?.filter((b) => b.status === "completed")
+          .length || 0,
       icon: Star,
-      color: 'text-green-400'
-    }
-  ]
+      color: "text-green-400",
+    },
+  ];
 
   const filterOptions = [
-    { value: 'all', label: 'All Bookings' },
-    { value: 'reservation_pending', label: 'Payment Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
-  ]
+    { value: "all", label: "All Bookings" },
+    { value: "reservation_pending", label: "Payment Pending" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "completed", label: "Completed" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/50 to-black relative overflow-hidden">
@@ -85,7 +106,7 @@ const ClientDashboard = () => {
           }}
           className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl"
         />
-        
+
         {/* Secondary animated gradient */}
         <motion.div
           animate={{
@@ -100,7 +121,7 @@ const ClientDashboard = () => {
           }}
           className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-full blur-3xl"
         />
-        
+
         {/* Additional accent gradients */}
         <motion.div
           animate={{
@@ -114,14 +135,14 @@ const ClientDashboard = () => {
           }}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-cyan-500/10 to-teal-500/10 rounded-full blur-3xl"
         />
-        
+
         {/* Corner accent */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-purple-500/5 to-transparent" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/5 to-transparent" />
-        
+
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
-        
+
         {/* Subtle noise texture */}
         <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxmaWx0ZXIgaWQ9Im5vaXNlIj4KICAgICAgPGZlVHVyYnVsZW5jZSBiYXNlRnJlcXVlbmN5PSIwLjkiIG51bU9jdGF2ZXM9IjQiIHNlZWQ9IjIiLz4KICAgIDwvZmlsdGVyPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIwLjQiLz4KPC9zdmc+')]" />
       </div>
@@ -141,12 +162,13 @@ const ClientDashboard = () => {
           >
             <Sparkles className="w-10 h-10 text-white" />
           </motion.div>
-          
+
           <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
             Welcome back, {user?.name}!
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Manage your studio bookings and discover amazing recording spaces for your next project
+            Manage your studio bookings and discover amazing recording spaces
+            for your next project
           </p>
         </motion.div>
 
@@ -169,13 +191,18 @@ const ClientDashboard = () => {
               {/* Background Pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/25">
                   <Building className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">Book Studios</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">Discover and reserve professional recording spaces for your next project</p>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">
+                  Book Studios
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Discover and reserve professional recording spaces for your
+                  next project
+                </p>
               </div>
             </motion.div>
           </Link>
@@ -189,13 +216,18 @@ const ClientDashboard = () => {
               {/* Background Pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/25">
                   <Search className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">Explore Studios</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">Browse all available studios and find the perfect match for your needs</p>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">
+                  Explore Studios
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Browse all available studios and find the perfect match for
+                  your needs
+                </p>
               </div>
             </motion.div>
           </Link>
@@ -209,13 +241,18 @@ const ClientDashboard = () => {
               {/* Background Pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-500/25">
                   <Music className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-300 transition-colors">Browse Genres</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">Explore studios by music genre and find specialized recording environments</p>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-300 transition-colors">
+                  Browse Genres
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Explore studios by music genre and find specialized recording
+                  environments
+                </p>
               </div>
             </motion.div>
           </Link>
@@ -229,13 +266,17 @@ const ClientDashboard = () => {
               {/* Background Pattern */}
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-orange-500/25">
                   <CreditCard className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-orange-300 transition-colors">Spending History</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">Track your booking expenses and download financial reports</p>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-orange-300 transition-colors">
+                  Spending History
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Track your booking expenses and download financial reports
+                </p>
               </div>
             </motion.div>
           </Link>
@@ -249,7 +290,7 @@ const ClientDashboard = () => {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
         >
           {stats.map((stat, index) => {
-            const Icon = stat.icon
+            const Icon = stat.icon;
             return (
               <motion.div
                 key={stat.label}
@@ -261,22 +302,30 @@ const ClientDashboard = () => {
               >
                 {/* Background gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-700/20 to-gray-800/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
+
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">{stat.label}</p>
-                    <p className="text-3xl font-bold text-white group-hover:text-gray-100 transition-colors">{stat.value}</p>
+                    <p className="text-gray-400 text-sm font-medium mb-2">
+                      {stat.label}
+                    </p>
+                    <p className="text-3xl font-bold text-white group-hover:text-gray-100 transition-colors">
+                      {stat.value}
+                    </p>
                   </div>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
-                    stat.label === 'Total Bookings' ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20' :
-                    stat.label === 'Upcoming' ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20' :
-                    'bg-gradient-to-br from-green-500/20 to-emerald-500/20'
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
+                      stat.label === "Total Bookings"
+                        ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20"
+                        : stat.label === "Upcoming"
+                          ? "bg-gradient-to-br from-blue-500/20 to-indigo-500/20"
+                          : "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                    }`}
+                  >
                     <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
               </motion.div>
-            )
+            );
           })}
         </motion.div>
 
@@ -288,8 +337,12 @@ const ClientDashboard = () => {
         >
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Your Bookings</h2>
-              <p className="text-gray-400">Track and manage your studio reservations</p>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Your Bookings
+              </h2>
+              <p className="text-gray-400">
+                Track and manage your studio reservations
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               <select
@@ -297,8 +350,12 @@ const ClientDashboard = () => {
                 onChange={(e) => setFilter(e.target.value)}
                 className="bg-gray-800/50 border border-gray-700/50 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-sm transition-all duration-300 hover:bg-gray-700/50 min-w-[160px]"
               >
-                {filterOptions.map(option => (
-                  <option key={option.value} value={option.value} className="bg-gray-800 text-white">
+                {filterOptions.map((option) => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    className="bg-gray-800 text-white"
+                  >
                     {option.label}
                   </option>
                 ))}
@@ -313,23 +370,25 @@ const ClientDashboard = () => {
           ) : bookingsData?.data?.bookings?.length > 0 ? (
             <div className="space-y-4">
               {bookingsData.data.bookings.map((booking) => {
-                const provider = booking.artist || booking.studio
-                const providerType = booking.artist ? 'artist' : 'studio'
-                const providerName = provider?.user?.name || provider?.name
+                const provider = booking.artist || booking.studio;
+                const providerType = booking.artist ? "artist" : "studio";
+                const providerName = provider?.user?.name || provider?.name;
                 const statusColors = {
-                  confirmed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-                  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-                  cancelled: 'bg-red-500/20 text-red-400 border-red-500/30',
-                  payment_pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                }
+                  confirmed: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                  completed:
+                    "bg-green-500/20 text-green-400 border-green-500/30",
+                  cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+                  payment_pending:
+                    "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+                };
 
                 return (
-                  <BookingCard 
-                    key={booking._id} 
-                    booking={booking} 
+                  <BookingCard
+                    key={booking._id}
+                    booking={booking}
                     userRole="client"
                   />
-                )
+                );
               })}
             </div>
           ) : (
@@ -346,8 +405,13 @@ const ClientDashboard = () => {
               >
                 <Calendar className="w-10 h-10 text-purple-400" />
               </motion.div>
-              <h3 className="text-2xl font-bold text-white mb-3">No bookings yet</h3>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">Start your musical journey by discovering and booking professional recording studios</p>
+              <h3 className="text-2xl font-bold text-white mb-3">
+                No bookings yet
+              </h3>
+              <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                Start your musical journey by discovering and booking
+                professional recording studios
+              </p>
               <Link to="/search?type=studios">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -361,11 +425,10 @@ const ClientDashboard = () => {
               </Link>
             </motion.div>
           )}
-
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ClientDashboard
+export default ClientDashboard;

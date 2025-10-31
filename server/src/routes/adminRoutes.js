@@ -1,5 +1,6 @@
 const express = require("express");
 const { z } = require("zod");
+const { body, validationResult } = require("express-validator");
 const adminController = require("../controllers/adminController");
 const walletController = require("../controllers/walletController");
 const { authenticate } = require("../middleware/auth");
@@ -7,6 +8,22 @@ const { allowRoles } = require("../middleware/rbac");
 const { validate, pagination } = require("../middleware/validate");
 
 const router = express.Router();
+
+// Validation result handler for express-validator
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      status: "error",
+      message: "Validation failed",
+      errors: errors.array().map((err) => ({
+        field: err.path || err.param,
+        message: err.msg,
+      })),
+    });
+  }
+  next();
+};
 
 // All admin routes require authentication and admin role
 router.use(authenticate);
@@ -107,8 +124,18 @@ router.delete("/studios/:id", adminController.deleteStudio);
 
 // Wallet/Payout Management
 router.get("/wallet/withdrawals", walletController.getWithdrawalRequests);
-router.post(
-  "/wallet/withdrawals/:transactionId/process",
+router.put(
+  "/wallet/withdrawals/:transactionId",
+  [
+    body("status")
+      .isIn(["completed", "failed"])
+      .withMessage("Status must be either 'completed' or 'failed'"),
+    body("remarks")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Remarks must be less than 500 characters"),
+  ],
+  handleValidationErrors,
   walletController.processWithdrawal
 );
 
